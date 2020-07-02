@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.7.27, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.30, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: rif_notifier
+-- Host: localhost    Database: notifierone
 -- ------------------------------------------------------
--- Server version	5.7.27-0ubuntu0.18.04.1
+-- Server version	5.7.30-0ubuntu0.18.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,6 +16,23 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `chainaddress_event`
+--
+
+DROP TABLE IF EXISTS `chainaddress_event`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `chainaddress_event` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nodehash` varchar(250) DEFAULT NULL,
+  `event_name` varchar(45) DEFAULT NULL,
+  `chain` varchar(100) DEFAULT NULL,
+  `address` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=479 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `datafetcher`
 --
 
@@ -26,7 +43,7 @@ CREATE TABLE `datafetcher` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `last_block` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -97,7 +114,7 @@ CREATE TABLE `notification` (
   `data` varchar(1000) NOT NULL,
   `id_topic` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=96155 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -200,7 +217,7 @@ CREATE TABLE `subscription` (
   `state` varchar(45) NOT NULL,
   `notification_balance` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -271,17 +288,8 @@ CREATE TABLE `topic` (
   `type` enum('NEW_BLOCK','NEW_TRANSACTIONS','PENDING_TRANSACTIONS','CONTRACT_EVENT') NOT NULL,
   `hash` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `topic`
---
-
-LOCK TABLES `topic` WRITE;
-/*!40000 ALTER TABLE `topic` DISABLE KEYS */;
-/*!40000 ALTER TABLE `topic` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `topic_params`
@@ -298,19 +306,10 @@ CREATE TABLE `topic_params` (
   `param_order` int(11) DEFAULT '0',
   `value_type` varchar(45) DEFAULT 'string',
   `is_indexed` tinyint(4) DEFAULT '0',
-  `filter` varchar(45) DEFAULT NULL,
+  `filter` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `topic_params`
---
-
-LOCK TABLES `topic_params` WRITE;
-/*!40000 ALTER TABLE `topic_params` DISABLE KEYS */;
-/*!40000 ALTER TABLE `topic_params` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `user_topic`
@@ -324,15 +323,6 @@ CREATE TABLE `user_topic` (
   `id_subscription` varchar(45) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `user_topic`
---
-
-LOCK TABLES `user_topic` WRITE;
-/*!40000 ALTER TABLE `user_topic` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user_topic` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -343,4 +333,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-12-16 15:26:03
+-- Dump completed on 2020-07-02 14:44:08

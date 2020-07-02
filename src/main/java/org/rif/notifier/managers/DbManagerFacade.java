@@ -4,6 +4,8 @@ import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.managers.datamanagers.*;
 import org.rif.notifier.models.entities.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class DbManagerFacade {
+    private static final Logger logger = LoggerFactory.getLogger(DbManagerFacade.class);
+
     @Autowired
     private RawDataManager rawDataManager;
 
@@ -36,13 +40,16 @@ public class DbManagerFacade {
     private NotifEntityManager notifEntityManager;
 
     @Autowired
+    private ChainAddressManager chainAddressManager;
+
+    @Autowired
     private UserManager userManager;
 
     @Autowired
     private DataFetcherManager dataFetcherManager;
 
     public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic){
-       return rawDataManager.insert(type,data,processed, block, idTopic);
+        return rawDataManager.insert(type,data,processed, block, idTopic);
     }
 
     @Transactional
@@ -163,6 +170,18 @@ public class DbManagerFacade {
             return notifEntityManager.getNotificationsByUserAddress(user_address);
     }
 
+    public List<ChainAddressEvent> getChainAddresses(String nodehash, Set<String> eventName){
+        if(nodehash != null && eventName != null && eventName.size() > 0) {
+            return chainAddressManager.getChainAddressesByNodehashAndEventname(nodehash, eventName);
+        } else if(nodehash != null) {
+            return chainAddressManager.getChainAddressesByNodehash(nodehash);
+        } else if(eventName != null && eventName.size() > 0) {
+            return chainAddressManager.getChainAddressesByEventname(eventName);
+        } else {
+            return chainAddressManager.getChainAddresses();
+        }
+    }
+
     public User saveUser(String address, String apiKey){
         return userManager.insert(address, apiKey);
     }
@@ -179,7 +198,22 @@ public class DbManagerFacade {
         return dataFetcherManager.insert(lastBlock);
     }
 
+    public DataFetcherEntity saveLastBlockChainAdddresses(BigInteger lastBlock){
+        return dataFetcherManager.insertLastBlockChainAddress(lastBlock);
+    }
+
     public BigInteger getLastBlock(){
         return dataFetcherManager.get();
+    }
+
+    public BigInteger getLastBlockForChainAddresses(){
+        return dataFetcherManager.getBlockChainAddresses();
+    }
+
+    @Transactional
+    public List<ChainAddressEvent> saveChainAddressesEvents(List<ChainAddressEvent> chainAddressEvents){
+        return chainAddressEvents.stream().map(chainAddressEvent ->
+                chainAddressManager.insert(chainAddressEvent.getNodehash(), chainAddressEvent.getEventName(), chainAddressEvent.getChain(), chainAddressEvent.getAddress())
+        ).collect(Collectors.toList());
     }
 }
