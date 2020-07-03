@@ -176,7 +176,9 @@ public class DataFetchingJob {
                         }
                     });
                 });
-                fetchedTokens = true;
+                if (luminoEventServices.getTokens().size() > 0) {
+                    fetchedTokens = true;
+                }
             }
         }else{
             logger.info(Thread.currentThread().getId() + " - Nothing to fetch yet -");
@@ -349,7 +351,7 @@ public class DataFetchingJob {
      * @return EthereumBasedListenable to get tokens
      */
     private EthereumBasedListenable getTokensNetwork(){
-        return new EthereumBasedListenable(multiChainContract, EthereumBasedListenableTypes.CONTRACT_EVENT, Arrays.asList(
+        return new EthereumBasedListenable(tokenNetworkRegistry, EthereumBasedListenableTypes.CONTRACT_EVENT, Arrays.asList(
                 new TypeReference<Address>(true) {},
                 new TypeReference<Address>(true) {}
         ), "TokenNetworkCreated", -1);
