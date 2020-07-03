@@ -229,7 +229,7 @@ public class SubscribeController {
                     Topic closeChannelTopic = luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closingParticipant);
                     Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(closeChannelTopic, sub.getId());
                     if(topic == null) {
-                        resp.setMessage("{\"topicId\": " + subscribeServices.subscribeToTopic(closeChannelTopic, sub) + "}");
+                        resp.setData("{\"topicId\": " + subscribeServices.subscribeToTopic(closeChannelTopic, sub) + "}");
                     }else{
                         //Return an error because the user is sending a topic that he's already subscribed
                         resp.setMessage(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC);
