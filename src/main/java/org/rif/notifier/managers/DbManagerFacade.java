@@ -128,6 +128,10 @@ public class DbManagerFacade {
         return topicManager.getTopicByHashCode(hash);
     }
 
+    public RawData getRawdataByHashCode(int hash){
+        return rawDataManager.getRawdataByHashCode(hash);
+    }
+
     public Topic getTopicByHashCodeAndIdSubscription(int hash, int idSubscription){
         return topicManager.getTopicByHashCodeAndIdSubscription(hash, idSubscription);
     }
@@ -180,6 +184,10 @@ public class DbManagerFacade {
         } else {
             return chainAddressManager.getChainAddresses();
         }
+    }
+
+    public ChainAddressEvent getChainAddressEventByHashCode(int hash){
+        return chainAddressManager.getChainAddressEventByHashCode(hash);
     }
 
     public User saveUser(String address, String apiKey){

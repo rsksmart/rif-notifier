@@ -1,5 +1,7 @@
 package org.rif.notifier.models.entities;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.persistence.*;
 
 @Entity
@@ -17,6 +19,8 @@ public class ChainAddressEvent {
     private String chain;
 
     private String address;
+
+    private int hashCode;
 
     public ChainAddressEvent() {}
 
@@ -65,5 +69,23 @@ public class ChainAddressEvent {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public int getHashChainaddress() {
+        return hashCode;
+    }
+
+    public void setHashChainaddress(int hashCode) {
+        this.hashCode = hashCode;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(nodehash)
+                .append(eventName)
+                .append(chain)
+                .append(address)
+                .toHashCode();
     }
 }

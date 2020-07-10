@@ -12,5 +12,7 @@ public interface RawDataRepositorty extends JpaRepository<RawData, String> {
     public List<RawData> findByTypeAndProcessed(String type, boolean processed);
 
     public List<RawData> findByProcessed(boolean processed);
+
+    public RawData findByDataHash(int hashCode);
 }
 

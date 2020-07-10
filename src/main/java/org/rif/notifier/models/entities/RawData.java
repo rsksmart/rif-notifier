@@ -2,6 +2,7 @@ package org.rif.notifier.models.entities;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import javax.persistence.*;
 import java.math.BigInteger;
 
@@ -23,6 +24,9 @@ public class RawData {
 
     @Column(name = "id_topic")
     private int idTopic;
+
+    @Column(name = "data_hash")
+    private int dataHash;
 
     public RawData(){}
 
@@ -88,5 +92,23 @@ public class RawData {
 
     public void setIdTopic(int idTopic) {
         this.idTopic = idTopic;
+    }
+
+    public int getDataHash() {
+        return dataHash;
+    }
+
+    public void setDataHash(int dataHash) {
+        this.dataHash = dataHash;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(idTopic)
+                .append(block)
+                .append(type)
+                .append(data)
+                .toHashCode();
     }
 }

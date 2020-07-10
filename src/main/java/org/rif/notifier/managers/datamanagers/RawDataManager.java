@@ -50,4 +50,8 @@ public class RawDataManager {
         rawDataRepositorty.findByProcessed(processed).forEach(lst::add);
         return lst;
     }
+
+    public RawData getRawdataByHashCode(int hashCode){
+        return rawDataRepositorty.findByDataHash(hashCode);
+    }
 }
