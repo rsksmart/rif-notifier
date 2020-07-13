@@ -115,26 +115,28 @@ public class DataFetchingJob {
             dbManagerFacade.saveLastBlock(to);
 
 
+            BigInteger finalFrom = from;
             blockTasks.forEach(listCompletableFuture -> {
                 listCompletableFuture.whenComplete((fetchedBlocks, throwable) -> {
                     long end = System.currentTimeMillis();
                     logger.info(Thread.currentThread().getId() + " - End fetching blocks task = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching blocks, Size: " + fetchedBlocks.size());
                     if(throwable != null) {
-                        dbManagerFacade.saveLastBlock(from);
-                    }
-                    List<RawData> rawTrs = fetchedBlocks.stream().map(fetchedBlock ->
-                    {
-                        RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_BLOCK.toString(), fetchedBlock.toString(), false, fetchedBlock.getBlock().getNumber(), fetchedBlock.getTopicId());
-                        rwDt.setDataHash(rwDt.hashCode());
-                        if (dbManagerFacade.getRawdataByHashCode(rwDt.getDataHash()) == null) {
-                            return rwDt;
-                        }
-                        return null;
+                        dbManagerFacade.saveLastBlock(finalFrom);
+                    } else {
+                        List<RawData> rawTrs = fetchedBlocks.stream().map(fetchedBlock ->
+                        {
+                            RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_BLOCK.toString(), fetchedBlock.toString(), false, fetchedBlock.getBlock().getNumber(), fetchedBlock.getTopicId());
+                            rwDt.setDataHash(rwDt.hashCode());
+                            if (dbManagerFacade.getRawdataByHashCode(rwDt.getDataHash()) == null) {
+                                return rwDt;
+                            }
+                            return null;
 
-                    }).collect(Collectors.toList());
-                    if (!rawTrs.isEmpty()) {
-                        dbManagerFacade.saveRawDataBatch(rawTrs);
+                        }).collect(Collectors.toList());
+                        if (!rawTrs.isEmpty()) {
+                            dbManagerFacade.saveRawDataBatch(rawTrs);
+                        }
                     }
                 });
             });
@@ -145,18 +147,19 @@ public class DataFetchingJob {
                     logger.info(Thread.currentThread().getId() + " - End fetching transactions task = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching transactions, size: " + fetchedTransactions.size());
                     if(throwable != null) {
-                        dbManagerFacade.saveLastBlock(from);
-                    }
-                    List<RawData> rawTrs = fetchedTransactions.stream().map(fetchedTransaction -> {
-                        RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_TRANSACTIONS.toString(), fetchedTransaction.toString(), false, fetchedTransaction.getTransaction().getBlockNumber(), fetchedTransaction.getTopicId());
-                        rwDt.setDataHash(rwDt.hashCode());
-                        if (dbManagerFacade.getRawdataByHashCode(rwDt.getDataHash()) == null) {
-                            return rwDt;
+                        dbManagerFacade.saveLastBlock(finalFrom);
+                    } else {
+                        List<RawData> rawTrs = fetchedTransactions.stream().map(fetchedTransaction -> {
+                            RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_TRANSACTIONS.toString(), fetchedTransaction.toString(), false, fetchedTransaction.getTransaction().getBlockNumber(), fetchedTransaction.getTopicId());
+                            rwDt.setDataHash(rwDt.hashCode());
+                            if (dbManagerFacade.getRawdataByHashCode(rwDt.getDataHash()) == null) {
+                                return rwDt;
+                            }
+                            return null;
+                        }).collect(Collectors.toList());
+                        if (!rawTrs.isEmpty()) {
+                            dbManagerFacade.saveRawDataBatch(rawTrs);
                         }
-                        return null;
-                    }).collect(Collectors.toList());
-                    if (!rawTrs.isEmpty()) {
-                        dbManagerFacade.saveRawDataBatch(rawTrs);
                     }
                 });
             });
@@ -167,16 +170,17 @@ public class DataFetchingJob {
                     logger.info(Thread.currentThread().getId() + " - End fetching events task = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching events, size: " + fetchedEvents.size());
                     if(throwable != null) {
-                        dbManagerFacade.saveLastBlock(from);
+                        dbManagerFacade.saveLastBlock(finalFrom);
+                    } else {
+                        //Check if tokens were registered we can filter by idTopic -1
+                        if (fetchedTokens) {
+                            fetchedEvents.stream().filter(item -> item.getTopicId() == -1).forEach(item -> {
+                                //if(luminoEventServices.isToken())
+                                luminoEventServices.addToken(item.getValues().get(1).getValue().toString());
+                            });
+                        }
+                        processFetchedEvents(fetchedEvents);
                     }
-                    //Check if tokens were registered we can filter by idTopic -1
-                    if (fetchedTokens) {
-                        fetchedEvents.stream().filter(item -> item.getTopicId() == -1).forEach(item -> {
-                            //if(luminoEventServices.isToken())
-                            luminoEventServices.addToken(item.getValues().get(1).getValue().toString());
-                        });
-                    }
-                    processFetchedEvents(fetchedEvents);
                 });
             });
             ///////////////////////////////////Token Registry extract///////////////////////////////////////////
@@ -215,6 +219,7 @@ public class DataFetchingJob {
         chainAddresses.add(rskBlockchainService.getContractEvents(getAddrChanged(), fromChainAddresses, to));
         chainAddresses.add(rskBlockchainService.getContractEvents(getChainAddrChanged(), fromChainAddresses, to));
 
+        BigInteger finalFromChainAddresses = fromChainAddresses;
         chainAddresses.forEach(listCompletableFuture -> {
             listCompletableFuture.whenComplete((fetchedEvents, throwable) -> {
                 List<ChainAddressEvent> chainsEvents = new ArrayList<>();
@@ -222,35 +227,36 @@ public class DataFetchingJob {
                 logger.info(Thread.currentThread().getId() + " - End fetching chainaddres = " + (end - start));
                 logger.info(Thread.currentThread().getId() + " - Completed fetching chainaddresses: " + fetchedEvents.size());
                 if(throwable != null) {
-                    dbManagerFacade.saveLastBlock(fromChainAddresses);
-                }
-                // I need to filter by topics, cause here we have chainaddresses events for RSK and other chains that has different params in the event
-                fetchedEvents.stream().filter(item -> item.getTopicId() == -2).forEach(item -> {
-                    // RSK AddrChanged event
-                    String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
-                    String eventName = "AddrChanged";
-                    String address = item.getValues().get(1).getValue().toString();
-                    ChainAddressEvent rskChain = new ChainAddressEvent(nodehash, eventName, RSK_SLIP_ADDRESS, address);
-                    rskChain.setHashChainaddress(rskChain.hashCode());
-                    if (dbManagerFacade.getChainAddressEventByHashCode(rskChain.getHashChainaddress()) == null) {
-                        chainsEvents.add(rskChain);
-                    }
-                });
-                fetchedEvents.stream().filter(item -> item.getTopicId() == -3).forEach(item -> {
-                    // ChainAddrChanged event
-                    String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
-                    String chain = Numeric.toHexString((byte[]) item.getValues().get(1).getValue());
-                    String address = item.getValues().get(2).getValue().toString();
-                    String eventName = "ChainAddrChanged";
-                    ChainAddressEvent chainAddr = new ChainAddressEvent(nodehash, eventName, chain, address);
-                    chainAddr.setHashChainaddress(chainAddr.hashCode());
-                    if (dbManagerFacade.getChainAddressEventByHashCode(chainAddr.getHashChainaddress()) == null) {
-                        chainsEvents.add(chainAddr);
-                    }
-                });
+                    dbManagerFacade.saveLastBlock(finalFromChainAddresses);
+                } else {
+                    // I need to filter by topics, cause here we have chainaddresses events for RSK and other chains that has different params in the event
+                    fetchedEvents.stream().filter(item -> item.getTopicId() == -2).forEach(item -> {
+                        // RSK AddrChanged event
+                        String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
+                        String eventName = "AddrChanged";
+                        String address = item.getValues().get(1).getValue().toString();
+                        ChainAddressEvent rskChain = new ChainAddressEvent(nodehash, eventName, RSK_SLIP_ADDRESS, address);
+                        rskChain.setHashChainaddress(rskChain.hashCode());
+                        if (dbManagerFacade.getChainAddressEventByHashCode(rskChain.getHashChainaddress()) == null) {
+                            chainsEvents.add(rskChain);
+                        }
+                    });
+                    fetchedEvents.stream().filter(item -> item.getTopicId() == -3).forEach(item -> {
+                        // ChainAddrChanged event
+                        String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
+                        String chain = Numeric.toHexString((byte[]) item.getValues().get(1).getValue());
+                        String address = item.getValues().get(2).getValue().toString();
+                        String eventName = "ChainAddrChanged";
+                        ChainAddressEvent chainAddr = new ChainAddressEvent(nodehash, eventName, chain, address);
+                        chainAddr.setHashChainaddress(chainAddr.hashCode());
+                        if (dbManagerFacade.getChainAddressEventByHashCode(chainAddr.getHashChainaddress()) == null) {
+                            chainsEvents.add(chainAddr);
+                        }
+                    });
 
-                if (!chainsEvents.isEmpty()) {
-                    dbManagerFacade.saveChainAddressesEvents(chainsEvents);
+                    if (!chainsEvents.isEmpty()) {
+                        dbManagerFacade.saveChainAddressesEvents(chainsEvents);
+                    }
                 }
             });
         });
