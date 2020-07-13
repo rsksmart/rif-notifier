@@ -20,7 +20,8 @@ public class ChainAddressEvent {
 
     private String address;
 
-    private int hashCode;
+    @Column(name = "hash_code")
+    private int hashcode;
 
     public ChainAddressEvent() {}
 
@@ -29,6 +30,14 @@ public class ChainAddressEvent {
         this.eventName = eventName;
         this.chain = chain;
         this.address = address;
+    }
+
+    public ChainAddressEvent(String nodehash, String eventName, String chain, String address, int hashcode) {
+        this.nodehash = nodehash;
+        this.eventName = eventName;
+        this.chain = chain;
+        this.address = address;
+        this.hashcode = hashcode;
     }
 
     public int getId() {
@@ -72,11 +81,11 @@ public class ChainAddressEvent {
     }
 
     public int getHashChainaddress() {
-        return hashCode;
+        return hashcode;
     }
 
-    public void setHashChainaddress(int hashCode) {
-        this.hashCode = hashCode;
+    public void setHashChainaddress(int hashcode) {
+        this.hashcode = hashcode;
     }
 
     @Override

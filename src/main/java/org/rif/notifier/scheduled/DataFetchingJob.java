@@ -127,8 +127,8 @@ public class DataFetchingJob {
                         List<RawData> rawTrs = fetchedBlocks.stream().map(fetchedBlock ->
                         {
                             RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_BLOCK.toString(), fetchedBlock.toString(), false, fetchedBlock.getBlock().getNumber(), fetchedBlock.getTopicId());
-                            rwDt.setDataHash(rwDt.hashCode());
-                            if (dbManagerFacade.getRawdataByHashCode(rwDt.getDataHash()) == null) {
+                            rwDt.setHashcode(rwDt.hashCode());
+                            if (dbManagerFacade.getRawdataByHashcode(rwDt.getHashcode()) == null) {
                                 return rwDt;
                             }
                             return null;
@@ -151,8 +151,8 @@ public class DataFetchingJob {
                     } else {
                         List<RawData> rawTrs = fetchedTransactions.stream().map(fetchedTransaction -> {
                             RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_TRANSACTIONS.toString(), fetchedTransaction.toString(), false, fetchedTransaction.getTransaction().getBlockNumber(), fetchedTransaction.getTopicId());
-                            rwDt.setDataHash(rwDt.hashCode());
-                            if (dbManagerFacade.getRawdataByHashCode(rwDt.getDataHash()) == null) {
+                            rwDt.setHashcode(rwDt.hashCode());
+                            if (dbManagerFacade.getRawdataByHashcode(rwDt.getHashcode()) == null) {
                                 return rwDt;
                             }
                             return null;
@@ -237,7 +237,7 @@ public class DataFetchingJob {
                         String address = item.getValues().get(1).getValue().toString();
                         ChainAddressEvent rskChain = new ChainAddressEvent(nodehash, eventName, RSK_SLIP_ADDRESS, address);
                         rskChain.setHashChainaddress(rskChain.hashCode());
-                        if (dbManagerFacade.getChainAddressEventByHashCode(rskChain.getHashChainaddress()) == null) {
+                        if (dbManagerFacade.getChainAddressEventByHashcode(rskChain.getHashChainaddress()) == null) {
                             chainsEvents.add(rskChain);
                         }
                     });
@@ -249,7 +249,7 @@ public class DataFetchingJob {
                         String eventName = "ChainAddrChanged";
                         ChainAddressEvent chainAddr = new ChainAddressEvent(nodehash, eventName, chain, address);
                         chainAddr.setHashChainaddress(chainAddr.hashCode());
-                        if (dbManagerFacade.getChainAddressEventByHashCode(chainAddr.getHashChainaddress()) == null) {
+                        if (dbManagerFacade.getChainAddressEventByHashcode(chainAddr.getHashChainaddress()) == null) {
                             chainsEvents.add(chainAddr);
                         }
                     });
@@ -275,8 +275,6 @@ public class DataFetchingJob {
         List<RawData> rawEvts = new ArrayList<>();
         fetchedEvents.forEach(fetchedEvent -> {
             try {
-                if(fetchedEvent.getValues().get(2).getValue().equals("0x2f548d54b2f32498638759caee36e6a51fac2ae8"))
-                    logger.info(Thread.currentThread().getId() + " - Debug -");
                 String rawEvent = mapper.writeValueAsString(fetchedEvent);
                 EventRawData rwDt = mapper.readValue(rawEvent, EventRawData.class);
                 List<Subscription> subs = dbManagerFacade.findByContractAddressAndSubscriptionActive(rwDt.getContractAddress());
@@ -326,14 +324,14 @@ public class DataFetchingJob {
                             if (rawEvts.size() > 0) {
                                 //Rawdata was not added and need to be added
                                 if (rawEvts.stream().noneMatch(raw -> raw.getBlock().equals(newItem.getBlock()) && raw.getIdTopic() == tp.getId() && raw.getData().equals(newItem.getData()))) {
-                                    newItem.setDataHash(newItem.hashCode());
-                                    if (dbManagerFacade.getRawdataByHashCode(newItem.getDataHash()) == null) {
+                                    newItem.setHashcode(newItem.hashCode());
+                                    if (dbManagerFacade.getRawdataByHashcode(newItem.getHashcode()) == null) {
                                         rawEvts.add(newItem);
                                     }
                                 }
                             } else {
-                                newItem.setDataHash(newItem.hashCode());
-                                if (dbManagerFacade.getRawdataByHashCode(newItem.getDataHash()) == null) {
+                                newItem.setHashcode(newItem.hashCode());
+                                if (dbManagerFacade.getRawdataByHashcode(newItem.getHashcode()) == null) {
                                     rawEvts.add(newItem);
                                 }
                             }

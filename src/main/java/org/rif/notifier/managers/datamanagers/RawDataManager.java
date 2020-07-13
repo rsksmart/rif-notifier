@@ -15,8 +15,8 @@ public class RawDataManager {
     @Autowired
     private RawDataRepositorty rawDataRepositorty;
 
-    public RawData insert(String type, String data, boolean processed, BigInteger block, int idTopic){
-        RawData rd = new RawData(type, data, processed, block, idTopic);
+    public RawData insert(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode){
+        RawData rd = new RawData(type, data, processed, block, idTopic, hashcode);
         RawData result = rawDataRepositorty.save(rd);
         return result;
     }
@@ -51,7 +51,7 @@ public class RawDataManager {
         return lst;
     }
 
-    public RawData getRawdataByHashCode(int hashCode){
-        return rawDataRepositorty.findByDataHash(hashCode);
+    public RawData getRawdataByHashcode(int hashCode){
+        return rawDataRepositorty.findByHashcode(hashCode);
     }
 }

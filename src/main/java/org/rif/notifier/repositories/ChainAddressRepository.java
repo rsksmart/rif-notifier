@@ -14,5 +14,5 @@ public interface ChainAddressRepository extends JpaRepository<ChainAddressEvent,
 
     List<ChainAddressEvent> findAllByEventNameIn(Set<String> eventName, Pageable pageable);
 
-    ChainAddressEvent findByHashCode(int hashCode);
+    ChainAddressEvent findByHashcode(int hashcode);
 }
