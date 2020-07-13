@@ -25,8 +25,8 @@ public class RawData {
     @Column(name = "id_topic")
     private int idTopic;
 
-    @Column(name = "hash_code")
-    private int hashcode;
+    @Column(name = "row_hash_code")
+    private String rowhashcode;
 
     public RawData(){}
 
@@ -37,13 +37,13 @@ public class RawData {
         this.block = block;
         this.idTopic = idTopic;
     }
-    public RawData(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode) {
+    public RawData(String type, String data, boolean processed, BigInteger block, int idTopic, String rowhashcode) {
         this.type = type;
         this.data = data;
         this.processed = processed;
         this.block = block;
         this.idTopic = idTopic;
-        this.hashcode = hashcode;
+        this.rowhashcode = rowhashcode;
     }
     public RawData(String id, String type, String data, boolean processed, BigInteger block, int idTopic) {
         this.id = id;
@@ -52,6 +52,15 @@ public class RawData {
         this.processed = processed;
         this.block = block;
         this.idTopic = idTopic;
+    }
+    public RawData(String id, String type, String data, boolean processed, BigInteger block, int idTopic, String rowhashcode) {
+        this.id = id;
+        this.type = type;
+        this.data = data;
+        this.processed = processed;
+        this.block = block;
+        this.idTopic = idTopic;
+        this.rowhashcode = rowhashcode;
     }
 
     public String getId() {
@@ -102,12 +111,12 @@ public class RawData {
         this.idTopic = idTopic;
     }
 
-    public int getHashcode() {
-        return hashcode;
+    public String getRowhashcode() {
+        return rowhashcode;
     }
 
-    public void setHashcode(int hashcode) {
-        this.hashcode = hashcode;
+    public void setRowhashcode(String rowhashcode) {
+        this.rowhashcode = rowhashcode;
     }
 
     @Override

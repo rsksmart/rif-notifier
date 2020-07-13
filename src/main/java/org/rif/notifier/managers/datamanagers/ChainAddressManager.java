@@ -2,7 +2,6 @@ package org.rif.notifier.managers.datamanagers;
 
 import org.rif.notifier.managers.NotificationManager;
 import org.rif.notifier.models.entities.ChainAddressEvent;
-import org.rif.notifier.models.entities.RawData;
 import org.rif.notifier.repositories.ChainAddressRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +52,6 @@ public class ChainAddressManager {
     }
 
     public ChainAddressEvent getChainAddressEventByHashcode(int hashCode){
-        return chainAddressRepository.findByHashcode(hashCode);
+        return chainAddressRepository.findByRowhashcode(hashCode);
     }
 }

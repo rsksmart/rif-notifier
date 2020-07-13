@@ -1,7 +1,10 @@
 package org.rif.notifier.managers.datamanagers;
 
+import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.entities.RawData;
 import org.rif.notifier.repositories.RawDataRepositorty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,17 +15,19 @@ import java.util.List;
 @Service
 public class RawDataManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(RawDataManager.class);
+
     @Autowired
     private RawDataRepositorty rawDataRepositorty;
 
-    public RawData insert(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode){
+    public RawData insert(String type, String data, boolean processed, BigInteger block, int idTopic, String hashcode){
         RawData rd = new RawData(type, data, processed, block, idTopic, hashcode);
         RawData result = rawDataRepositorty.save(rd);
         return result;
     }
 
-    public RawData update(String id, String type, String data, boolean processed, BigInteger block, int idTopic){
-        RawData rd = new RawData(id, type, data, processed, block, idTopic);
+    public RawData update(String id, String type, String data, boolean processed, BigInteger block, int idTopic, String hashcode){
+        RawData rd = new RawData(id, type, data, processed, block, idTopic, hashcode);
         RawData result = rawDataRepositorty.save(rd);
         return result;
     }
@@ -46,12 +51,10 @@ public class RawDataManager {
     }
 
     public List<RawData> getRawDataByProcessed(boolean processed){
-        List<RawData> lst = new ArrayList<>();
-        rawDataRepositorty.findByProcessed(processed).forEach(lst::add);
-        return lst;
+        return rawDataRepositorty.findByProcessed(processed);
     }
 
-    public RawData getRawdataByHashcode(int hashCode){
-        return rawDataRepositorty.findByHashcode(hashCode);
+    public RawData getRawdataByHashcode(String hashCode){
+        return rawDataRepositorty.findByRowhashcode(hashCode);
     }
 }

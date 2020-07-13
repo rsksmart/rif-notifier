@@ -3,10 +3,12 @@ package org.rif.notifier.repositories;
 import org.rif.notifier.models.entities.ChainAddressEvent;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Set;
 
+@Repository
 public interface ChainAddressRepository extends JpaRepository<ChainAddressEvent, String> {
     List<ChainAddressEvent> findAllByNodehashAndEventNameIn(String nodehash, Set<String> eventName, Pageable pageable);
 
@@ -14,5 +16,5 @@ public interface ChainAddressRepository extends JpaRepository<ChainAddressEvent,
 
     List<ChainAddressEvent> findAllByEventNameIn(Set<String> eventName, Pageable pageable);
 
-    ChainAddressEvent findByHashcode(int hashcode);
+    ChainAddressEvent findByRowhashcode(int hashcode);
 }

@@ -48,18 +48,18 @@ public class DbManagerFacade {
     @Autowired
     private DataFetcherManager dataFetcherManager;
 
-    public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode){
+    public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic, String hashcode){
         return rawDataManager.insert(type,data,processed, block, idTopic, hashcode);
     }
 
     @Transactional
     public List<RawData> saveRawDataBatch(List<RawData> rawData){
-        return rawData.stream().map(rawData1 -> rawDataManager.insert(rawData1.getType(), rawData1.getData(), rawData1.isProcessed(), rawData1.getBlock(), rawData1.getIdTopic(), rawData1.getHashcode())).collect(Collectors.toList());
+        return rawData.stream().map(rawData1 -> rawDataManager.insert(rawData1.getType(), rawData1.getData(), rawData1.isProcessed(), rawData1.getBlock(), rawData1.getIdTopic(), rawData1.getRowhashcode())).collect(Collectors.toList());
     }
 
     @Transactional
     public List<RawData> updateRawDataBatch(List<RawData> rawData){
-        return rawData.stream().map(rawData1 -> rawDataManager.update(rawData1.getId(), rawData1.getType(), rawData1.getData(), rawData1.isProcessed(), rawData1.getBlock(), rawData1.getIdTopic())).collect(Collectors.toList());
+        return rawData.stream().map(rawData1 -> rawDataManager.update(rawData1.getId(), rawData1.getType(), rawData1.getData(), rawData1.isProcessed(), rawData1.getBlock(), rawData1.getIdTopic(), rawData1.getRowhashcode())).collect(Collectors.toList());
     }
 
     public List<RawData> getAllRawData(){
@@ -128,7 +128,7 @@ public class DbManagerFacade {
         return topicManager.getTopicByHashCode(hash);
     }
 
-    public RawData getRawdataByHashcode(int hashcode){
+    public RawData getRawdataByHashcode(String hashcode){
         return rawDataManager.getRawdataByHashcode(hashcode);
     }
 
@@ -221,7 +221,7 @@ public class DbManagerFacade {
     @Transactional
     public List<ChainAddressEvent> saveChainAddressesEvents(List<ChainAddressEvent> chainAddressEvents){
         return chainAddressEvents.stream().map(chainAddressEvent ->
-                chainAddressManager.insert(chainAddressEvent.getNodehash(), chainAddressEvent.getEventName(), chainAddressEvent.getChain(), chainAddressEvent.getAddress(), chainAddressEvent.getHashChainaddress())
+                chainAddressManager.insert(chainAddressEvent.getNodehash(), chainAddressEvent.getEventName(), chainAddressEvent.getChain(), chainAddressEvent.getAddress(), chainAddressEvent.getRowhashcode())
         ).collect(Collectors.toList());
     }
 }

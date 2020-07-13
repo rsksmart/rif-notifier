@@ -89,7 +89,9 @@ public class DataProcessorJob {
         logger.info(Thread.currentThread().getId() + String.format(" - Rawdata to mark as processed - %d", processedRows.size()));
         if (processedRows.size() > 0) {
             //Now i need to mark all processed raw data
-            processedRows.forEach(item -> item.setProcessed(true));
+            processedRows.forEach(item -> {
+                item.setProcessed(true);
+            });
             dbManagerFacade.updateRawDataBatch(processedRows);
             logger.info(Thread.currentThread().getId() + " - Rawdata settled as processed -");
         }
