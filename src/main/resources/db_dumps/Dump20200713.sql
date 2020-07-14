@@ -28,8 +28,9 @@ CREATE TABLE `chainaddress_event` (
   `event_name` varchar(45) DEFAULT NULL,
   `chain` varchar(100) DEFAULT NULL,
   `address` varchar(100) DEFAULT NULL,
+  `hashcode` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=479 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=772 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +44,7 @@ CREATE TABLE `datafetcher` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `last_block` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -52,6 +53,7 @@ CREATE TABLE `datafetcher` (
 
 LOCK TABLES `datafetcher` WRITE;
 /*!40000 ALTER TABLE `datafetcher` DISABLE KEYS */;
+INSERT INTO `datafetcher` VALUES (1,0),(2,0);
 /*!40000 ALTER TABLE `datafetcher` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -68,15 +70,6 @@ CREATE TABLE `hibernate_sequence` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `hibernate_sequence`
---
-
-LOCK TABLES `hibernate_sequence` WRITE;
-/*!40000 ALTER TABLE `hibernate_sequence` DISABLE KEYS */;
-/*!40000 ALTER TABLE `hibernate_sequence` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `notif_users`
 --
 
@@ -89,15 +82,6 @@ CREATE TABLE `notif_users` (
   PRIMARY KEY (`address`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notif_users`
---
-
-LOCK TABLES `notif_users` WRITE;
-/*!40000 ALTER TABLE `notif_users` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notif_users` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `notification`
@@ -114,17 +98,8 @@ CREATE TABLE `notification` (
   `data` varchar(1000) NOT NULL,
   `id_topic` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=612 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification`
---
-
-LOCK TABLES `notification` WRITE;
-/*!40000 ALTER TABLE `notification` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `notification_preference`
@@ -143,15 +118,6 @@ CREATE TABLE `notification_preference` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `notification_preference`
---
-
-LOCK TABLES `notification_preference` WRITE;
-/*!40000 ALTER TABLE `notification_preference` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_preference` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `notification_service`
 --
 
@@ -164,15 +130,6 @@ CREATE TABLE `notification_service` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_service`
---
-
-LOCK TABLES `notification_service` WRITE;
-/*!40000 ALTER TABLE `notification_service` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_service` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `raw_data`
@@ -188,18 +145,10 @@ CREATE TABLE `raw_data` (
   `processed` tinyint(1) NOT NULL DEFAULT '0',
   `block` bigint(45) NOT NULL,
   `id_topic` int(11) DEFAULT NULL,
+  `row_hash_code` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `raw_data`
---
-
-LOCK TABLES `raw_data` WRITE;
-/*!40000 ALTER TABLE `raw_data` DISABLE KEYS */;
-/*!40000 ALTER TABLE `raw_data` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `subscription`
@@ -217,17 +166,8 @@ CREATE TABLE `subscription` (
   `state` varchar(45) NOT NULL,
   `notification_balance` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `subscription`
---
-
-LOCK TABLES `subscription` WRITE;
-/*!40000 ALTER TABLE `subscription` DISABLE KEYS */;
-/*!40000 ALTER TABLE `subscription` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `subscription_type`
@@ -268,15 +208,6 @@ CREATE TABLE `test` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `test`
---
-
-LOCK TABLES `test` WRITE;
-/*!40000 ALTER TABLE `test` DISABLE KEYS */;
-/*!40000 ALTER TABLE `test` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `topic`
 --
 
@@ -288,7 +219,7 @@ CREATE TABLE `topic` (
   `type` enum('NEW_BLOCK','NEW_TRANSACTIONS','PENDING_TRANSACTIONS','CONTRACT_EVENT') NOT NULL,
   `hash` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -308,7 +239,7 @@ CREATE TABLE `topic_params` (
   `is_indexed` tinyint(4) DEFAULT '0',
   `filter` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -333,4 +264,4 @@ CREATE TABLE `user_topic` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-02 14:44:08
+-- Dump completed on 2020-07-13 16:48:30

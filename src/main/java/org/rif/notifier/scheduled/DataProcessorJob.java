@@ -24,7 +24,7 @@ public class DataProcessorJob {
      * Gets all raw data not processed and makes the relationship with the subscription.
      * It saves the result on the notification table, ready to be sended to the user.
      */
-    @Scheduled(fixedRateString = "${notifier.run.fixedRateProcessJob}", initialDelayString = "${notifier.run.fixedDelayProcessJob}")
+    @Scheduled(fixedDelayString = "${notifier.run.fixedDelayProcessJob}", initialDelayString = "${notifier.run.fixedInitialDelayProcessJob}")
     public void run() {
         //Rawdata to be marked as processed
         List<RawData> processedRows = new ArrayList<>();
@@ -89,7 +89,9 @@ public class DataProcessorJob {
         logger.info(Thread.currentThread().getId() + String.format(" - Rawdata to mark as processed - %d", processedRows.size()));
         if (processedRows.size() > 0) {
             //Now i need to mark all processed raw data
-            processedRows.forEach(item -> item.setProcessed(true));
+            processedRows.forEach(item -> {
+                item.setProcessed(true);
+            });
             dbManagerFacade.updateRawDataBatch(processedRows);
             logger.info(Thread.currentThread().getId() + " - Rawdata settled as processed -");
         }

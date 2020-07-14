@@ -2,6 +2,7 @@ package org.rif.notifier.models.entities;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import javax.persistence.*;
 import java.math.BigInteger;
 
@@ -24,6 +25,9 @@ public class RawData {
     @Column(name = "id_topic")
     private int idTopic;
 
+    @Column(name = "row_hash_code")
+    private int rowhashcode;
+
     public RawData(){}
 
     public RawData(String type, String data, boolean processed, BigInteger block, int idTopic) {
@@ -33,6 +37,14 @@ public class RawData {
         this.block = block;
         this.idTopic = idTopic;
     }
+    public RawData(String type, String data, boolean processed, BigInteger block, int idTopic, int rowhashcode) {
+        this.type = type;
+        this.data = data;
+        this.processed = processed;
+        this.block = block;
+        this.idTopic = idTopic;
+        this.rowhashcode = rowhashcode;
+    }
     public RawData(String id, String type, String data, boolean processed, BigInteger block, int idTopic) {
         this.id = id;
         this.type = type;
@@ -40,6 +52,15 @@ public class RawData {
         this.processed = processed;
         this.block = block;
         this.idTopic = idTopic;
+    }
+    public RawData(String id, String type, String data, boolean processed, BigInteger block, int idTopic, int rowhashcode) {
+        this.id = id;
+        this.type = type;
+        this.data = data;
+        this.processed = processed;
+        this.block = block;
+        this.idTopic = idTopic;
+        this.rowhashcode = rowhashcode;
     }
 
     public String getId() {
@@ -88,5 +109,23 @@ public class RawData {
 
     public void setIdTopic(int idTopic) {
         this.idTopic = idTopic;
+    }
+
+    public int getRowhashcode() {
+        return rowhashcode;
+    }
+
+    public void setRowhashcode(int rowhashcode) {
+        this.rowhashcode = rowhashcode;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(idTopic)
+                .append(block)
+                .append(type)
+                .append(data)
+                .toHashCode();
     }
 }

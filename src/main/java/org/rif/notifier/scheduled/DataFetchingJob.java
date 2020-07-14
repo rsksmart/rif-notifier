@@ -68,7 +68,7 @@ public class DataFetchingJob {
      * Creates listeneables, then try to get the blockchain events related.
      * When all the events are fetched try to process the rawdata getted calling methods
      */
-    @Scheduled(fixedRateString = "${notifier.run.fixedRateFetchingJob}", initialDelayString = "${notifier.run.fixedDelayFetchingJob}")
+    @Scheduled(fixedDelayString = "${notifier.run.fixedDelayFetchingJob}", initialDelayString = "${notifier.run.fixedInitialDelayFetchingJob}")
     public void run() throws Exception {
         // Get latest block for this run
         BigInteger to = rskBlockchainService.getLastBlock();
@@ -83,6 +83,7 @@ public class DataFetchingJob {
             from = dbManagerFacade.getLastBlock();
             from = from.add(new BigInteger("1"));
         }
+        BigInteger finalFrom = from;
         if(from.compareTo(to) < 0) {
             //Fetching
             logger.info(Thread.currentThread().getId() + String.format(" - Starting fetching from %s to %s", from, to));
@@ -114,21 +115,27 @@ public class DataFetchingJob {
             }
             dbManagerFacade.saveLastBlock(to);
 
-
             blockTasks.forEach(listCompletableFuture -> {
                 listCompletableFuture.whenComplete((fetchedBlocks, throwable) -> {
                     long end = System.currentTimeMillis();
                     logger.info(Thread.currentThread().getId() + " - End fetching blocks task = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching blocks, Size: " + fetchedBlocks.size());
-                    fetchedBlocks.forEach(fetchedBlock -> {
-                        if (fetchedBlock.getBlock().getTransactions() != null && fetchedBlock.getBlock().getTransactions().size() > 0) {
+                    if(throwable != null) {
+                        dbManagerFacade.saveLastBlock(finalFrom);
+                    } else {
+                        List<RawData> rawTrs = fetchedBlocks.stream().map(fetchedBlock ->
+                        {
                             RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_BLOCK.toString(), fetchedBlock.toString(), false, fetchedBlock.getBlock().getNumber(), fetchedBlock.getTopicId());
+                            rwDt.setRowhashcode(rwDt.hashCode());
+                            if (dbManagerFacade.getRawdataByHashcode(rwDt.getRowhashcode()) == null) {
+                                return rwDt;
+                            }
+                            return null;
+
+                        }).collect(Collectors.toList());
+                        if (!rawTrs.isEmpty()) {
+                            dbManagerFacade.saveRawDataBatch(rawTrs);
                         }
-                    });
-                    List<RawData> rawTrs = fetchedBlocks.stream().map(fetchedBlock -> new RawData(EthereumBasedListenableTypes.NEW_BLOCK.toString(), fetchedBlock.toString(), false, fetchedBlock.getBlock().getNumber(), fetchedBlock.getTopicId())).
-                            collect(Collectors.toList());
-                    if (!rawTrs.isEmpty()) {
-                        dbManagerFacade.saveRawDataBatch(rawTrs);
                     }
                 });
             });
@@ -138,10 +145,20 @@ public class DataFetchingJob {
                     long end = System.currentTimeMillis();
                     logger.info(Thread.currentThread().getId() + " - End fetching transactions task = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching transactions, size: " + fetchedTransactions.size());
-                    List<RawData> rawTrs = fetchedTransactions.stream().map(fetchedTransaction -> new RawData(EthereumBasedListenableTypes.NEW_TRANSACTIONS.toString(), fetchedTransaction.toString(), false, fetchedTransaction.getTransaction().getBlockNumber(), fetchedTransaction.getTopicId())).
-                            collect(Collectors.toList());
-                    if (!rawTrs.isEmpty()) {
-                        dbManagerFacade.saveRawDataBatch(rawTrs);
+                    if(throwable != null) {
+                        dbManagerFacade.saveLastBlock(finalFrom);
+                    } else {
+                        List<RawData> rawTrs = fetchedTransactions.stream().map(fetchedTransaction -> {
+                            RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_TRANSACTIONS.toString(), fetchedTransaction.toString(), false, fetchedTransaction.getTransaction().getBlockNumber(), fetchedTransaction.getTopicId());
+                            rwDt.setRowhashcode(rwDt.hashCode());
+                            if (dbManagerFacade.getRawdataByHashcode(rwDt.getRowhashcode()) == null) {
+                                return rwDt;
+                            }
+                            return null;
+                        }).collect(Collectors.toList());
+                        if (!rawTrs.isEmpty()) {
+                            dbManagerFacade.saveRawDataBatch(rawTrs);
+                        }
                     }
                 });
             });
@@ -151,14 +168,18 @@ public class DataFetchingJob {
                     long end = System.currentTimeMillis();
                     logger.info(Thread.currentThread().getId() + " - End fetching events task = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching events, size: " + fetchedEvents.size());
-                    //Check if tokens were registered we can filter by idTopic -1
-                    if (fetchedTokens) {
-                        fetchedEvents.stream().filter(item -> item.getTopicId() == -1).forEach(item -> {
-                            //if(luminoEventServices.isToken())
-                            luminoEventServices.addToken(item.getValues().get(1).getValue().toString());
-                        });
+                    if(throwable != null) {
+                        dbManagerFacade.saveLastBlock(finalFrom);
+                    } else {
+                        //Check if tokens were registered we can filter by idTopic -1
+                        if (fetchedTokens) {
+                            fetchedEvents.stream().filter(item -> item.getTopicId() == -1).forEach(item -> {
+                                //if(luminoEventServices.isToken())
+                                luminoEventServices.addToken(item.getValues().get(1).getValue().toString());
+                            });
+                        }
+                        processFetchedEvents(fetchedEvents);
                     }
-                    processFetchedEvents(fetchedEvents);
                 });
             });
             ///////////////////////////////////Token Registry extract///////////////////////////////////////////
@@ -185,7 +206,7 @@ public class DataFetchingJob {
         }
     }
 
-    @Scheduled(fixedRateString = "${notifier.run.fixedRateFetchingChainAddresses}", initialDelayString = "${notifier.run.fixedDelayFetchingChainAddresses}")
+    @Scheduled(fixedDelayString = "${notifier.run.fixedDelayFetchingChainAddresses}", initialDelayString = "${notifier.run.fixedInitialDelayFetchingChainAddresses}")
     public void runChainAddresses() throws Exception {
         // Get latest block for this run
         BigInteger to = rskBlockchainService.getLastBlock();
@@ -197,33 +218,44 @@ public class DataFetchingJob {
         chainAddresses.add(rskBlockchainService.getContractEvents(getAddrChanged(), fromChainAddresses, to));
         chainAddresses.add(rskBlockchainService.getContractEvents(getChainAddrChanged(), fromChainAddresses, to));
 
+        BigInteger finalFromChainAddresses = fromChainAddresses;
         chainAddresses.forEach(listCompletableFuture -> {
             listCompletableFuture.whenComplete((fetchedEvents, throwable) -> {
                 List<ChainAddressEvent> chainsEvents = new ArrayList<>();
                 long end = System.currentTimeMillis();
                 logger.info(Thread.currentThread().getId() + " - End fetching chainaddres = " + (end - start));
                 logger.info(Thread.currentThread().getId() + " - Completed fetching chainaddresses: " + fetchedEvents.size());
-                // I need to filter by topics, cause here we have chainaddresses events for RSK and other chains that has different params in the event
-                fetchedEvents.stream().filter(item -> item.getTopicId() == -2).forEach(item -> {
-                    // RSK AddrChanged event
-                    String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
-                    String eventName = "AddrChanged";
-                    String address = item.getValues().get(1).getValue().toString();
-                    ChainAddressEvent rskChain = new ChainAddressEvent(nodehash, eventName, RSK_SLIP_ADDRESS, address);
-                    chainsEvents.add(rskChain);
-                });
-                fetchedEvents.stream().filter(item -> item.getTopicId() == -3).forEach(item -> {
-                    // ChainAddrChanged event
-                    String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
-                    String chain = Numeric.toHexString((byte[]) item.getValues().get(1).getValue());
-                    String address = item.getValues().get(2).getValue().toString();
-                    String eventName = "ChainAddrChanged";
-                    ChainAddressEvent chainAddr = new ChainAddressEvent(nodehash, eventName, chain, address);
-                    chainsEvents.add(chainAddr);
-                });
+                if(throwable != null) {
+                    dbManagerFacade.saveLastBlock(finalFromChainAddresses);
+                } else {
+                    // I need to filter by topics, cause here we have chainaddresses events for RSK and other chains that has different params in the event
+                    fetchedEvents.stream().filter(item -> item.getTopicId() == -2).forEach(item -> {
+                        // RSK AddrChanged event
+                        String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
+                        String eventName = "AddrChanged";
+                        String address = item.getValues().get(1).getValue().toString();
+                        ChainAddressEvent rskChain = new ChainAddressEvent(nodehash, eventName, RSK_SLIP_ADDRESS, address);
+                        rskChain.setRowhashcode(rskChain.hashCode());
+                        if (dbManagerFacade.getChainAddressEventByHashcode(rskChain.getRowhashcode()) == null) {
+                            chainsEvents.add(rskChain);
+                        }
+                    });
+                    fetchedEvents.stream().filter(item -> item.getTopicId() == -3).forEach(item -> {
+                        // ChainAddrChanged event
+                        String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
+                        String chain = Numeric.toHexString((byte[]) item.getValues().get(1).getValue());
+                        String address = item.getValues().get(2).getValue().toString();
+                        String eventName = "ChainAddrChanged";
+                        ChainAddressEvent chainAddr = new ChainAddressEvent(nodehash, eventName, chain, address);
+                        chainAddr.setRowhashcode(chainAddr.hashCode());
+                        if (dbManagerFacade.getChainAddressEventByHashcode(chainAddr.getRowhashcode()) == null) {
+                            chainsEvents.add(chainAddr);
+                        }
+                    });
 
-                if (!chainsEvents.isEmpty()) {
-                    dbManagerFacade.saveChainAddressesEvents(chainsEvents);
+                    if (!chainsEvents.isEmpty()) {
+                        dbManagerFacade.saveChainAddressesEvents(chainsEvents);
+                    }
                 }
             });
         });
@@ -242,8 +274,6 @@ public class DataFetchingJob {
         List<RawData> rawEvts = new ArrayList<>();
         fetchedEvents.forEach(fetchedEvent -> {
             try {
-                if(fetchedEvent.getValues().get(2).getValue().equals("0x2f548d54b2f32498638759caee36e6a51fac2ae8"))
-                    logger.info(Thread.currentThread().getId() + " - Debug -");
                 String rawEvent = mapper.writeValueAsString(fetchedEvent);
                 EventRawData rwDt = mapper.readValue(rawEvent, EventRawData.class);
                 List<Subscription> subs = dbManagerFacade.findByContractAddressAndSubscriptionActive(rwDt.getContractAddress());
@@ -292,10 +322,17 @@ public class DataFetchingJob {
                         if (tryAdd.get()) {
                             if (rawEvts.size() > 0) {
                                 //Rawdata was not added and need to be added
-                                if (rawEvts.stream().noneMatch(raw -> raw.getBlock().equals(newItem.getBlock()) && raw.getIdTopic() == tp.getId() && raw.getData().equals(newItem.getData())))
-                                    rawEvts.add(newItem);
+                                if (rawEvts.stream().noneMatch(raw -> raw.getBlock().equals(newItem.getBlock()) && raw.getIdTopic() == tp.getId() && raw.getData().equals(newItem.getData()))) {
+                                    newItem.setRowhashcode(newItem.hashCode());
+                                    if (dbManagerFacade.getRawdataByHashcode(newItem.getRowhashcode()) == null) {
+                                        rawEvts.add(newItem);
+                                    }
+                                }
                             } else {
-                                rawEvts.add(newItem);
+                                newItem.setRowhashcode(newItem.hashCode());
+                                if (dbManagerFacade.getRawdataByHashcode(newItem.getRowhashcode()) == null) {
+                                    rawEvts.add(newItem);
+                                }
                             }
                         }
                     });

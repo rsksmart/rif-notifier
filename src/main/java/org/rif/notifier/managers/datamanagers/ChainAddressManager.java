@@ -26,8 +26,8 @@ public class ChainAddressManager {
     @Value("${notifier.notifications.maxquerylimit}")
     private int MAX_LIMIT_QUERY;
 
-    public ChainAddressEvent insert(String nodehash, String eventName, String chain, String address) {
-        ChainAddressEvent evnt = new ChainAddressEvent(nodehash, eventName, chain, address);
+    public ChainAddressEvent insert(String nodehash, String eventName, String chain, String address, int hashcode) {
+        ChainAddressEvent evnt = new ChainAddressEvent(nodehash, eventName, chain, address, hashcode);
         ChainAddressEvent result = chainAddressRepository.save(evnt);
         return result;
     }
@@ -49,5 +49,9 @@ public class ChainAddressManager {
 
     public List<ChainAddressEvent> getChainAddresses(){
         return new ArrayList<>(chainAddressRepository.findAll());
+    }
+
+    public ChainAddressEvent getChainAddressEventByHashcode(int hashCode){
+        return chainAddressRepository.findByRowhashcode(hashCode);
     }
 }
