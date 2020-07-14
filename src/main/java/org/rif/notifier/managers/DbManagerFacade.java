@@ -221,7 +221,7 @@ public class DbManagerFacade {
     @Transactional
     public List<ChainAddressEvent> saveChainAddressesEvents(List<ChainAddressEvent> chainAddressEvents){
         return chainAddressEvents.stream().map(chainAddressEvent ->
-                chainAddressManager.insert(chainAddressEvent.getNodehash(), chainAddressEvent.getEventName(), chainAddressEvent.getChain(), chainAddressEvent.getAddress(), chainAddressEvent.getRowhashcode())
+                chainAddressManager.insert(chainAddressEvent.getNodehash(), chainAddressEvent.getEventName(), chainAddressEvent.getChain(), chainAddressEvent.getAddress(), chainAddressEvent.getRowhashcode(), chainAddressEvent.getBlock())
         ).collect(Collectors.toList());
     }
 }

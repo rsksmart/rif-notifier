@@ -3,6 +3,7 @@ package org.rif.notifier.models.entities;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 
 @Entity
 @Table(name = "chainaddress_event")
@@ -23,21 +24,25 @@ public class ChainAddressEvent {
     @Column(name = "hashcode")
     private int rowhashcode;
 
+    private BigInteger block;
+
     public ChainAddressEvent() {}
 
-    public ChainAddressEvent(String nodehash, String eventName, String chain, String address) {
+    public ChainAddressEvent(String nodehash, String eventName, String chain, String address, BigInteger block) {
         this.nodehash = nodehash;
         this.eventName = eventName;
         this.chain = chain;
         this.address = address;
+        this.block = block;
     }
 
-    public ChainAddressEvent(String nodehash, String eventName, String chain, String address, int rowhashcode) {
+    public ChainAddressEvent(String nodehash, String eventName, String chain, String address, int rowhashcode, BigInteger block) {
         this.nodehash = nodehash;
         this.eventName = eventName;
         this.chain = chain;
         this.address = address;
         this.rowhashcode = rowhashcode;
+        this.block = block;
     }
 
     public int getId() {
@@ -88,6 +93,14 @@ public class ChainAddressEvent {
         this.rowhashcode = rowhashcode;
     }
 
+    public BigInteger getBlock() {
+        return block;
+    }
+
+    public void setBlock(BigInteger block) {
+        this.block = block;
+    }
+
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
@@ -95,6 +108,7 @@ public class ChainAddressEvent {
                 .append(eventName)
                 .append(chain)
                 .append(address)
+                .append(block)
                 .toHashCode();
     }
 }

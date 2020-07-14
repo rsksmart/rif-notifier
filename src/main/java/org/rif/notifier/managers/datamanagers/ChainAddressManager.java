@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,8 +27,8 @@ public class ChainAddressManager {
     @Value("${notifier.notifications.maxquerylimit}")
     private int MAX_LIMIT_QUERY;
 
-    public ChainAddressEvent insert(String nodehash, String eventName, String chain, String address, int hashcode) {
-        ChainAddressEvent evnt = new ChainAddressEvent(nodehash, eventName, chain, address, hashcode);
+    public ChainAddressEvent insert(String nodehash, String eventName, String chain, String address, int hashcode, BigInteger block) {
+        ChainAddressEvent evnt = new ChainAddressEvent(nodehash, eventName, chain, address, hashcode, block);
         ChainAddressEvent result = chainAddressRepository.save(evnt);
         return result;
     }

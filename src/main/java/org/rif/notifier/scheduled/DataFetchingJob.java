@@ -234,7 +234,7 @@ public class DataFetchingJob {
                         String nodehash = Numeric.toHexString((byte[]) item.getValues().get(0).getValue());
                         String eventName = "AddrChanged";
                         String address = item.getValues().get(1).getValue().toString();
-                        ChainAddressEvent rskChain = new ChainAddressEvent(nodehash, eventName, RSK_SLIP_ADDRESS, address);
+                        ChainAddressEvent rskChain = new ChainAddressEvent(nodehash, eventName, RSK_SLIP_ADDRESS, address, item.getBlockNumber());
                         rskChain.setRowhashcode(rskChain.hashCode());
                         if (dbManagerFacade.getChainAddressEventByHashcode(rskChain.getRowhashcode()) == null) {
                             chainsEvents.add(rskChain);
@@ -246,7 +246,7 @@ public class DataFetchingJob {
                         String chain = Numeric.toHexString((byte[]) item.getValues().get(1).getValue());
                         String address = item.getValues().get(2).getValue().toString();
                         String eventName = "ChainAddrChanged";
-                        ChainAddressEvent chainAddr = new ChainAddressEvent(nodehash, eventName, chain, address);
+                        ChainAddressEvent chainAddr = new ChainAddressEvent(nodehash, eventName, chain, address, item.getBlockNumber());
                         chainAddr.setRowhashcode(chainAddr.hashCode());
                         if (dbManagerFacade.getChainAddressEventByHashcode(chainAddr.getRowhashcode()) == null) {
                             chainsEvents.add(chainAddr);
