@@ -15,6 +15,6 @@ public interface RawDataRepositorty extends JpaRepository<RawData, String> {
 
     public List<RawData> findByProcessed(boolean processed);
 
-    public RawData findByRowhashcode(String hashCode);
+    public RawData findByRowhashcode(int hashCode);
 }
 

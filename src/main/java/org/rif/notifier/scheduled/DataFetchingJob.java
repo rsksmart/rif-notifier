@@ -126,7 +126,7 @@ public class DataFetchingJob {
                         List<RawData> rawTrs = fetchedBlocks.stream().map(fetchedBlock ->
                         {
                             RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_BLOCK.toString(), fetchedBlock.toString(), false, fetchedBlock.getBlock().getNumber(), fetchedBlock.getTopicId());
-                            rwDt.setRowhashcode("" + rwDt.hashCode());
+                            rwDt.setRowhashcode(rwDt.hashCode());
                             if (dbManagerFacade.getRawdataByHashcode(rwDt.getRowhashcode()) == null) {
                                 return rwDt;
                             }
@@ -150,7 +150,7 @@ public class DataFetchingJob {
                     } else {
                         List<RawData> rawTrs = fetchedTransactions.stream().map(fetchedTransaction -> {
                             RawData rwDt = new RawData(EthereumBasedListenableTypes.NEW_TRANSACTIONS.toString(), fetchedTransaction.toString(), false, fetchedTransaction.getTransaction().getBlockNumber(), fetchedTransaction.getTopicId());
-                            rwDt.setRowhashcode("" + rwDt.hashCode());
+                            rwDt.setRowhashcode(rwDt.hashCode());
                             if (dbManagerFacade.getRawdataByHashcode(rwDt.getRowhashcode()) == null) {
                                 return rwDt;
                             }
@@ -206,7 +206,7 @@ public class DataFetchingJob {
         }
     }
 
-    @Scheduled(fixedRateString = "${notifier.run.fixedRateFetchingChainAddresses}", initialDelayString = "${notifier.run.fixedDelayFetchingChainAddresses}")
+    @Scheduled(fixedDelayString = "${notifier.run.fixedDelayFetchingChainAddresses}", initialDelayString = "${notifier.run.fixedInitialDelayFetchingChainAddresses}")
     public void runChainAddresses() throws Exception {
         // Get latest block for this run
         BigInteger to = rskBlockchainService.getLastBlock();
@@ -323,13 +323,13 @@ public class DataFetchingJob {
                             if (rawEvts.size() > 0) {
                                 //Rawdata was not added and need to be added
                                 if (rawEvts.stream().noneMatch(raw -> raw.getBlock().equals(newItem.getBlock()) && raw.getIdTopic() == tp.getId() && raw.getData().equals(newItem.getData()))) {
-                                    newItem.setRowhashcode("" + newItem.hashCode());
+                                    newItem.setRowhashcode(newItem.hashCode());
                                     if (dbManagerFacade.getRawdataByHashcode(newItem.getRowhashcode()) == null) {
                                         rawEvts.add(newItem);
                                     }
                                 }
                             } else {
-                                newItem.setRowhashcode("" + newItem.hashCode());
+                                newItem.setRowhashcode(newItem.hashCode());
                                 if (dbManagerFacade.getRawdataByHashcode(newItem.getRowhashcode()) == null) {
                                     rawEvts.add(newItem);
                                 }

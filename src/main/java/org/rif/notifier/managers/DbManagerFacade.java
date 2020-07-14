@@ -48,7 +48,7 @@ public class DbManagerFacade {
     @Autowired
     private DataFetcherManager dataFetcherManager;
 
-    public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic, String hashcode){
+    public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode){
         return rawDataManager.insert(type,data,processed, block, idTopic, hashcode);
     }
 
@@ -128,7 +128,7 @@ public class DbManagerFacade {
         return topicManager.getTopicByHashCode(hash);
     }
 
-    public RawData getRawdataByHashcode(String hashcode){
+    public RawData getRawdataByHashcode(int hashcode){
         return rawDataManager.getRawdataByHashcode(hashcode);
     }
 

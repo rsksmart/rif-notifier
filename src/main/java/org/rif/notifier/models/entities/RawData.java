@@ -26,7 +26,7 @@ public class RawData {
     private int idTopic;
 
     @Column(name = "row_hash_code")
-    private String rowhashcode;
+    private int rowhashcode;
 
     public RawData(){}
 
@@ -37,7 +37,7 @@ public class RawData {
         this.block = block;
         this.idTopic = idTopic;
     }
-    public RawData(String type, String data, boolean processed, BigInteger block, int idTopic, String rowhashcode) {
+    public RawData(String type, String data, boolean processed, BigInteger block, int idTopic, int rowhashcode) {
         this.type = type;
         this.data = data;
         this.processed = processed;
@@ -53,7 +53,7 @@ public class RawData {
         this.block = block;
         this.idTopic = idTopic;
     }
-    public RawData(String id, String type, String data, boolean processed, BigInteger block, int idTopic, String rowhashcode) {
+    public RawData(String id, String type, String data, boolean processed, BigInteger block, int idTopic, int rowhashcode) {
         this.id = id;
         this.type = type;
         this.data = data;
@@ -111,11 +111,11 @@ public class RawData {
         this.idTopic = idTopic;
     }
 
-    public String getRowhashcode() {
+    public int getRowhashcode() {
         return rowhashcode;
     }
 
-    public void setRowhashcode(String rowhashcode) {
+    public void setRowhashcode(int rowhashcode) {
         this.rowhashcode = rowhashcode;
     }
 
