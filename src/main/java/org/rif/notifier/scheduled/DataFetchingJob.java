@@ -68,7 +68,7 @@ public class DataFetchingJob {
      * Creates listeneables, then try to get the blockchain events related.
      * When all the events are fetched try to process the rawdata getted calling methods
      */
-    @Scheduled(fixedRateString = "${notifier.run.fixedRateFetchingJob}", initialDelayString = "${notifier.run.fixedDelayFetchingJob}")
+    @Scheduled(fixedDelayString = "${notifier.run.fixedDelayFetchingJob}", initialDelayString = "${notifier.run.fixedInitialDelayFetchingJob}")
     public void run() throws Exception {
         // Get latest block for this run
         BigInteger to = rskBlockchainService.getLastBlock();
@@ -83,6 +83,7 @@ public class DataFetchingJob {
             from = dbManagerFacade.getLastBlock();
             from = from.add(new BigInteger("1"));
         }
+        BigInteger finalFrom = from;
         if(from.compareTo(to) < 0) {
             //Fetching
             logger.info(Thread.currentThread().getId() + String.format(" - Starting fetching from %s to %s", from, to));
@@ -114,8 +115,6 @@ public class DataFetchingJob {
             }
             dbManagerFacade.saveLastBlock(to);
 
-
-            BigInteger finalFrom = from;
             blockTasks.forEach(listCompletableFuture -> {
                 listCompletableFuture.whenComplete((fetchedBlocks, throwable) -> {
                     long end = System.currentTimeMillis();
