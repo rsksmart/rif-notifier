@@ -28,6 +28,7 @@ CREATE TABLE `chainaddress_event` (
   `event_name` varchar(45) DEFAULT NULL,
   `chain` varchar(100) DEFAULT NULL,
   `address` varchar(100) DEFAULT NULL,
+  `block` bigint(45) NOT NULL,
   `hashcode` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=772 DEFAULT CHARSET=latin1;
