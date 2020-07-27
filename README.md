@@ -1,5 +1,22 @@
 # Rif-Notifier 
 
+## Indexes
+
+1. [Quick start](#quick-start) 
+2. [Register user to notifier](#first-you-need-to-register-a-user)
+3. [Generate suscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
+4. [Suscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
+5. [Retrieve notifications](#getting-notifications)
+6. [Unsubscribe from topic](#unsubscribing-from-a-topic)
+7. [Other available endpoints](#other-available-endpoints)
+	1. [Get subscription info](#get-subscription-info)
+	2. [Get Lumino tokens](#get-lumino-tokens)
+	3. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
+	4. [Subscribe to close channel](#subscribe-to-close-channel)
+	5. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
+	6. [Get chain addresses events](#get-rns-events)
+
+
 ## Quick Start
 
 -First of all you need to set the blockchain endpoint in the application.properties of this project
@@ -176,6 +193,7 @@ Header param:
 ###### Other available endpoints
 
 ----------------
+###### Get Subscription info
 ```
 GET Request: http://localhost:8080/getSubscriptionInfo
 Header param: 
@@ -210,6 +228,7 @@ Return example:
 }
 ```
 ----------------
+###### Get lumino tokens
 ```
 GET Request: http://localhost:8080/getLuminoTokens
 Header param: 
@@ -226,6 +245,7 @@ Return example:
 }
 ```
 ----------------
+###### Subscribe to specific open channel
 ```
 GET Request: http://localhost:8080/subscribeToOpenChannel
 Header param: 
@@ -246,6 +266,7 @@ Return example:
 }
 ```
 ----------------
+###### Subscribe to close channel
 ```
 GET Request: http://localhost:8080/subscribeToCloseChannel
 Header param: 
@@ -266,6 +287,7 @@ Return example:
 }
 ```
 ----------------
+###### Subscribe to all lumino open channels
 ```
 GET Request: http://localhost:8080/subscribeToLuminoOpenChannels
 Header param: 
@@ -284,3 +306,43 @@ Return example:
     "status": "OK"
 }
 ```
+----------------
+###### Get RNS events
+```
+GET Request: http://localhost:8080/getRnsEvents
+Header param: 
+	key: apiKey
+	value: API_KEY 
+Query params: 
+	nodehash [Optional]: Hashed name of the owner of the chain address
+	eventName [Optional]: "ChainAddrChanged" for all types of chain address or "AddrChanged" to RSK Chain addresses events
+Short description: From this endpoint you can bring the events emmited by the chain addresses set.
+```
+Return example:
+```json
+{
+    "message": "OK",
+    "data": [
+        {
+            "id": 772,
+            "nodehash": "0x5f0169581c8d8a20ced1dc6f11c6e72485191e6a6a8fcc833692b4b966c63ab5",
+            "eventName": "ChainAddrChanged",
+            "chain": "0x80000132",
+            "address": "0xC9dB73F54D43479b1a67DB2284bCFed17b0A13c2",
+            "rowhashcode": 762164261,
+            "block": 9976
+        },
+	{
+            "id": 921,
+            "nodehash": "0x55343d1b4bf30f6cde61752100e8d7d4061b87424e1697697e9e8ac23970ef04",
+            "eventName": "AddrChanged",
+            "chain": "0x80000089",
+            "address": "0xad12408d680504719756cc4969eec9f302335c44",
+            "rowhashcode": 210602843,
+            "block": 1087198
+        }
+    ],
+    "status": "OK"
+}
+```
+
