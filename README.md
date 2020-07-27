@@ -3,12 +3,13 @@
 ## Indexes
 
 1. [Quick start](#quick-start) 
-2. [Register user to notifier](#first-you-need-to-register-a-user)
-3. [Generate suscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
-4. [Suscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
-5. [Retrieve notifications](#getting-notifications)
-6. [Unsubscribe from topic](#unsubscribing-from-a-topic)
-7. [Other available endpoints](#other-available-endpoints)
+2. [Installation](#installation-guide) 
+3. [Register user to notifier](#first-you-need-to-register-a-user)
+4. [Generate suscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
+5. [Suscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
+6. [Retrieve notifications](#getting-notifications)
+7. [Unsubscribe from topic](#unsubscribing-from-a-topic)
+8. [Other available endpoints](#other-available-endpoints)
 	1. [Get subscription info](#get-subscription-info)
 	2. [Get Lumino tokens](#get-lumino-tokens)
 	3. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
@@ -19,6 +20,8 @@
 
 ## Quick Start
 
+(This steps you can follow if you're already familiar with the notifier, otherwise jump to the installation guide first)
+
 -First of all you need to set the blockchain endpoint in the application.properties of this project
 
 -To subscribe to Events like Open Channel or Close Channel, there's a property that needs the Token Network Registry Address to be setted in the application.properties
@@ -28,6 +31,24 @@
 -You have the DB schema in src/main/resources/db_dumps/, look for the latest Dump.sql, create a DB with this schema, and in application.properties set the connection to your DB
 
 -Get started with the following steps
+
+## Installation guide
+
+1. First of all clone this repo
+2. Create a Mysql database, and import the schema from: src/main/resources/db_dumps/Dump20000.sql (The number indicates last date of updating the schema). To dump to a database you can use the following command mysql -u root -p DB_NAME < src/main/resources/db_dumps/Dump200000.sql
+3. Now we need to configure the notifier: Go to src/main/resources/application.properties and set the following data:
+	1. Conn to DB:
+		1. spring.datasource.url=jdbc:mysql://localhost:3306/notifierone 
+		2. spring.datasource.username=notifier1
+		3. spring.datasource.password=123456
+	2. RSK Node endpoint
+		1. rsk.blockchain.tokennetworkregistry=0x088AF4986f3DBD66b4d97bE5f6742BC4853D8BA8
+	3. Multichain contract address, to obtain the chainaddresses event
+		1. rsk.blockchain.multichaincontract=0x7557fcE0BbFAe81a9508FF469D481f2c72a8B5f3
+4. Now just rests to init the notifier, for that, you need to run the following command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=${PORT}" 
+
+(As a note, you can ignore the -Dspring-boot arguments, and just run the notifier with mvn spring-boot:run)
+
 
 ###### First you need to register a user
 
