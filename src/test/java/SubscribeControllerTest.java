@@ -55,7 +55,7 @@ public class SubscribeControllerTest {
         String address = "0x0";
         String luminoInvoice = "123457A90123457B901234C579012345D79012E345790F12345G790123H45790I";
         DTOResponse dto = new DTOResponse();
-        dto.setData(luminoInvoice);
+        dto.setContent(luminoInvoice);
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         SubscriptionType subType = new SubscriptionType(1000);

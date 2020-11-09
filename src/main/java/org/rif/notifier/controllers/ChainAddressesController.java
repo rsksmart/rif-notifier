@@ -53,7 +53,7 @@ public class ChainAddressesController {
                 Subscription subscription = subscribeServices.getSubscriptionByAddress(us.getAddress());
                 chainAddresses = chainAddressesServices.getChainAddresses(us.getAddress(), nodehash, eventName);
                 if(chainAddresses.size() > 0) {
-                    resp.setData(chainAddresses);
+                    resp.setContent(chainAddresses);
                 }else{
                     //It may be happend that the user has no notifications cause the balance of the subscription is 0
                     if(!subscription.getActive()) {

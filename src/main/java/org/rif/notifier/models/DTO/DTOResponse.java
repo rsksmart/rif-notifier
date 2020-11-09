@@ -7,7 +7,7 @@ public class DTOResponse {
 
     private String message = ResponseConstants.OK;
 
-    private Object data;
+    private Object content;
 
     //Default value to 200
     private HttpStatus status = HttpStatus.OK;
@@ -22,12 +22,12 @@ public class DTOResponse {
         this.message = message;
     }
 
-    public Object getData() {
-        return data;
+    public Object getContent() {
+        return content;
     }
 
-    public void setData(Object data) {
-        this.data = data;
+    public void setContent(Object content) {
+        this.content= content;
     }
 
     public HttpStatus getStatus() {
@@ -42,7 +42,7 @@ public class DTOResponse {
     public String toString() {
         return "{" +
                 "\"message\":\"" + message + "\"" +
-                ", \"data\":\"" + data + "\"" +
+                ", \"content\":\"" + content+ "\"" +
                 ", \"status\":\"" + status + "\"" +
                 '}';
     }

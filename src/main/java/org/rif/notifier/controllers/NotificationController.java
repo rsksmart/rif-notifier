@@ -55,7 +55,7 @@ public class NotificationController {
                 Subscription subscription = subscribeServices.getSubscriptionByAddress(us.getAddress());
                 notifications = notificationManager.getNotificationsForAddress(us.getAddress(), id, lastRows, idTopic);
                 if(notifications.size() > 0) {
-                    resp.setData(notifications);
+                    resp.setContent(notifications);
                 }else{
                     //It may be happend that the user has no notifications cause the balance of the subscription is 0
                     if(subscription.getNotificationBalance() == 0) {

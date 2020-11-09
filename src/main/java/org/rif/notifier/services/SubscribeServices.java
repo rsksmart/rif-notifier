@@ -3,6 +3,7 @@ package org.rif.notifier.services;
 import org.rif.notifier.constants.SubscriptionConstants;
 import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.managers.DbManagerFacade;
+import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.blockchain.lumino.LuminoInvoice;
 import org.rif.notifier.util.Utils;
@@ -104,7 +105,7 @@ public class SubscribeServices  {
      * @param topic Topic type fully validated
      * @param sub Subscription type, to be associated with the Topic sended
      */
-    public int subscribeToTopic(Topic topic, Subscription sub){
+    public SubscriptionResponse subscribeToTopic(Topic topic, Subscription sub){
         if(topic != null && sub != null) {
             //Checks if the Topic already exists
             Topic tp = this.getTopicByHash(topic);
@@ -126,17 +127,17 @@ public class SubscribeServices  {
                         //Non of this topics types need params at this moment
                         break;
                 }
-                return tp.getId();
+                return new SubscriptionResponse(tp.getId());
             } else {
                 //Add topic-subscription relationship
                 tp.addSubscription(sub);
                 dbManagerFacade.updateTopic(tp);
-                return tp.getId();
+                return new SubscriptionResponse(tp.getId());
             }
             //This line was throwing error cause the Json is too large
             //resp.setData(ut);
         }
-        return -1;
+        return SubscriptionResponse.INVALID;
     }
 
     /**
