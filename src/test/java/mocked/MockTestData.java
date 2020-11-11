@@ -31,6 +31,10 @@ public class MockTestData {
     private ObjectMapper mapper = new ObjectMapper();
 
     public Topic mockTopic() throws IOException {
+        return mockTopicWithEvent("LogSellArticle");
+    }
+
+    public Topic mockTopicWithEvent(String eventName)   throws IOException  {
         String sTp = "{" +
                 "\"type\": \"CONTRACT_EVENT\"," +
                 "\"topicParams\":[" +
@@ -42,7 +46,7 @@ public class MockTestData {
                 "}," +
                 "{" +
                 "\"type\": \"EVENT_NAME\"," +
-                "\"value\": \"LogSellArticle\"," +
+                "\"value\": \""+eventName + "\"," +
                 "\"valueType\": \"string\"," +
                 "\"indexed\": 0" +
                 "}," +
@@ -71,6 +75,7 @@ public class MockTestData {
                 "}";
         return mapper.readValue(sTp, Topic.class);
     }
+
     public Topic mockTopicWithFilters() throws IOException {
         String sTp = "{" +
                 "\"type\": \"CONTRACT_EVENT\"," +

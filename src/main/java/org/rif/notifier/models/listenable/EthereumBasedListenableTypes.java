@@ -1,8 +1,18 @@
 package org.rif.notifier.models.listenable;
 
 public enum EthereumBasedListenableTypes {
-    NEW_BLOCK,
-    NEW_TRANSACTIONS,
-    PENDING_TRANSACTIONS,
-    CONTRACT_EVENT
+
+    NEW_BLOCK("Block"),
+    NEW_TRANSACTIONS("Transaction"),
+    PENDING_TRANSACTIONS("Pending"),
+    CONTRACT_EVENT("Contract");
+
+    private String type;
+    EthereumBasedListenableTypes(String type)    {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
 }

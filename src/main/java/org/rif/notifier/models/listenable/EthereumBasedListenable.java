@@ -1,5 +1,7 @@
 package org.rif.notifier.models.listenable;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.rif.notifier.models.entities.Topic;
 import org.web3j.abi.TypeReference;
 
@@ -60,6 +62,30 @@ public class EthereumBasedListenable extends Listenable {
 
     public void setTopicId(int topicId) {
         this.topicId = topicId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EthereumBasedListenable that = (EthereumBasedListenable) o;
+
+        return new EqualsBuilder()
+                .append(address, that.address)
+                .append(eventName, that.eventName)
+                .append(kind, that.kind)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(eventName)
+                .append(kind)
+                .append(address)
+                .toHashCode();
     }
 
     @Override
