@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.helpers.DataFetcherHelper;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.datafetching.FetchedEvent;
@@ -100,28 +101,44 @@ public class DataFetchingJobTest {
         verify(dbManagerFacade, times(1)).saveRawDataBatch(any());
     }
     @Test
-    public void canGetListeneables() throws Exception {
+    public void canGetListenables() throws Exception {
         Subscription subscription = mockTestData.mockSubscription();
         EthereumBasedListenable toCompare = mockTestData.mockEthereumBasedListeneable();
         doReturn(subscription.getTopics()).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
         List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
-        //verify(dbManagerFacade, times(1)).saveRawDataBatch(any());
         assertEquals(lstExpected.get(0).toString(), toCompare.toString());
     }
 
     @Test
-    public void testDuplicateListenables()  throws Exception    {
+    public void canGetVaryingContractTopicsAndFilterDuplicateListenables()  throws Exception    {
         Set<Topic> topics = new HashSet<>();
         topics.add(mockTestData.mockTopic());
-        Topic t = mockTestData.mockTopicWithEvent("Test");
-        topics.add(t);
+        Topic logSellArticle1 = mockTestData.mockTopicWithEvent("LogSellArticle", "0x1");
+        Topic logSellArticle2 = mockTestData.mockTopicWithEvent("LogSellArticle", "0x2");
+        topics.add(logSellArticle1);
+        topics.add(logSellArticle2);
         topics.add(mockTestData.mockTopicWithFilters());
         topics.add(mockTestData.mockTopicWithoutParams());
         topics.add(mockTestData.mockInvalidTopic());
 
         doReturn(topics).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
         List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
-        assertEquals(lstExpected.size(), 2);
+        verify(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
+        assertEquals(lstExpected.size(), 3);
+    }
+
+    @Test
+    public void canGetMixedListenablesAndFilterDuplicates()  throws Exception    {
+        Set<Topic> topics = new HashSet<>();
+        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_BLOCK ));
+        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_BLOCK ));
+        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_TRANSACTIONS));
+        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_TRANSACTIONS));
+        topics.add(mockTestData.mockTopic());
+        topics.add(mockTestData.mockTopic());
+        doReturn(topics).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
+        List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
+        assertEquals(lstExpected.size(), 3);
     }
 
     @Test
