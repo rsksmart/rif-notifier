@@ -207,19 +207,19 @@ public class DbManagerFacade {
     }
 
     public DataFetcherEntity saveLastBlock(BigInteger lastBlock){
-        return dataFetcherManager.insert(lastBlock);
+        return dataFetcherManager.saveOrUpdate(lastBlock);
     }
 
-    public DataFetcherEntity saveLastBlockChainAdddresses(BigInteger lastBlock){
-        return dataFetcherManager.insertLastBlockChainAddress(lastBlock);
+    public DataFetcherEntity saveLastBlockChainAddresses(BigInteger lastBlock){
+        return dataFetcherManager.saveOrUpdateBlockChainAddress(lastBlock);
     }
 
     public BigInteger getLastBlock(){
-        return dataFetcherManager.get();
+        return dataFetcherManager.getLastRSKBlock();
     }
 
     public BigInteger getLastBlockForChainAddresses(){
-        return dataFetcherManager.getBlockChainAddresses();
+        return dataFetcherManager.getLastRSKChainAddrBlock();
     }
 
     @Transactional
