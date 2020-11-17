@@ -147,7 +147,7 @@ DROP TABLE IF EXISTS `notification_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notification_log` (
-  `id` int NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
   `notification_id` int NOT NULL,
   `notification_preference_id` int NOT NULL,
   `sent` tinyint(1) NOT NULL DEFAULT '0',
@@ -403,4 +403,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-16 16:40:58
+-- Dump completed on 2020-11-17  8:34:48
