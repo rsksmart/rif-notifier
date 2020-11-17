@@ -48,6 +48,12 @@ public class DbManagerFacade {
     @Autowired
     private DataFetcherManager dataFetcherManager;
 
+    @Autowired
+    private NotificationLogManager notificationLogManager;
+
+    @Autowired
+    private NotificationPreferenceManager notificationPreferenceManager;
+
     public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode){
         return rawDataManager.insert(type,data,processed, block, idTopic, hashcode);
     }
@@ -227,5 +233,29 @@ public class DbManagerFacade {
         return chainAddressEvents.stream().map(chainAddressEvent ->
                 chainAddressManager.insert(chainAddressEvent.getNodehash(), chainAddressEvent.getEventName(), chainAddressEvent.getChain(), chainAddressEvent.getAddress(), chainAddressEvent.getRowhashcode(), chainAddressEvent.getBlock())
         ).collect(Collectors.toList());
+    }
+
+    public void logSuccessfulNotification(int notificationId, int notificationPreferenceId, String resultText) {
+        notificationLogManager.logFailedNotification(notificationId, notificationPreferenceId, resultText);
+    }
+
+    public void logFailedNotification(int notificationId, int notificationPreferenceId, String errorMessage) {
+        notificationLogManager.logFailedNotification(notificationId, notificationPreferenceId, errorMessage);
+    }
+
+    public Set<NotificationLog> getUnsentNotifications(int maxRetries) {
+        return notificationLogManager.getAllUnsentNotificationLogs(maxRetries);
+    }
+
+    public NotificationPreference saveNotificationPreference(NotificationPreference preference) {
+        return notificationPreferenceManager.saveNotificationPreference(preference);
+    }
+
+    public NotificationPreference getNotificationPreference(Subscription sub, int idTopic, NotificationServiceType type)    {
+        return notificationPreferenceManager.getNotificationPreference(sub, idTopic, type);
+    }
+
+    public NotificationPreference getNotificationPreference(Subscription sub, NotificationServiceType type)    {
+        return notificationPreferenceManager.getNotificationPreference(sub, type);
     }
 }

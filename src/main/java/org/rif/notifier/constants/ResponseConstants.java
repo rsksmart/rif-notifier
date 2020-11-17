@@ -37,4 +37,8 @@ public interface ResponseConstants {
     String SUBSCRIPTION_OUT_OF_BALANCE = "Your subscription ran out of notification balance, please refill your subscription";
 
     String INCORRECT_TOKEN = "The token provided doesn't exist";
+
+    String INVALID_DESTINATION_PARAMS = "Invalid content provided in destination params for notification preference";
+
+    String SAVE_NOTIFICATION_PREFERENCE_FAILED = "There was an error while saving notification preference.";
 }

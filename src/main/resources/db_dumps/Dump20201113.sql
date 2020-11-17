@@ -404,3 +404,5 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2020-11-17  8:34:48
+alter table notification_preference modify id int auto_increment;
+alter table notification_log add retry_count tinyint default 0;
