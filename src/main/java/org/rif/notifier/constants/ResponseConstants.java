@@ -38,7 +38,13 @@ public interface ResponseConstants {
 
     String INCORRECT_TOKEN = "The token provided doesn't exist";
 
-    String INVALID_DESTINATION_PARAMS = "Invalid content provided in destination params for notification preference";
+    String PREFERENCE_VALIDATION_FAILED = "Notification preference json has errors. Please review your json";
+
+    String INVALID_EMAIL_ADDRESS = "Invalid email address found in destination field of json. Please ensure valid email address";
 
     String SAVE_NOTIFICATION_PREFERENCE_FAILED = "There was an error while saving notification preference.";
+
+    String PREFERENCE_NOT_FOUND = "Notification Preference not found for the given subscription, topic and type combination";
+
+    String PREFERENCE_REMOVED = "The requested notification preference has been removed successfully";
 }

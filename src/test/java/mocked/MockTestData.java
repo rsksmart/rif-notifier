@@ -336,4 +336,14 @@ public class MockTestData {
         rtnLst.add(rwDt);
         return rtnLst;
     }
+
+    public NotificationPreference mockNotificationPreference(Subscription subscription)  {
+        NotificationPreference pref = new NotificationPreference();
+        pref.setId(1);
+        pref.setDestination("test@test.com");
+        pref.setNotificationService(NotificationServiceType.EMAIL);
+        pref.setIdTopic(0);
+        pref.setSubscription(subscription);
+        return pref;
+    }
 }

@@ -1,5 +1,6 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -21,6 +22,7 @@ public class NotificationPreference {
     private NotificationServiceType notificationService;
 
     //FK to subscription
+    @JsonIgnore
     @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="id_subscription")
     private Subscription subscription;
@@ -34,6 +36,18 @@ public class NotificationPreference {
 
     @Column(name="id_topic")
     private int idTopic;
+
+    public NotificationPreference() {
+
+    }
+
+    public NotificationPreference(Subscription subscription, int idTopic, NotificationServiceType notificationService, String destination, DestinationParams destinationParams) {
+        this.notificationService = notificationService;
+        this.subscription = subscription;
+        this.destination = destination;
+        this.destinationParams = destinationParams;
+        this.idTopic = idTopic;
+    }
 
     public int getId() {
         return id;

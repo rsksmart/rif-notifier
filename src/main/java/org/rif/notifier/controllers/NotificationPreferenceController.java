@@ -3,11 +3,9 @@ package org.rif.notifier.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import okhttp3.Response;
-import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
-import org.rif.notifier.managers.NotificationManager;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.*;
@@ -21,19 +19,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.regex.Pattern;
 
 
-
-@Api(tags = {"Notification Resource"})
+@Api(tags = {"Notification Preference Resource"})
 @RestController
+
 public class NotificationPreferenceController {
+    //multiple email addreses separated by comma
+    private static final Pattern p = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationPreferenceController.class);
 
     @Autowired
-    private NotificationPreferenceManager notifictionPreferenceManager;
+    private NotificationPreferenceManager notificationPreferenceManager;
 
     @Autowired
     private UserServices userServices;
@@ -47,53 +48,124 @@ public class NotificationPreferenceController {
     @ResponseBody
     public ResponseEntity<DTOResponse> saveNotificationPreference(
             @RequestHeader(value="apiKey") String apiKey,
-            @RequestParam(name = "idTopic", required = false) Integer idTopic,
-            @RequestParam(name = "notificationServiceType", required = true) NotificationServiceType serviceType,
-            @RequestParam(name = "destination", required = true) String destination,
-            @RequestBody String destinationParams
+            @RequestBody String notificationPreference
 
     ) {
         DTOResponse resp = new DTOResponse();
-        ObjectMapper mapper = new ObjectMapper();
-        List<Notification> notifications;
-        if(apiKey != null && !apiKey.isEmpty()){
-            User us = userServices.getUserByApiKey(apiKey);
-            if(us != null){
-                Subscription subscription = subscribeServices.getSubscriptionByAddress(us.getAddress());
-                NotificationPreference preference = null;
-                if (idTopic == null) {
-                    preference = notifictionPreferenceManager.getNotificationPreference(subscription, serviceType);
-                }else   {
-                    preference = notifictionPreferenceManager.getNotificationPreference(subscription, idTopic, serviceType);
-                }
-                if (preference == null)  {
-                    preference = new NotificationPreference();
-                }
-                DestinationParams params = null;
-                try {
-                    params = mapper.readValue(destinationParams, DestinationParams.class);
-                } catch(IOException e)  {
-                    resp.setMessage(ResponseConstants.INVALID_DESTINATION_PARAMS);
-                    resp.setStatus(HttpStatus.CONFLICT);
-                }
-                preference.setIdTopic(idTopic);
-                preference.setSubscription(subscription);
-                preference.setNotificationService(serviceType);
-                preference.setDestination(destination);
-                preference.setDestinationParams(params);
-                preference = notifictionPreferenceManager.saveNotificationPreference(preference);
-                if(preference.getId() > 0) {
-                    resp.setContent(preference);
-                }else{
-                    resp.setMessage(ResponseConstants.SAVE_NOTIFICATION_PREFERENCE_FAILED);
-                    resp.setStatus(HttpStatus.CONFLICT);
-                }
-                }
-            }else{
-                //Return error, user does not exist
-                resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-                resp.setStatus(HttpStatus.CONFLICT);
-            }
+        NotificationPreference requestedPreference;
+        User apiUser;
+
+        try {
+            //validate apikey
+            apiUser = validateApiKeyAndGetUser(apiKey, resp);
+            //validate request json
+            requestedPreference = validateRequestJson(notificationPreference, resp);
+            //validate containing data
+            validateRequestNotificationPreference(requestedPreference, resp);
+        }
+        catch(ValidationException e)    {
             return new ResponseEntity<>(resp, resp.getStatus());
         }
+
+        Subscription subscription = subscribeServices.getSubscriptionByAddress(apiUser.getAddress());
+        NotificationPreference preference = null;
+        //check if notification preference already associated with topic and subscription for given type, if no topic specified, default topic 0 will be used
+        preference = notificationPreferenceManager.getNotificationPreference(subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService());
+        if (preference == null)  {
+            preference = new NotificationPreference();
+        }
+        preference.setSubscription(subscription);
+        preference.setIdTopic(requestedPreference.getIdTopic());
+        preference.setNotificationService(requestedPreference.getNotificationService());
+        preference.setDestination(requestedPreference.getDestination());
+        preference.setDestinationParams(requestedPreference.getDestinationParams());
+        preference = notificationPreferenceManager.saveNotificationPreference(preference);
+        if(preference.getId() > 0) {
+            resp.setContent(preference);
+        }else{
+            resp.setMessage(ResponseConstants.SAVE_NOTIFICATION_PREFERENCE_FAILED);
+            resp.setStatus(HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(resp, resp.getStatus());
     }
+
+
+    private User validateApiKeyAndGetUser(String apiKey, DTOResponse resp) throws ValidationException {
+        if(apiKey == null || apiKey.isEmpty()) {
+            //Return error, user does not exist
+            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
+            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+        }
+        User apiUser = userServices.getUserByApiKey(apiKey);
+        if (apiUser == null)    {
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+        }
+        return apiUser;
+    }
+
+    @ApiOperation(value = "remove notification preference for subscription and topic and notification service type",
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @RequestMapping(value = "/removeNotificationPreference", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
+    @ResponseBody
+    public ResponseEntity<DTOResponse> removeNotificationPreference(
+            @RequestHeader(value="apiKey") String apiKey,
+            @RequestBody String notificationPreference
+
+    ) {
+        DTOResponse resp = new DTOResponse();
+        NotificationPreference requestedPreference;
+        User apiUser;
+
+        try {
+            //validate apikey
+            apiUser = validateApiKeyAndGetUser(apiKey, resp);
+            //validate request json
+            requestedPreference = validateRequestJson(notificationPreference, resp);
+        } catch (ValidationException e) {
+            return new ResponseEntity<>(resp, resp.getStatus());
+        }
+
+        Subscription subscription = subscribeServices.getSubscriptionByAddress(apiUser.getAddress());
+        NotificationPreference preference = null;
+        //check if notification preference already associated with topic and subscription for given type
+        preference = notificationPreferenceManager.getNotificationPreference(subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService());
+
+        if (preference == null) {
+            resp.setStatus(HttpStatus.CONFLICT);
+            resp.setContent(ResponseConstants.PREFERENCE_NOT_FOUND);
+            return new ResponseEntity<>(resp, resp.getStatus());
+        }
+        notificationPreferenceManager.removeNotificationPreference(preference);
+        resp.setStatus(HttpStatus.OK);
+        resp.setContent(ResponseConstants.PREFERENCE_REMOVED);
+        return new ResponseEntity<>(resp, resp.getStatus());
+    }
+
+
+    private void validateRequestNotificationPreference(NotificationPreference preference, DTOResponse resp)   throws ValidationException {
+        //validate email in case of email service type
+        List<String> emails = Arrays.asList(preference.getDestination().split(";"));
+        emails.forEach(email->{
+            if(!p.matcher(email).matches())   {
+                resp.setStatus(HttpStatus.CONFLICT);
+                resp.setContent(ResponseConstants.INVALID_EMAIL_ADDRESS);
+                return;
+            }
+        });
+        if(resp.getStatus() == HttpStatus.CONFLICT) {
+            throw new ValidationException(ResponseConstants.INVALID_EMAIL_ADDRESS);
+        };
+    }
+
+    private NotificationPreference validateRequestJson(String notificationPreference, DTOResponse resp)  throws ValidationException {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(notificationPreference, NotificationPreference.class);
+        }catch(IOException e)   {
+            resp.setMessage(ResponseConstants.PREFERENCE_VALIDATION_FAILED);
+            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.PREFERENCE_VALIDATION_FAILED, e);
+        }
+    }
+}

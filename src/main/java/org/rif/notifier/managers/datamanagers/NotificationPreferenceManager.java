@@ -16,6 +16,11 @@ public class NotificationPreferenceManager {
         return notificationPreferenceRepository.save(preference);
     }
 
+
+    public void removeNotificationPreference(NotificationPreference preference)   {
+        notificationPreferenceRepository.delete(preference);
+    }
+
     public NotificationPreference getNotificationPreference(Subscription sub, int idTopic, NotificationServiceType type)   {
        return notificationPreferenceRepository.findBySubscriptionAndIdTopicAndNotificationService(sub, idTopic, type) ;
     }
