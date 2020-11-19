@@ -7,12 +7,13 @@ import org.rif.notifier.Application;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.repositories.NotificationPreferenceRepository;
+import org.rif.notifier.repositories.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -28,7 +29,11 @@ public class NotificationServiceTest {
     @Autowired
     NotificationPreferenceRepository notificationPreferenceRepository;
 
+    @Autowired
+    NotificationRepository notificationRepository;
+
     @Test
+    @Ignore
     public void canSaveNotificationPreferences()  {
         List<Subscription> activeSubs = dbManagerFacade.getAllActiveSubscriptions();
         if (!activeSubs.isEmpty()) {
@@ -65,5 +70,20 @@ public class NotificationServiceTest {
                 System.out.println(preference.getDestination());
             }
         }
+    }
+
+    @Test
+    public void canSaveNotificationLog()  {
+        Notification notif = notificationRepository.findAll().get(0);
+        NotificationLog log = new NotificationLog();
+        Optional<NotificationPreference> pref = notificationPreferenceRepository.findById(12);
+        log.setNotificationPreference(pref.get());
+        log.setNotification(notif);
+        log.setRetryCount(1);
+        log.setSent(false);
+        Set<NotificationLog> l = new HashSet<>();
+        l.add(log);
+        notif.setNotificationLogs(l);
+        notificationRepository.save(notif);
     }
 }

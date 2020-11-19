@@ -100,10 +100,10 @@ public class SubscribeServices  {
 
     /**
      * Makes the relation between subscription and topic.
-     * First checks if the Topic is already created, so if it is, it creates only the relation, in other case it applies logic to the topic sended
+     * First checks if the Topic is already created, so if it is, it creates only the relation, in other case it applies logic to the topic sent
      * At this moment the Topic needs to be correctly validated
      * @param topic Topic type fully validated
-     * @param sub Subscription type, to be associated with the Topic sended
+     * @param sub Subscription type, to be associated with the Topic sent
      */
     public SubscriptionResponse subscribeToTopic(Topic topic, Subscription sub){
         if(topic != null && sub != null) {
@@ -199,7 +199,7 @@ public class SubscribeServices  {
      * Validates a given Topic, it checks if all required fields are correctly setted.
      * For CONTRACT_EVENT it checks that it has all Params like CONTRACT_EVENT_ADDRESS, CONTRACT_EVENT_NAME and at least one CONTRACT_EVENT_PARAM
      * In case of other types like NEW_TRANSACTIONS will be applied other logic
-     * @param topic Topic sended by a user, parsed by, to be checked in the method if it is correctly setted
+     * @param topic Topic sent by a user, parsed by, to be checked in the method if it is correctly setted
      * @return True in case that the Topic is correctly validated and has all the required fields, false if something's missed
      */
     public boolean validateTopic(Topic topic){

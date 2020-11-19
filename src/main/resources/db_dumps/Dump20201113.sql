@@ -123,7 +123,7 @@ CREATE TABLE `notification` (
   `id` int NOT NULL AUTO_INCREMENT,
   `to_address` varchar(45) NOT NULL,
   `timestamp` varchar(45) DEFAULT NULL,
-  `sended` tinyint DEFAULT '0',
+  `sent` tinyint DEFAULT '0',
   `data` varchar(1000) NOT NULL,
   `id_topic` int NOT NULL,
   PRIMARY KEY (`id`)

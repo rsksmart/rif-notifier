@@ -1,6 +1,8 @@
 package org.rif.notifier.managers.datamanagers;
 
+import org.rif.notifier.models.entities.Notification;
 import org.rif.notifier.models.entities.NotificationLog;
+import org.rif.notifier.models.entities.NotificationPreference;
 import org.rif.notifier.repositories.NotificationLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,15 +22,15 @@ public class NotificationLogManager {
         return notificationLogRepository.findAllByNotificationIdAndSentFalse(notificationId);
     }
 
-    public void logSuccesfulNotification(int notificationId, int notificationPreferenceId, String resultText)    {
+    public void logSuccesfulNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String resultText)    {
         logNotification(notificationId, notificationPreferenceId, true, resultText);
     }
 
-    public void logFailedNotification(int notificationId, int notificationPreferenceId, String resultText)    {
+    public void logFailedNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String resultText)    {
        logNotification(notificationId, notificationPreferenceId, false, resultText);
     }
 
-    protected void logNotification(int notificationId, int notificationPreferenceId, boolean sent, String resultText)    {
+    protected void logNotification(Notification notificationId, NotificationPreference notificationPreferenceId, boolean sent, String resultText)    {
         NotificationLog log = notificationLogRepository.findByNotificationIdAndNotificationPreferenceId(notificationId, notificationPreferenceId);
         if (log != null)    {
             log.setSent(sent);

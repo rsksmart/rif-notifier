@@ -3,10 +3,7 @@ import mocked.MockTestData;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
-import org.rif.notifier.constants.ResponseConstants;
-import org.rif.notifier.controllers.NotificationController;
 import org.rif.notifier.controllers.NotificationPreferenceController;
-import org.rif.notifier.managers.NotificationManager;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.*;
@@ -22,13 +19,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.List;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

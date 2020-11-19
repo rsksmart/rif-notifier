@@ -1,6 +1,6 @@
 package org.rif.notifier.managers.datamanagers;
 
-import org.rif.notifier.managers.NotificationManager;
+import org.rif.notifier.services.NotificationServices;
 import org.rif.notifier.models.entities.ChainAddressEvent;
 import org.rif.notifier.repositories.ChainAddressRepository;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class ChainAddressManager {
     @Autowired
     private ChainAddressRepository chainAddressRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(NotificationManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(NotificationServices.class);
 
     @Value("${notifier.notifications.maxquerylimit}")
     private int MAX_LIMIT_QUERY;

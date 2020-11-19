@@ -3,10 +3,7 @@ package org.rif.notifier.models.entities;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
@@ -15,11 +12,13 @@ public class NotificationLog {
     @Id
     private int id;
 
-    @Column(name="notification_id")
-    private int notificationId;
+    @ManyToOne
+    @JoinColumn(name="notification_id")
+    private Notification notification;
 
-    @Column(name="notification_preference_id")
-    private int notificationPreferenceId;
+    @ManyToOne(cascade=CascadeType.PERSIST)
+    @JoinColumn(name="notification_preference_id")
+    private NotificationPreference notificationPreference;
 
     private boolean sent;
 
@@ -32,9 +31,13 @@ public class NotificationLog {
     @Column(name="retry_count")
     private int retryCount;
 
-    public NotificationLog(int notificationId, int notificationPreferenceId, boolean sent, String resultText) {
-        this.notificationId = notificationId;
-        this.notificationPreferenceId = notificationPreferenceId;
+    public NotificationLog()    {
+
+    }
+
+    public NotificationLog(Notification notification, NotificationPreference notificationPreference, boolean sent, String resultText) {
+        this.notification = notification;
+        this.notificationPreference = notificationPreference;
         this.sent = sent;
         this.resultText = resultText;
     }
@@ -47,20 +50,20 @@ public class NotificationLog {
         this.id = id;
     }
 
-    public int getNotificationId() {
-        return notificationId;
+    public Notification getNotification() {
+        return notification;
     }
 
-    public void setNotificationId(int notificationId) {
-        this.notificationId = notificationId;
+    public void setNotification(Notification notification) {
+        this.notification = notification;
     }
 
-    public int getNotificationPreferenceId() {
-        return notificationPreferenceId;
+    public NotificationPreference getNotificationPreference() {
+        return notificationPreference;
     }
 
-    public void setNotificationPreferenceId(int notificationPreferenceId) {
-        this.notificationPreferenceId = notificationPreferenceId;
+    public void setNotificationPreference(NotificationPreference notificationPreference) {
+        this.notificationPreference = notificationPreference;
     }
 
     public boolean isSent() {
@@ -105,8 +108,8 @@ public class NotificationLog {
 
         return new EqualsBuilder()
                 .append(id, that.id)
-                .append(notificationId, that.notificationId)
-                .append(notificationPreferenceId, that.notificationPreferenceId)
+                .append(notification, that.notification)
+                .append(notificationPreference, that.notificationPreference)
                 .append(sent, that.sent)
                 .isEquals();
     }
@@ -115,8 +118,8 @@ public class NotificationLog {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(id)
-                .append(notificationId)
-                .append(notificationPreferenceId)
+                .append(notification)
+                .append(notificationPreference)
                 .append(sent)
                 .toHashCode();
     }

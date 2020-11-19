@@ -1,10 +1,13 @@
 package org.rif.notifier.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "notification_preference")
@@ -36,6 +39,10 @@ public class NotificationPreference {
 
     @Column(name="id_topic")
     private int idTopic;
+
+    @OneToMany(mappedBy = "notificationPreference")
+    @LazyCollection(LazyCollectionOption.TRUE)
+    private Set<NotificationLog> log;
 
     public NotificationPreference() {
 

@@ -77,19 +77,19 @@ public class SubscribeController {
             @RequestHeader(value="apiKey") String apiKey,
             @RequestBody String userTopic) {
         ObjectMapper mapper = new ObjectMapper();
-        Topic userSendedTopic = null;
+        Topic userSentTopic = null;
         DTOResponse resp = new DTOResponse();
         try {
-            userSendedTopic = mapper.readValue(userTopic, Topic.class);
+            userSentTopic = mapper.readValue(userTopic, Topic.class);
             User us = userServices.getUserByApiKey(apiKey);
             if(us != null){
                 //Check if the user did subscribe
                 Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
                 if(sub != null) {
-                    if(subscribeServices.validateTopic(userSendedTopic)){
-                        Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(userSendedTopic, sub.getId());
+                    if(subscribeServices.validateTopic(userSentTopic)){
+                        Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(userSentTopic, sub.getId());
                         if(topic == null) {
-                            resp.setContent(subscribeServices.subscribeToTopic(userSendedTopic, sub));
+                            resp.setContent(subscribeServices.subscribeToTopic(userSentTopic, sub));
                         }else{
                             //Return an error because the user is sending a topic that he's already subscribed
                             resp.setMessage(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC);

@@ -8,7 +8,7 @@ import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.Notification;
 import org.rif.notifier.models.entities.Subscription;
 import org.rif.notifier.models.entities.User;
-import org.rif.notifier.managers.NotificationManager;
+import org.rif.notifier.services.NotificationServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.slf4j.Logger;
@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -29,7 +28,7 @@ public class NotificationController {
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
 
     @Autowired
-    private NotificationManager notificationManager;
+    private NotificationServices notificationServices;
 
     @Autowired
     private UserServices userServices;
@@ -53,7 +52,7 @@ public class NotificationController {
             User us = userServices.getUserByApiKey(apiKey);
             if(us != null){
                 Subscription subscription = subscribeServices.getSubscriptionByAddress(us.getAddress());
-                notifications = notificationManager.getNotificationsForAddress(us.getAddress(), id, lastRows, idTopic);
+                notifications = notificationServices.getNotificationsForAddress(us.getAddress(), id, lastRows, idTopic);
                 if(notifications.size() > 0) {
                     resp.setContent(notifications);
                 }else{

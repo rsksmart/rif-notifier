@@ -1,9 +1,9 @@
-package org.rif.notifier.managers;
+package org.rif.notifier.services;
 
+import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.entities.Notification;
 import org.rif.notifier.models.entities.NotificationPreference;
 import org.rif.notifier.models.entities.Subscription;
-import org.rif.notifier.managers.services.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class NotificationManager {
+public class NotificationServices {
 
-    private static final Logger logger = LoggerFactory.getLogger(NotificationManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(NotificationServices.class);
 
     @Autowired
     private DbManagerFacade dbManagerFacade;
@@ -38,9 +38,9 @@ public class NotificationManager {
     }
 
     /**
-     * First implementation of a notificateUsers method, that will be called to send all notification by preferences indicated previously by the end-user
+     * First implementation of notifyUsers method, that will be called to send all notification by preferences indicated previously by the end-user
      */
-    public void notificateUsers(){
+    public void notifyUsers(){
         List<Subscription> activeSubs = dbManagerFacade.getAllActiveSubscriptions();
         for(Subscription sub : activeSubs){
             List<Notification> notifications = dbManagerFacade.getNotificationByUserAddress(sub.getUserAddress(), null, null, null);
@@ -48,5 +48,10 @@ public class NotificationManager {
                 //TODO: write notification code
             }
         }
+    }
+
+    public List<Notification> getAllUnsentNotifications()   {
+        return null;
+        //return dbManagerFacade.get;
     }
 }

@@ -5,7 +5,7 @@ import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.controllers.NotificationController;
-import org.rif.notifier.managers.NotificationManager;
+import org.rif.notifier.services.NotificationServices;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.Notification;
 import org.rif.notifier.models.entities.Subscription;
@@ -47,7 +47,7 @@ public class NotificationControllerTest {
     private SubscribeServices subscribeServices;
 
     @MockBean
-    private NotificationManager notificationManager;
+    private NotificationServices notificationServices;
 
     private MockTestData mockTestData = new MockTestData();
 
@@ -63,7 +63,7 @@ public class NotificationControllerTest {
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
         //Return notifications
-        when(notificationManager.getNotificationsForAddress(us.getAddress(), null, null, null)).thenReturn(notifs);
+        when(notificationServices.getNotificationsForAddress(us.getAddress(), null, null, null)).thenReturn(notifs);
         mockMvc.perform(
                 get("/getNotifications")
                         .header("apiKey", apiKey)
