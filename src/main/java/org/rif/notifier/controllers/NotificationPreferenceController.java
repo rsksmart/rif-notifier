@@ -46,14 +46,28 @@ public class NotificationPreferenceController {
      *
      * @param apiKey the api key to use
      * @param notificationPreference example contents - {
-     *     "notificationService":"EMAIL",
-     *     "destination":"1234@5673.com",
+     *     "notificationService":"API",
+     *     "destination":"http://host/notify",
      *     "idTopic":"0",
      *     "destinationParams":{
      *         "apiKey":"test",
      *         "username":"test",
      *         "password":"test"
      *     }
+     *     }
+     *                              or
+     *      {
+     *           "notificationService":"EMAIL",
+     *           "destination":"123456@abc.com;123@abc.com",
+     *           "idTopic":"11",
+     *       }
+     *                               or
+     *
+     *                               {
+     *           "notificationService":"SMS",
+     *           "destination":"+191725245555",
+     *           "idTopic":"10",
+     *       }     *
      * @return
      */
     @ApiOperation(value = "save notification preferences for subscription and topic and notification service type",
