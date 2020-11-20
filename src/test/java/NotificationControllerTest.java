@@ -59,7 +59,7 @@ public class NotificationControllerTest {
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
         List<Notification> notifs = mockTestData.mockNotifications();
-        dto.setData(notifs);
+        dto.setContent(notifs);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
         //Return notifications
@@ -69,7 +69,7 @@ public class NotificationControllerTest {
                         .header("apiKey", apiKey)
         )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.*", hasSize(10)));
+                .andExpect(jsonPath("$.content.*", hasSize(10)));
     }
 
     @Test

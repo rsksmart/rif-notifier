@@ -33,10 +33,10 @@ public class UserController {
                 if (Utils.canRecoverAddress(address, signedAddress)) {
                     User user = userServices.userExists(address);
                     if (user == null) {
-                        resp.setData(userServices.saveUser(address));
+                        resp.setContent(userServices.saveUser(address));
                     } else {
                         //User already have an apikey
-                        resp.setData(user);
+                        resp.setContent(user);
                     }
                 } else {
                     resp.setMessage(ResponseConstants.INCORRECT_SIGNED_ADDRESS);
