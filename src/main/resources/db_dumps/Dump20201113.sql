@@ -1,13 +1,13 @@
--- MySQL dump 10.13  Distrib 5.7.30, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.22, for osx10.13 (x86_64)
 --
--- Host: localhost    Database: notifierone
+-- Host: localhost    Database: rif_notifier_dump
 -- ------------------------------------------------------
--- Server version	5.7.30-0ubuntu0.18.04.1
+-- Server version	8.0.22
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,18 +21,27 @@
 
 DROP TABLE IF EXISTS `chainaddress_event`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `chainaddress_event` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `nodehash` varchar(250) DEFAULT NULL,
   `event_name` varchar(45) DEFAULT NULL,
   `chain` varchar(100) DEFAULT NULL,
   `address` varchar(100) DEFAULT NULL,
-  `block` bigint(45) NOT NULL,
+  `block` bigint NOT NULL,
   `hashcode` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=772 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chainaddress_event`
+--
+
+LOCK TABLES `chainaddress_event` WRITE;
+/*!40000 ALTER TABLE `chainaddress_event` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chainaddress_event` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `datafetcher`
@@ -40,10 +49,11 @@ CREATE TABLE `chainaddress_event` (
 
 DROP TABLE IF EXISTS `datafetcher`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `datafetcher` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `last_block` bigint(20) NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `last_block` bigint NOT NULL,
+  `block_type` enum('RSK_BLOCK','RSK_CHAINADDR_BLOCK') NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -54,7 +64,7 @@ CREATE TABLE `datafetcher` (
 
 LOCK TABLES `datafetcher` WRITE;
 /*!40000 ALTER TABLE `datafetcher` DISABLE KEYS */;
-INSERT INTO `datafetcher` VALUES (1,0),(2,0);
+INSERT INTO `datafetcher` VALUES (1,0,'RSK_BLOCK'),(2,0,'RSK_CHAINADDR_BLOCK');
 /*!40000 ALTER TABLE `datafetcher` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -64,11 +74,20 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `hibernate_sequence`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hibernate_sequence` (
-  `next_val` bigint(20) DEFAULT NULL
+  `next_val` bigint DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hibernate_sequence`
+--
+
+LOCK TABLES `hibernate_sequence` WRITE;
+/*!40000 ALTER TABLE `hibernate_sequence` DISABLE KEYS */;
+/*!40000 ALTER TABLE `hibernate_sequence` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `notif_users`
@@ -76,7 +95,7 @@ CREATE TABLE `hibernate_sequence` (
 
 DROP TABLE IF EXISTS `notif_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notif_users` (
   `address` varchar(45) NOT NULL,
   `api_key` varchar(45) DEFAULT NULL,
@@ -85,22 +104,40 @@ CREATE TABLE `notif_users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `notif_users`
+--
+
+LOCK TABLES `notif_users` WRITE;
+/*!40000 ALTER TABLE `notif_users` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notif_users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `notification`
 --
 
 DROP TABLE IF EXISTS `notification`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notification` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `to_address` varchar(45) NOT NULL,
   `timestamp` varchar(45) DEFAULT NULL,
-  `sended` tinyint(4) DEFAULT '0',
+  `sended` tinyint DEFAULT '0',
   `data` varchar(1000) NOT NULL,
-  `id_topic` int(11) NOT NULL,
+  `id_topic` int NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=612 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notification`
+--
+
+LOCK TABLES `notification` WRITE;
+/*!40000 ALTER TABLE `notification` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `notification_preference`
@@ -108,9 +145,9 @@ CREATE TABLE `notification` (
 
 DROP TABLE IF EXISTS `notification_preference`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notification_preference` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `user_address` varchar(45) NOT NULL,
   `notification_service` varchar(45) NOT NULL,
   `subscription` varchar(45) NOT NULL,
@@ -119,18 +156,36 @@ CREATE TABLE `notification_preference` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `notification_preference`
+--
+
+LOCK TABLES `notification_preference` WRITE;
+/*!40000 ALTER TABLE `notification_preference` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification_preference` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `notification_service`
 --
 
 DROP TABLE IF EXISTS `notification_service`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notification_service` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `type` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notification_service`
+--
+
+LOCK TABLES `notification_service` WRITE;
+/*!40000 ALTER TABLE `notification_service` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification_service` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `raw_data`
@@ -138,18 +193,27 @@ CREATE TABLE `notification_service` (
 
 DROP TABLE IF EXISTS `raw_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `raw_data` (
   `id` varchar(45) NOT NULL,
   `type` varchar(45) NOT NULL,
   `data` varchar(1000) NOT NULL,
   `processed` tinyint(1) NOT NULL DEFAULT '0',
-  `block` bigint(45) NOT NULL,
-  `id_topic` int(11) DEFAULT NULL,
+  `block` bigint NOT NULL,
+  `id_topic` int DEFAULT NULL,
   `row_hash_code` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `raw_data`
+--
+
+LOCK TABLES `raw_data` WRITE;
+/*!40000 ALTER TABLE `raw_data` DISABLE KEYS */;
+/*!40000 ALTER TABLE `raw_data` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `subscription`
@@ -157,18 +221,27 @@ CREATE TABLE `raw_data` (
 
 DROP TABLE IF EXISTS `subscription`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `subscription` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `active_since` date DEFAULT NULL,
-  `active` tinyint(4) DEFAULT '0',
+  `active` tinyint DEFAULT '0',
   `user_address` varchar(45) NOT NULL,
-  `type` int(11) DEFAULT '0',
+  `type` int DEFAULT '0',
   `state` varchar(45) NOT NULL,
-  `notification_balance` int(11) NOT NULL,
+  `notification_balance` int NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subscription`
+--
+
+LOCK TABLES `subscription` WRITE;
+/*!40000 ALTER TABLE `subscription` DISABLE KEYS */;
+/*!40000 ALTER TABLE `subscription` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `subscription_type`
@@ -176,10 +249,10 @@ CREATE TABLE `subscription` (
 
 DROP TABLE IF EXISTS `subscription_type`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `subscription_type` (
-  `id` int(11) NOT NULL,
-  `notifications` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `notifications` int NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -200,7 +273,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `test`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `test` (
   `id` varchar(255) NOT NULL,
   `testcol` varchar(255) DEFAULT NULL,
@@ -209,14 +282,23 @@ CREATE TABLE `test` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `test`
+--
+
+LOCK TABLES `test` WRITE;
+/*!40000 ALTER TABLE `test` DISABLE KEYS */;
+/*!40000 ALTER TABLE `test` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `topic`
 --
 
 DROP TABLE IF EXISTS `topic`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `topic` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `type` enum('NEW_BLOCK','NEW_TRANSACTIONS','PENDING_TRANSACTIONS','CONTRACT_EVENT') NOT NULL,
   `hash` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
@@ -224,24 +306,42 @@ CREATE TABLE `topic` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `topic`
+--
+
+LOCK TABLES `topic` WRITE;
+/*!40000 ALTER TABLE `topic` DISABLE KEYS */;
+/*!40000 ALTER TABLE `topic` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `topic_params`
 --
 
 DROP TABLE IF EXISTS `topic_params`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `topic_params` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `id_topic` int(11) NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `id_topic` int NOT NULL,
   `param_type` enum('CONTRACT_ADDRESS','EVENT_NAME','EVENT_PARAM') NOT NULL,
   `value` varchar(45) NOT NULL,
-  `param_order` int(11) DEFAULT '0',
+  `param_order` int DEFAULT '0',
   `value_type` varchar(45) DEFAULT 'string',
-  `is_indexed` tinyint(4) DEFAULT '0',
+  `is_indexed` tinyint DEFAULT '0',
   `filter` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `topic_params`
+--
+
+LOCK TABLES `topic_params` WRITE;
+/*!40000 ALTER TABLE `topic_params` DISABLE KEYS */;
+/*!40000 ALTER TABLE `topic_params` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `user_topic`
@@ -249,12 +349,21 @@ CREATE TABLE `topic_params` (
 
 DROP TABLE IF EXISTS `user_topic`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_topic` (
-  `id_topic` int(11) NOT NULL,
+  `id_topic` int NOT NULL,
   `id_subscription` varchar(45) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_topic`
+--
+
+LOCK TABLES `user_topic` WRITE;
+/*!40000 ALTER TABLE `user_topic` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_topic` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -265,4 +374,4 @@ CREATE TABLE `user_topic` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-13 16:48:30
+-- Dump completed on 2020-11-13 12:25:51

@@ -1,5 +1,7 @@
 package org.rif.notifier.models.entities;
 
+import org.rif.notifier.constants.BlockTypes;
+
 import javax.persistence.*;
 import java.math.BigInteger;
 
@@ -13,6 +15,9 @@ public class DataFetcherEntity {
 
     @Column(name = "last_block")
     private BigInteger lastBlock;
+
+    @Enumerated(EnumType.STRING)
+    private BlockTypes blockType;
 
     public DataFetcherEntity() {}
 
@@ -34,5 +39,13 @@ public class DataFetcherEntity {
 
     public void setLastBlock(BigInteger lastBlock) {
         this.lastBlock = lastBlock;
+    }
+
+    public BlockTypes getBlockType() {
+        return blockType;
+    }
+
+    public void setBlockType(BlockTypes blockType) {
+        this.blockType = blockType;
     }
 }

@@ -1,53 +1,50 @@
 package org.rif.notifier.managers.datamanagers;
 
+import org.rif.notifier.constants.BlockTypes;
 import org.rif.notifier.models.entities.DataFetcherEntity;
 import org.rif.notifier.repositories.DataFetcherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.util.List;
 
 @Service
 public class DataFetcherManager {
+    private static final BigInteger DEFAULT_INITIAL_LAST_BLOCK = new BigInteger("0");
     @Autowired
     private DataFetcherRepository dataFetcherRepository;
 
-    public DataFetcherEntity insert(BigInteger lastBlock){
-        DataFetcherEntity dt;
-        List<DataFetcherEntity> lst = dataFetcherRepository.findAll();
-        if(lst.size() > 0)
-            dt = lst.get(0);
-        else
+    private DataFetcherEntity saveOrUpdate(BigInteger lastBlock, BlockTypes type){
+        DataFetcherEntity dt = dataFetcherRepository.findByBlockType(type);
+        if (dt == null) {
             dt = new DataFetcherEntity();
+            dt.setBlockType(type);
+        }
         dt.setLastBlock(lastBlock);
         return dataFetcherRepository.save(dt);
     }
 
-    public DataFetcherEntity insertLastBlockChainAddress(BigInteger lastBlock){
-        DataFetcherEntity dt;
-        List<DataFetcherEntity> lst = dataFetcherRepository.findAll();
-        if(lst.size() > 1)
-            dt = lst.get(1);
-        else
-            dt = new DataFetcherEntity();
-        dt.setLastBlock(lastBlock);
-        return dataFetcherRepository.save(dt);
+    private BigInteger getLastBlockForType(BlockTypes type){
+        DataFetcherEntity dataFetcherEntity = dataFetcherRepository.findByBlockType(type);
+        return dataFetcherEntity != null ? dataFetcherEntity.getLastBlock() :
+                DEFAULT_INITIAL_LAST_BLOCK;
     }
 
-    public BigInteger get(){
-        List<DataFetcherEntity> lst = dataFetcherRepository.findAll();
-        if(lst.size() > 0)
-            return lst.get(0).getLastBlock();
-        else
-            return new BigInteger("0");
+    public BigInteger getLastRSKBlock(){
+        return getLastBlockForType(BlockTypes.RSK_BLOCK) ;
     }
 
-    public BigInteger getBlockChainAddresses(){
-        List<DataFetcherEntity> lst = dataFetcherRepository.findAll();
-        if(lst.size() > 1)
-            return lst.get(1).getLastBlock();
-        else
-            return new BigInteger("0");
+    public BigInteger getLastRSKChainAddrBlock(){
+        return getLastBlockForType(BlockTypes.RSK_CHAINADDR_BLOCK) ;
     }
+
+    public DataFetcherEntity saveOrUpdate(BigInteger lastBlock){
+        return saveOrUpdate(lastBlock, BlockTypes.RSK_BLOCK);
+    }
+
+    public DataFetcherEntity saveOrUpdateBlockChainAddress(BigInteger lastBlock){
+        return saveOrUpdate(lastBlock, BlockTypes.RSK_CHAINADDR_BLOCK);
+    }
+
+
 }

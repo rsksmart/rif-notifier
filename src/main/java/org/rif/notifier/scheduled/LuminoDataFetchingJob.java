@@ -5,26 +5,17 @@ import org.rif.notifier.helpers.LuminoDataFetcherHelper;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.entities.ChainAddressEvent;
-import org.rif.notifier.models.listenable.EthereumBasedListenable;
-import org.rif.notifier.models.listenable.EthereumBasedListenableTypes;
 import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.blockchain.generic.rootstock.RskBlockchainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Bytes4;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -67,7 +58,7 @@ public class LuminoDataFetchingJob {
                 logger.info(Thread.currentThread().getId() + " - End fetching chainaddres = " + (end - start));
                 logger.info(Thread.currentThread().getId() + " - Completed fetching chainaddresses: " + fetchedEvents.size());
                 if(throwable != null) {
-                    dbManagerFacade.saveLastBlock(finalFromChainAddresses);
+                    dbManagerFacade.saveLastBlockChainAddresses(finalFromChainAddresses);
                 } else {
                     // I need to filter by topics, cause here we have chainaddresses events for RSK and other chains that has different params in the event
                     fetchedEvents.stream().filter(item -> item.getTopicId() == -2).forEach(item -> {
@@ -85,7 +76,7 @@ public class LuminoDataFetchingJob {
                 }
             });
         });
-        dbManagerFacade.saveLastBlockChainAdddresses(to);
+        dbManagerFacade.saveLastBlockChainAddresses(to);
     }
 
     private ChainAddressEvent buildChainAddress(FetchedEvent item, boolean addrChanged)    {
