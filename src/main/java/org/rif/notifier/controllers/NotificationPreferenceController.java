@@ -42,6 +42,20 @@ public class NotificationPreferenceController {
     @Autowired
     private SubscribeServices subscribeServices;
 
+    /**
+     *
+     * @param apiKey the api key to use
+     * @param notificationPreference example contents - {
+     *     "notificationService":"EMAIL",
+     *     "destination":"1234@5673.com",
+     *     "idTopic":"0",
+     *     "destinationParams":{
+     *         "apiKey":"test",
+     *         "username":"test",
+     *         "password":"test"
+     *     }
+     * @return
+     */
     @ApiOperation(value = "save notification preferences for subscription and topic and notification service type",
             response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
     @RequestMapping(value = "/saveNotificationPreference", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
@@ -75,9 +89,17 @@ public class NotificationPreferenceController {
             preference = new NotificationPreference();
         }
         preference.setSubscription(subscription);
+        //the topic id sent as part of request. This is an integer topic id for ex. 10.
+        // When the topic id is set to 0, this preference will be used as default preference for those
+        // notifications with topic that don't have notification preference speicied.
         preference.setIdTopic(requestedPreference.getIdTopic());
+        //The type of notification service to use. Possible values are SMS, EMAIL, API
+        //note the values must all be in upper case as given above
         preference.setNotificationService(requestedPreference.getNotificationService());
+        //The destination to use. Email can have destination like 'a@b.com;c@d.com', addresses separated by semicolon
+        // or sms can have destination as phone number for examle '+19175245555'
         preference.setDestination(requestedPreference.getDestination());
+        //This property will be used only when the notificatonservice is set to API. An example structure can be found on the method comments
         preference.setDestinationParams(requestedPreference.getDestinationParams());
         preference = notificationPreferenceManager.saveNotificationPreference(preference);
         if(preference.getId() > 0) {
