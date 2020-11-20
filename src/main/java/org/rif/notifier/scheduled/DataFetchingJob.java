@@ -80,7 +80,8 @@ public class DataFetchingJob {
             from = from.add(new BigInteger("1"));
         }
         BigInteger finalFrom = from;
-        if(from.compareTo(to) < 0) {
+        //ensure fetching 1 or more blocks, if from and to are same 1 block is fetched, and if to is greater 1 or more blocks are fetched
+        if(from.compareTo(to) <= 0) {
             //Fetching
             logger.info(Thread.currentThread().getId() + String.format(" - Starting fetching from %s to %s", from, to));
 
