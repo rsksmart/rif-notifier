@@ -7,6 +7,9 @@ import org.rif.notifier.repositories.TopicRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Set;
+
 @Service
 public class TopicManager {
     @Autowired
@@ -22,6 +25,10 @@ public class TopicManager {
 
     public Topic getTopicByHashCodeAndIdSubscription(int hash, int idSubscription){
         return topicRepository.findByHashAndIdSubscription(String.valueOf(hash), idSubscription);
+    }
+
+    public Set<Topic> getAllTopicsWithActiveSubscriptionAndBalance()    {
+        return topicRepository.findAllTopicsWithActiveSubscriptionWithBalance();
     }
 
     public Topic insert(TopicTypes type, String hash, Subscription sub){
