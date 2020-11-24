@@ -39,7 +39,7 @@ public class DataProcessorJobTest {
         Date date = new Date();
         lstRawData.forEach(rawDataItem -> {
 
-            ntfsData.add(new Notification(subscription.getUserAddress(), new Timestamp(date.getTime()).toString(), false, rawDataItem.getData(), rawDataItem.getIdTopic()));
+            ntfsData.add(new Notification(subscription, new Timestamp(date.getTime()).toString(), false, rawDataItem.getData(), rawDataItem.getIdTopic()));
         });
 
 
@@ -73,7 +73,7 @@ public class DataProcessorJobTest {
         Subscription subscription = mockTestData.mockSubscription();
         Date date = new Date();
         lstRawData.forEach(rawDataItem -> {
-            ntfsData.add(new Notification(subscription.getUserAddress(), new Timestamp(date.getTime()).toString(), false, rawDataItem.getData(), rawDataItem.getIdTopic()));
+            ntfsData.add(new Notification(subscription, new Timestamp(date.getTime()).toString(), false, rawDataItem.getData(), rawDataItem.getIdTopic()));
         });
 
         doReturn(lstRawData).when(dbManagerFacade).getRawDataByProcessed(false);

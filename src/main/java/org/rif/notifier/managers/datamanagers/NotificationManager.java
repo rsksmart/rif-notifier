@@ -1,6 +1,7 @@
 package org.rif.notifier.managers.datamanagers;
 
 import org.rif.notifier.models.entities.Notification;
+import org.rif.notifier.models.entities.Subscription;
 import org.rif.notifier.repositories.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,47 +23,47 @@ public class NotificationManager {
     @Value("${notifier.notifications.maxquerylimit}")
     private int MAX_LIMIT_QUERY;
 
-    public Notification insert(String to_address, String timestamp, boolean sent, String data, int idTopic){
-        Notification ntf = new Notification(to_address, timestamp, sent, data, idTopic);
+    public Notification insert(Subscription sub, String timestamp, boolean sent, String data, int idTopic){
+        Notification ntf = new Notification(sub, timestamp, sent, data, idTopic);
         Notification result = notificationRepository.save(ntf);
         return result;
 
     }
 
-    public List<Notification> getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(String user_address, Integer id, Integer lastRows, Set<Integer> idTopics){
+    public List<Notification> getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(Subscription subscription, Integer id, Integer lastRows, Set<Integer> idTopics){
         Pageable pageable = PageRequest.of(0, MAX_LIMIT_QUERY < lastRows ? MAX_LIMIT_QUERY : lastRows, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddressAndIdGreaterThanAndIdTopicIn(user_address, id, idTopics, pageable));
+        return new ArrayList<>(notificationRepository.findAllBySubscriptionAndIdGreaterThanAndIdTopicIn(subscription, id, idTopics, pageable));
     }
-    public List<Notification> getNotificationsByUserAddressAndIdGraterThanAndIdTopic(String user_address, Integer id, Set<Integer> idTopics){
+    public List<Notification> getNotificationsByUserAddressAndIdGraterThanAndIdTopic(Subscription subscription, Integer id, Set<Integer> idTopics){
         Pageable DEFAULT_PAGEABLE = PageRequest.of(0, MAX_LIMIT_QUERY, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddressAndIdGreaterThanAndIdTopicIn(user_address, id, idTopics, DEFAULT_PAGEABLE));
+        return new ArrayList<>(notificationRepository.findAllBySubscriptionAndIdGreaterThanAndIdTopicIn(subscription, id, idTopics, DEFAULT_PAGEABLE));
     }
-    public List<Notification> getNotificationsByUserAddressAndIdGraterThanWithLastRows(String user_address, Integer id, Integer lastRows){
+    public List<Notification> getNotificationsByUserAddressAndIdGraterThanWithLastRows(Subscription subscription, Integer id, Integer lastRows){
         Pageable pageable = PageRequest.of(0, MAX_LIMIT_QUERY < lastRows ? MAX_LIMIT_QUERY : lastRows, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddressAndIdGraterThan(user_address, id, pageable));
+        return new ArrayList<>(notificationRepository.findAllBySubscriptionAndIdGreaterThan(subscription, id, pageable));
     }
-    public List<Notification> getNotificationsByUserAddressIdTopicIn(String user_address, Set<Integer> idTopics, Integer lastRows){
+    public List<Notification> getNotificationsByUserAddressIdTopicIn(Subscription subscription, Set<Integer> idTopics, Integer lastRows){
         Pageable pageable = PageRequest.of(0, MAX_LIMIT_QUERY < lastRows ? MAX_LIMIT_QUERY : lastRows, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddressAndIdTopicIn(user_address, idTopics, pageable));
+        return new ArrayList<>(notificationRepository.findAllBySubscriptionAndIdTopicIn(subscription, idTopics, pageable));
     }
-    public List<Notification> getNotificationsByUserAddressAndIdGraterThan(String user_address, Integer id){
+    public List<Notification> getNotificationsByUserAddressAndIdGraterThan(Subscription subscription, Integer id){
         Pageable DEFAULT_PAGEABLE = PageRequest.of(0, MAX_LIMIT_QUERY, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddressAndIdGraterThan(user_address, id, DEFAULT_PAGEABLE));
+        return new ArrayList<>(notificationRepository.findAllBySubscriptionAndIdGreaterThan(subscription, id, DEFAULT_PAGEABLE));
     }
-    public List<Notification> getNotificationsByUserAddressWithLastRows(String user_address, Integer lastRows){
+    public List<Notification> getNotificationsByUserAddressWithLastRows(Subscription subscription, Integer lastRows){
         Pageable pageable = PageRequest.of(0, MAX_LIMIT_QUERY < lastRows ? MAX_LIMIT_QUERY : lastRows, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddress(user_address, pageable));
+        return new ArrayList<>(notificationRepository.findAllBySubscription(subscription, pageable));
     }
-    public List<Notification> getNotificationsByUserAddressAndIdTopic(String user_address, Set<Integer> idTopics){
+    public List<Notification> getNotificationsByUserAddressAndIdTopic(Subscription subscription, Set<Integer> idTopics){
         Pageable DEFAULT_PAGEABLE = PageRequest.of(0, MAX_LIMIT_QUERY, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddressAndIdTopicIn(user_address, idTopics, DEFAULT_PAGEABLE));
+        return new ArrayList<>(notificationRepository.findAllBySubscriptionAndIdTopicIn(subscription, idTopics, DEFAULT_PAGEABLE));
     }
-    public List<Notification> getNotificationsByUserAddress(String user_address){
+    public List<Notification> getNotificationsByUserAddress(Subscription subscription){
         Pageable DEFAULT_PAGEABLE = PageRequest.of(0, MAX_LIMIT_QUERY, Sort.by("id").descending());
-        return new ArrayList<>(notificationRepository.findAllByToAddress(user_address, DEFAULT_PAGEABLE));
+        return new ArrayList<>(notificationRepository.findAllBySubscription(subscription, DEFAULT_PAGEABLE));
     }
 
-    public Set<Notification> getUnsentNotification(int maxRetries) {
+    public List<Notification> getUnsentNotification(int maxRetries) {
         return notificationRepository.findAllBySentFalseAndNotificationLogs_RetryCountLessThan(maxRetries);
     }
 }

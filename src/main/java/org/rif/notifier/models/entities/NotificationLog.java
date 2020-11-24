@@ -2,6 +2,8 @@ package org.rif.notifier.models.entities;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -16,7 +18,7 @@ public class NotificationLog {
     @JoinColumn(name="notification_id")
     private Notification notification;
 
-    @ManyToOne(cascade=CascadeType.PERSIST)
+    @ManyToOne
     @JoinColumn(name="notification_preference_id")
     private NotificationPreference notificationPreference;
 
@@ -25,6 +27,7 @@ public class NotificationLog {
     @Column(name="result_text")
     private String resultText;
 
+    @UpdateTimestamp
     @Column(name="last_updated")
     private Timestamp lastUpdated;
 
@@ -96,6 +99,10 @@ public class NotificationLog {
 
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
+    }
+
+    public void incrementRetryCount()   {
+        this.retryCount++;
     }
 
     @Override

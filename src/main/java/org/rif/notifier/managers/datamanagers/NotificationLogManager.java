@@ -18,25 +18,25 @@ public class NotificationLogManager {
         return notificationLogRepository.findAllBySentFalseAndRetryCountLessThan(maxCount);
     }
 
-    public Set<NotificationLog> getAllUnsentNotificationLogsByNotificationId(int notificationId){
-        return notificationLogRepository.findAllByNotificationIdAndSentFalse(notificationId);
+    public Set<NotificationLog> getAllUnsentNotificationLogsByNotification(Notification notification){
+        return notificationLogRepository.findAllByNotificationAndSentFalse(notification);
     }
 
-    public void logSuccesfulNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String resultText)    {
-        logNotification(notificationId, notificationPreferenceId, true, resultText);
+    public void logSuccesfulNotification(Notification notification, NotificationPreference notificationPreference, String resultText)    {
+        logNotification(notification, notificationPreference, true, resultText);
     }
 
-    public void logFailedNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String resultText)    {
-       logNotification(notificationId, notificationPreferenceId, false, resultText);
+    public void logFailedNotification(Notification notification, NotificationPreference notificationPreference, String resultText)    {
+       logNotification(notification, notificationPreference, false, resultText);
     }
 
-    protected void logNotification(Notification notificationId, NotificationPreference notificationPreferenceId, boolean sent, String resultText)    {
-        NotificationLog log = notificationLogRepository.findByNotificationIdAndNotificationPreferenceId(notificationId, notificationPreferenceId);
+    protected void logNotification(Notification notification, NotificationPreference notificationPreference, boolean sent, String resultText)    {
+        NotificationLog log = notificationLogRepository.findByNotificationAndNotificationPreference(notification, notificationPreference);
         if (log != null)    {
             log.setSent(sent);
         }
         else    {
-            log = new NotificationLog(notificationId, notificationPreferenceId, sent, resultText);
+            log = new NotificationLog(notification, notificationPreference, sent, resultText);
         }
         notificationLogRepository.save(log);
     }

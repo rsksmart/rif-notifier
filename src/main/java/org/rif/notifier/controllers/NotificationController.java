@@ -52,7 +52,7 @@ public class NotificationController {
             User us = userServices.getUserByApiKey(apiKey);
             if(us != null){
                 Subscription subscription = subscribeServices.getSubscriptionByAddress(us.getAddress());
-                notifications = notificationServices.getNotificationsForAddress(us.getAddress(), id, lastRows, idTopic);
+                notifications = notificationServices.getNotificationsForSubscription(subscription, id, lastRows, idTopic);
                 if(notifications.size() > 0) {
                     resp.setContent(notifications);
                 }else{
