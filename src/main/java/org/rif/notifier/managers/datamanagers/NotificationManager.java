@@ -27,7 +27,10 @@ public class NotificationManager {
         Notification ntf = new Notification(sub, timestamp, sent, data, idTopic);
         Notification result = notificationRepository.save(ntf);
         return result;
+    }
 
+    public Notification saveNotification(Notification notification) {
+        return notificationRepository.save(notification);
     }
 
     public List<Notification> getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(Subscription subscription, Integer id, Integer lastRows, Set<Integer> idTopics){
@@ -63,7 +66,11 @@ public class NotificationManager {
         return new ArrayList<>(notificationRepository.findAllBySubscription(subscription, DEFAULT_PAGEABLE));
     }
 
-    public List<Notification> getUnsentNotification(int maxRetries) {
+    public List<Notification> getUnsentNotificationsWithActiveSubscription(int maxRetries) {
+        return notificationRepository.findAllBySentFalseAndSubscription_ActiveTrueAndNotificationLogs_RetryCountLessThan(maxRetries);
+    }
+
+    public List<Notification> getUnsentNotifications(int maxRetries) {
         return notificationRepository.findAllBySentFalseAndNotificationLogs_RetryCountLessThan(maxRetries);
     }
 }

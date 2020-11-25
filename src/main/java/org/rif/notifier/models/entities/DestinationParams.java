@@ -1,5 +1,8 @@
 package org.rif.notifier.models.entities;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class DestinationParams {
     private String username;
     private String password;
@@ -27,5 +30,29 @@ public class DestinationParams {
 
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DestinationParams that = (DestinationParams) o;
+
+        return new EqualsBuilder()
+                .append(username, that.username)
+                .append(password, that.password)
+                .append(apiKey, that.apiKey)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(username)
+                .append(password)
+                .append(apiKey)
+                .toHashCode();
     }
 }

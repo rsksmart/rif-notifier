@@ -81,8 +81,30 @@ public class NotificationServiceTest {
         Notification savedNotif = notificationRepository.save(notif);
         savedNotif.getNotificationLogs().stream().forEach(log->{
             long diff = System.currentTimeMillis() - log.getLastUpdated().getTime();
-            //update in the last one second
+            //assert if updated in the last one second
             assertTrue(diff < 1000);
+        });
+    }
+
+    @Test
+    public void canGetNotifications()   {
+        List<Notification> nots = dbManagerFacade.getUnsentNotifications(100);
+        assertTrue(nots.size() > 0);
+    }
+
+    @Test
+    public void canProcessUnsentNotifications()    {
+        List<Notification> unsentNotifications = dbManagerFacade.getUnsentNotificationsWithActiveSubscription(100);
+        unsentNotifications.forEach(notification->{
+            List<NotificationPreference> notificationPreferences = dbManagerFacade.getNotificationPreferences(notification.getSubscription(), notification.getIdTopic());
+            List<NotificationLog> logs = notification.getNotificationLogs();
+            List<NotificationPreference> noprefs = notificationPreferences.stream().filter(pref-> logs.stream().noneMatch(log-> log.getNotificationPreference().equals(pref))).collect(Collectors.toList());
+            noprefs.forEach(pref -> {
+                NotificationLog nl = new NotificationLog();
+                nl.setNotification(notification);
+                nl.setNotificationPreference(pref);
+                notification.getNotificationLogs().add(nl);
+            });
         });
     }
 }

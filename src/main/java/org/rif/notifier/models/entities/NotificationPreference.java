@@ -1,6 +1,8 @@
 package org.rif.notifier.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.Type;
@@ -98,6 +100,36 @@ public class NotificationPreference {
 
     public void setIdTopic(int idTopic) {
         this.idTopic = idTopic;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NotificationPreference that = (NotificationPreference) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .append(idTopic, that.idTopic)
+                .append(notificationService, that.notificationService)
+                .append(subscription, that.subscription)
+                .append(destination, that.destination)
+                .append(destinationParams, that.destinationParams)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(id)
+                .append(notificationService)
+                .append(subscription)
+                .append(destination)
+                .append(destinationParams)
+                .append(idTopic)
+                .toHashCode();
     }
 
     @Override

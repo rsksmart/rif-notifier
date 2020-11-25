@@ -46,7 +46,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
         <!-- Use MySQL Connector-J -->
 
@@ -125,7 +128,11 @@
             <artifactId>hibernate-types-52</artifactId>
             <version>2.10.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>8.3.0</version>
+        </dependency>
     </dependencies>
 
     <properties>

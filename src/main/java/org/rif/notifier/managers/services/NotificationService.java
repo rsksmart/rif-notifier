@@ -1,10 +1,13 @@
 package org.rif.notifier.managers.services;
 
-import org.rif.notifier.models.entities.Notification;
-
-import java.util.List;
+import org.rif.notifier.models.entities.NotificationLog;
 
 public interface NotificationService {
+    default void sendNotificationAndUpdateLog(NotificationLog log)  {
+        sendNotification(log);
+        log.incrementRetryCount();
+        log.setSent(true);
+    }
 
-    void notifySubscriber(String adddress, List<Notification> notifications);
+    void sendNotification(NotificationLog log);
 }
