@@ -1,11 +1,9 @@
 package org.rif.notifier.services;
 
+import org.rif.notifier.exception.NotificationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.managers.services.NotificationService;
-import org.rif.notifier.models.entities.Notification;
-import org.rif.notifier.models.entities.NotificationPreference;
-import org.rif.notifier.models.entities.NotificationServiceType;
-import org.rif.notifier.models.entities.Subscription;
+import org.rif.notifier.models.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class NotificationServices {
@@ -57,16 +56,35 @@ public class NotificationServices {
         }
     }
 
-    public Notification sendNotification(Notification notification) {
-        notification.getNotificationLogs().forEach(log -> {
+    /**
+     * Sends a given notification for each preference (sms, api, email etc.) and saves the result of
+     * sent or not in the containing list of notification log for each preference
+     * @param notification
+     * @return
+     */
+    public Notification sendNotification(Notification notification, int maxRetries) {
+        //only get those logs that are not already sent and whose retry count not exceeded the maxRetries parameter
+        List<NotificationLog> logs = notification.getNotificationLogs().stream().filter(log->!log.isSent() && log.getRetryCount()<maxRetries).collect(Collectors.toList());
+        logs.forEach(log -> {
             NotificationPreference preference = log.getNotificationPreference();
-            NotificationService service = (NotificationService) applicationContext.getBean(
-                    log.getNotificationPreference().getNotificationService().getClassName());
-            service.sendNotificationAndUpdateLog(log);
+            try {
+                NotificationService service = (NotificationService) applicationContext.getBean(
+                        log.getNotificationPreference().getNotificationService().getClassName());
+                service.sendNotificationAndUpdateLog(log);
+            }catch(Error | Exception e) {
+                logger.warn("Error sending notification for " + log.getNotificationPreference().getNotificationService() + " " + notification.getId(), e);
+            }
         });
         return notification;
     }
 
+    /**
+     * Saves the notification, and the containing notification logs to the database. When all containing
+     * notification log for each notification preference are successfully sent,
+     * a notification is set to the status of sent true.
+     * @param notification
+     * @return
+     */
     public Notification saveNotification(Notification notification) {
         notification.setSent(notification.areAllNotificationLogsSent());
         return dbManagerFacade.saveNotification(notification);

@@ -42,6 +42,8 @@ public interface ResponseConstants {
 
     String INVALID_EMAIL_ADDRESS = "Invalid email address found in destination field of json. Please ensure valid email address";
 
+    String INVALID_PHONE_NUMBER = "Invalid phone number found in destination field of json. Please ensure valid phone number in format for ex. +13475555555";
+
     String SAVE_NOTIFICATION_PREFERENCE_FAILED = "There was an error while saving notification preference.";
 
     String PREFERENCE_NOT_FOUND = "Notification Preference not found for the given subscription, topic and type combination";

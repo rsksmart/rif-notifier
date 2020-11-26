@@ -246,7 +246,7 @@ public class DbManagerFacade {
         return notificationManager.getUnsentNotifications(maxRetries);
     }
 
-    public List<Notification> getUnsentNotificationsWithActiveSubscription(int maxRetries) {
+    public Set<Notification> getUnsentNotificationsWithActiveSubscription(int maxRetries) {
         return notificationManager.getUnsentNotificationsWithActiveSubscription(maxRetries);
     }
 

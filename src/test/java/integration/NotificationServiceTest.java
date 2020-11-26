@@ -94,7 +94,7 @@ public class NotificationServiceTest {
 
     @Test
     public void canProcessUnsentNotifications()    {
-        List<Notification> unsentNotifications = dbManagerFacade.getUnsentNotificationsWithActiveSubscription(100);
+        Set<Notification> unsentNotifications = dbManagerFacade.getUnsentNotificationsWithActiveSubscription(100);
         unsentNotifications.forEach(notification->{
             List<NotificationPreference> notificationPreferences = dbManagerFacade.getNotificationPreferences(notification.getSubscription(), notification.getIdTopic());
             List<NotificationLog> logs = notification.getNotificationLogs();

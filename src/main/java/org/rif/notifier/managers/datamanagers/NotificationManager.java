@@ -66,8 +66,8 @@ public class NotificationManager {
         return new ArrayList<>(notificationRepository.findAllBySubscription(subscription, DEFAULT_PAGEABLE));
     }
 
-    public List<Notification> getUnsentNotificationsWithActiveSubscription(int maxRetries) {
-        return notificationRepository.findAllBySentFalseAndSubscription_ActiveTrueAndNotificationLogs_RetryCountLessThan(maxRetries);
+    public Set<Notification> getUnsentNotificationsWithActiveSubscription(int maxRetries) {
+        return notificationRepository.findAllBySentFalseAndSubscription_ActiveTrueAndNotificationLogs_SentFalseAndNotificationLogs_RetryCountLessThan(maxRetries);
     }
 
     public List<Notification> getUnsentNotifications(int maxRetries) {

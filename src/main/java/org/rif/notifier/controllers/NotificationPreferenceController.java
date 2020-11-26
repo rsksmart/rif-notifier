@@ -31,6 +31,8 @@ public class NotificationPreferenceController {
     //multiple email addreses separated by comma
     private static final Pattern p = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
 
+    private static final Pattern phoneRegex = Pattern.compile("^\\+(?:[0-9] ?){6,14}[0-9]$");
+
     private static final Logger logger = LoggerFactory.getLogger(NotificationPreferenceController.class);
 
     @Autowired
@@ -180,6 +182,24 @@ public class NotificationPreferenceController {
 
 
     private void validateRequestNotificationPreference(NotificationPreference preference, DTOResponse resp)   throws ValidationException {
+        if (preference.getNotificationService() == NotificationServiceType.EMAIL) {
+            validateEmail(preference, resp);
+        }
+        else if (preference.getNotificationService() == NotificationServiceType.SMS) {
+            validateSMS(preference, resp);
+        }
+    }
+
+    private void validateSMS(NotificationPreference preference, DTOResponse resp) throws ValidationException  {
+        //validate phone with international prefix +13475555555
+        if (!phoneRegex.matcher(preference.getDestination()).matches()) {
+                resp.setStatus(HttpStatus.CONFLICT);
+                resp.setContent(ResponseConstants.INVALID_PHONE_NUMBER);
+                throw new ValidationException(ResponseConstants.INVALID_PHONE_NUMBER);
+        }
+    }
+
+    private void validateEmail(NotificationPreference preference, DTOResponse resp) throws ValidationException  {
         //validate email in case of email service type
         List<String> emails = Arrays.asList(preference.getDestination().split(";"));
         emails.forEach(email->{
