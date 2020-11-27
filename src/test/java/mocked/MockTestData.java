@@ -205,6 +205,7 @@ public class MockTestData {
         Date date = new Date();
         for(int i=0;i<10;i++) {
             Notification notif = new Notification(mockSubscription(), new Timestamp(date.getTime()).toString(), false, "{id: " + i + ", counter: " + i + "}", 0);
+            notif.setNotificationLogs(new ArrayList<NotificationLog>());
             retLst.add(notif);
         }
         return retLst;
@@ -365,8 +366,22 @@ public class MockTestData {
         NotificationLog log = new NotificationLog();
         log.setNotificationPreference(pref);
         log.setNotification(notif);
-        log.setRetryCount(1);
+        log.setRetryCount(0);
         log.setSent(false);
         return log;
+    }
+
+    public List<NotificationPreference> mockNotificationPreferences(int topicId) throws Exception  {
+        List<NotificationPreference> notificationPreferences = new ArrayList<>();
+        Subscription sub = mockSubscription();
+        Arrays.asList(NotificationServiceType.values()).forEach(t->{
+            NotificationPreference pref = new NotificationPreference();
+            pref.setIdTopic(0);
+            pref.setSubscription(sub);
+            pref.setNotificationService(t);
+            pref.setDestination("mockdestination");
+            notificationPreferences.add(pref);
+        });
+        return notificationPreferences;
     }
 }
