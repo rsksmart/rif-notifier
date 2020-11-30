@@ -102,8 +102,8 @@ public class NotificationServicesTest {
         Notification notif = getNotification();
         APIService api = new APIService();
         doReturn(api).when(applicationContext).getBean(anyString());
-        //even if hundred attempts the retry count should stay at 10, since that's the limit
-        IntStream.range(0, 100).forEach(i -> notificationServices.sendNotification(notif, 10));
+        //even if more than ten attempts the retry count should stay at 10, since that's the limit
+        IntStream.range(0, 15).forEach(i -> notificationServices.sendNotification(notif, 10));
         notif.getNotificationLogs().forEach(log -> assertEquals(10, log.getRetryCount()));
     }
 

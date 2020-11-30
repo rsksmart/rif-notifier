@@ -200,11 +200,14 @@ public class MockTestData {
                 "}";
         return mapper.readValue(sTp, Topic.class);
     }
-    public List<Notification> mockNotifications() throws IOException {
+    public List<Notification> mockNotifications() throws IOException    {
+        return mockNotifications(0);
+    }
+    public List<Notification> mockNotifications(int topicId) throws IOException {
         List<Notification> retLst = new ArrayList<>();
         Date date = new Date();
         for(int i=0;i<10;i++) {
-            Notification notif = new Notification(mockSubscription(), new Timestamp(date.getTime()).toString(), false, "{id: " + i + ", counter: " + i + "}", 0);
+            Notification notif = new Notification(mockSubscription(), new Timestamp(date.getTime()).toString(), false, "{id: " + i + ", counter: " + i + "}", topicId);
             notif.setNotificationLogs(new ArrayList<NotificationLog>());
             retLst.add(notif);
         }
@@ -376,7 +379,7 @@ public class MockTestData {
         Subscription sub = mockSubscription();
         Arrays.asList(NotificationServiceType.values()).forEach(t->{
             NotificationPreference pref = new NotificationPreference();
-            pref.setIdTopic(0);
+            pref.setIdTopic(topicId);
             pref.setSubscription(sub);
             pref.setNotificationService(t);
             pref.setDestination("mockdestination");
