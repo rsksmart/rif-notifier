@@ -39,7 +39,7 @@ public class APIService implements NotificationService {
         headers.add(API_KEY_HEADER, notification.getNotificationPreference().getDestinationParams().getApiKey());
         HttpEntity<String> request = new HttpEntity<>(notification.getNotification().getData(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(destination, request, String.class);
-        if(response.getStatusCode() != HttpStatus.OK) {
+        if(!response.getStatusCode().is2xxSuccessful()) {
             throw new NotificationException(response.getBody(), null);
         }
         return response.getBody();
