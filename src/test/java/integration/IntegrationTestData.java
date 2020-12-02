@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -22,6 +23,8 @@ import java.util.Date;
  */
 @Component
 public class IntegrationTestData {
+
+    protected static final String INVALID_API_DESTINATION = "http://localhost:8080/invalidendpoint";
 
     @Autowired private SubscriptionTypeRepository subTypeRepo;
     @Autowired private TopicManager topicManager;
@@ -38,10 +41,16 @@ public class IntegrationTestData {
     @Value("${notificationservice.integrationtest.apiendpoint.user}") private String username;
     @Value("${notificationservice.integrationtest.apiendpoint.password}") private String password;
 
+    @Value("${notificationservice.integrationtest.smsdestination}") private String smsDestination;
+    @Value("${notificationservice.integrationtest.emaildestination}") private String emailDestination;
+
     private SubscriptionType subscriptionType ;
     private Subscription activeSubscription;
     private int topicId;
-    private NotificationPreference preference;
+    private NotificationPreference apiPreference;
+    private NotificationPreference invalidApiPreference;
+    private NotificationPreference smsPreference;
+    private NotificationPreference emailPreference;
     private Notification notification;
     private MockTestData mockTestData = new MockTestData();
 
@@ -70,6 +79,60 @@ public class IntegrationTestData {
     protected String getPassword()    {
         return password;
     }
+    public String getApiEndpoint() { return apiEndpoint; }
+
+    protected NotificationPreference newNotificationPreference(NotificationServiceType type)    {
+        NotificationPreference preference = new NotificationPreference();
+        preference.setNotificationService(type);
+        preference.setIdTopic(topicId);
+        preference.setSubscription(activeSubscription);
+        preference.setDestination(type == NotificationServiceType.API ? apiEndpoint : (type == NotificationServiceType.EMAIL ? emailDestination : smsDestination));
+        if (type == NotificationServiceType.API) {
+            DestinationParams dp = new DestinationParams();
+            dp.setApiKey(apiKey);
+            dp.setUsername(username);
+            dp.setUsername(password);
+            preference.setDestinationParams(dp);
+        }
+        return preference;
+    }
+
+    private NotificationPreference findOrCreateNotificationPreference(NotificationServiceType type, String destination)   {
+        NotificationPreference preference = null;
+        preference = destination == null ? notificationPreferenceManager.getNotificationPreference(this.getActiveSubscription(), topicId, type) :
+                notificationPreferenceManager.getNotificationPreference(this.getActiveSubscription(), topicId, type, destination);
+        if (preference == null) {
+            preference = newNotificationPreference(type);
+            if (destination != null)    {
+                preference.setDestination(destination);
+            }
+            preference = notificationPreferenceManager.saveNotificationPreference(preference);
+        }
+        return preference;
+    }
+
+    protected Notification newNotification()  {
+        String data = "{\"data\":\"integrationtest-millis-" + System.currentTimeMillis() +"\"}";
+        Notification notification = new Notification(getActiveSubscription(), new Timestamp(new Date().getTime()).toString(), false, data, topicId);
+        notification.setNotificationLogs(new ArrayList<NotificationLog>());
+        return notification;
+    }
+
+    protected void populateNotificationLog(Notification notif) {
+       populateNotificationLog(notif, apiPreference);
+    }
+    protected void populateInvalidNotificationLog(Notification notif) {
+        populateNotificationLog(notif, invalidApiPreference);
+    }
+    protected void populateNotificationLog(Notification notif, NotificationPreference preference) {
+        Arrays.asList(preference/*, smsPreference, emailPreference*/).forEach(p -> {
+            NotificationLog notificationLog = new NotificationLog();
+            //associate each new log to a notification preference
+            notificationLog.setNotificationPreference(p);
+            notificationLog.setNotification(notif);
+            notif.getNotificationLogs().add(notificationLog);
+        });
+    }
 
     private void setupUser()    {
         dbManagerFacade.saveUser(user, userApiKey);
@@ -97,41 +160,20 @@ public class IntegrationTestData {
         }
         topicId = topic.getId();
     }
+
     private void setupNotification()   {
-        String data = "{\"data\":\"integrationtest-millis-" + System.currentTimeMillis() +"\"}";
-        notification = new Notification(getActiveSubscription(), new Timestamp(new Date().getTime()).toString(), false, data, topicId);
-        notification.setNotificationLogs(new ArrayList<NotificationLog>());
+       notification = newNotification();
     }
 
-    private void setupNotificationPreference()   {
-        preference = notificationPreferenceManager.getNotificationPreference(this.getActiveSubscription(), topicId, NotificationServiceType.API);
-        if (preference == null) {
-            preference = newNotificationPreference();
-            //save the preference
-            preference = notificationPreferenceManager.saveNotificationPreference(preference);
-        }
-    }
-
-    protected NotificationPreference newNotificationPreference()  {
-        NotificationPreference preference = new NotificationPreference();
-        preference.setNotificationService(NotificationServiceType.API);
-        preference.setIdTopic(topicId);
-        preference.setSubscription(activeSubscription);
-        preference.setDestination(apiEndpoint);
-        DestinationParams dp = new DestinationParams();
-        dp.setApiKey(apiKey);
-        dp.setUsername(username);
-        dp.setUsername(password);
-        preference.setDestinationParams(dp);
-        return preference;
+    private void setupNotificationPreferences()   {
+        apiPreference = findOrCreateNotificationPreference(NotificationServiceType.API, apiEndpoint);
+        //invalidApiPreference = findOrCreateNotificationPreference(NotificationServiceType.API, INVALID_API_DESTINATION);
+        //smsPreference = findOrCreateNotificationPreference(NotificationServiceType.SMS);
+        //emailPreference = findOrCreateNotificationPreference(NotificationServiceType.EMAIL);
     }
 
     private void setupNotificationLog() {
-        NotificationLog notificationLog = new NotificationLog();
-        //associate each new log to a notification preference
-        notificationLog.setNotificationPreference(preference);
-        notificationLog.setNotification(notification);
-        notification.getNotificationLogs().add(notificationLog);
+        populateNotificationLog(notification);
     }
 
     public void setup() {
@@ -139,7 +181,7 @@ public class IntegrationTestData {
         setupSubscriptionType();
         setupSubscription();
         setupTopic();
-        setupNotificationPreference();
+        setupNotificationPreferences();
         setupNotification();
         setupNotificationLog();
     }

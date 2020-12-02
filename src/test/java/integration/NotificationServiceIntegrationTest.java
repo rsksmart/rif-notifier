@@ -15,11 +15,13 @@ import org.rif.notifier.models.entities.*;
 import org.rif.notifier.repositories.NotificationPreferenceRepository;
 import org.rif.notifier.repositories.NotificationRepository;
 import org.rif.notifier.repositories.SubscriptionTypeRepository;
+import org.rif.notifier.scheduled.NotificationProcessorJob;
 import org.rif.notifier.services.NotificationServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -45,10 +47,18 @@ public class NotificationServiceIntegrationTest {
     @Autowired NotificationRepository notificationRepository;
     @Autowired NotificationServices notificationServices;
     @Autowired IntegrationTestData integrationTestData;
+    @Autowired NotificationProcessorJob notificationProcessorJob;
 
     private MockTestData mockTestData = new MockTestData();
 
 
+    private void saveApiEndpoint(Notification notif, String endpoint)    {
+        notif.getNotificationLogs().forEach(l->{
+            if(l.getNotificationPreference().getNotificationService() == NotificationServiceType.API)
+                l.getNotificationPreference().setDestination(endpoint);
+                notificationPreferenceManager.saveNotificationPreference(l.getNotificationPreference());
+        });
+    }
 
     @Before
     public void setUp() {
@@ -64,11 +74,24 @@ public class NotificationServiceIntegrationTest {
     }
 
     @Test
+    public void errorAPINotification()    {
+        Notification notif = integrationTestData.newNotification();
+        integrationTestData.populateNotificationLog(notif);
+        //use invalid api endpoint to propagate error
+        saveApiEndpoint(notif, IntegrationTestData.INVALID_API_DESTINATION);
+        notificationServices.sendNotification(notif, maxRetries);
+        notif = notificationServices.saveNotification(notif);
+        assertFalse(notif.isSent());
+        //reset the api endpoint to valid
+        saveApiEndpoint(notif, integrationTestData.getApiEndpoint());
+    }
+
+    @Test
     public void canSaveNotificationPreferences()  {
         NotificationPreference preference = notificationPreferenceManager.getNotificationPreference(integrationTestData.getActiveSubscription(), integrationTestData.getTopicId(), NotificationServiceType.API);
         String destination = preference != null ? preference.getDestination() : "";
         if (preference == null) {
-            preference = integrationTestData.newNotificationPreference();
+            preference = integrationTestData.newNotificationPreference(NotificationServiceType.API);
         }
         //change password to millis and check if it's saved
         String millis = String.valueOf(System.currentTimeMillis());
@@ -81,49 +104,41 @@ public class NotificationServiceIntegrationTest {
         assertEquals(integrationTestData.getPassword(), saved.getDestinationParams().getPassword());
     }
 
+    /**
+     * Verifies by creating new test notification with preference as specified in IntegrationTestData
+     * Then runs the notificationProcessorJob.run() to test if the notifications are processed by the
+     * method, if the newly created notification is sent successfully, the test passes
+     */
     @Test
-    @Ignore
-    public void canSaveNotificationLog()  {
-        Notification notif = notificationRepository.findAll().get(0);
-        if (notif == null) {
-            return;
-        }
-        List<NotificationPreference> prefs = notificationPreferenceManager.getNotificationPreferences(notif.getSubscription(), notif.getIdTopic());
-        if (!prefs.isEmpty() && notif.getNotificationLogs().isEmpty()) {
-            List<NotificationLog> l = new ArrayList<>();
-            l.add(mockTestData.newMockLog(notif, prefs.get(0)));
-            notif.setNotificationLogs(l);
-        }
-        notif.getNotificationLogs().forEach(l->
-                l.setRetryCount(l.getRetryCount() >= 50 ? 45 : 50));
-        Notification savedNotif = notificationRepository.save(notif);
-        savedNotif.getNotificationLogs().stream().forEach(log->{
-            long diff = System.currentTimeMillis() - log.getLastUpdated().getTime();
-            //assert if updated in the last one second
-            assertTrue(diff < 1000);
-        });
-    }
-
-    @Test
-    public void canGetNotifications()   {
-        List<Notification> nots = dbManagerFacade.getUnsentNotifications(maxRetries);
-        assertTrue(nots.size() > 0);
-    }
-
-    @Test
-    @Ignore
     public void canProcessUnsentNotifications()    {
-        Set<Notification> unsentNotifications = dbManagerFacade.getUnsentNotificationsWithActiveSubscription(100);
-        unsentNotifications.forEach(notification->{
-            List<NotificationPreference> notificationPreferences = dbManagerFacade.getNotificationPreferences(notification.getSubscription(), notification.getIdTopic());
-            List<NotificationLog> logs = notification.getNotificationLogs();
-            List<NotificationPreference> noprefs = notificationPreferences.stream().filter(pref-> logs.stream().noneMatch(log-> log.getNotificationPreference().equals(pref))).collect(Collectors.toList());
-            noprefs.forEach(pref -> {
-                NotificationLog nl = new NotificationLog();
-                nl.setNotification(notification);
-                nl.setNotificationPreference(pref);
-                notification.getNotificationLogs().add(nl);
-            });
+        Notification notif = integrationTestData.newNotification();
+        integrationTestData.populateNotificationLog(notif);
+        notif = notificationServices.saveNotification(notif);
+        notificationProcessorJob.run();
+        notif = notificationRepository.findById(notif.getId()).get();
+        assertTrue(notif.isSent());
+    }
+
+    /**
+     * This needs to use invalid notification prefeence
+     */
+    @Test
+    public void errorProcessingUnsentNotifications()    {
+        Notification notif = integrationTestData.newNotification();
+        integrationTestData.populateNotificationLog(notif);
+        //use invalid endpoint to propagate error
+        saveApiEndpoint(notif, IntegrationTestData.INVALID_API_DESTINATION);
+        notif = notificationServices.saveNotification(notif);
+        notificationProcessorJob.run();
+        notificationProcessorJob.run();
+        notif = notificationRepository.findById(notif.getId()).get();
+        notif.getNotificationLogs().forEach(l->
+        {
+           assertEquals(2, l.getRetryCount());
         });
+        assertFalse(notif.isSent());
+        //set it back to valid endpoint
+        saveApiEndpoint(notif, integrationTestData.getApiEndpoint());
+
     }
 }

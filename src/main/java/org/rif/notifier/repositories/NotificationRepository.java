@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public interface NotificationRepository extends JpaRepository<Notification, String> {
+public interface NotificationRepository extends JpaRepository<Notification, Integer> {
     List<Notification> findAllBySubscriptionAndIdGreaterThanAndIdTopicIn(Subscription subscription, Integer id, Set<Integer> idTopic, Pageable pageable);
 
     //@Query(value = "SELECT * FROM notification A WHERE A.to_address = ?1 AND A.id > ?2", nativeQuery = true)

@@ -35,13 +35,14 @@ public class APIService implements NotificationService {
         String destination = notification.getNotificationPreference().getDestination();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.add(API_KEY_HEADER, notification.getNotificationPreference().getDestinationParams().getApiKey());
         HttpEntity<String> request = new HttpEntity<>(notification.getNotification().getData(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(destination, request, String.class);
         if(!response.getStatusCode().is2xxSuccessful()) {
             throw new NotificationException(response.getBody(), null);
         }
-        return response.getBody();
+        //result_text in notification_log is tinytext, so needs to be truncated
+        String result = response.getBody().substring(0, Math.min(response.getBody().length(), 255));
+        return result;
     }
 }
