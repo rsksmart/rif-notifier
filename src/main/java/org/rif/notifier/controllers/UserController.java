@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.User;
 import org.rif.notifier.services.UserServices;
@@ -39,16 +40,13 @@ public class UserController {
                         resp.setContent(user);
                     }
                 } else {
-                    resp.setMessage(ResponseConstants.INCORRECT_SIGNED_ADDRESS);
-                    resp.setStatus(HttpStatus.CONFLICT);
+                    throw new ValidationException(ResponseConstants.INCORRECT_SIGNED_ADDRESS);
                 }
             }else{
-                resp.setMessage(ResponseConstants.SIGNED_ADDRESS_NOT_PROVIDED);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new ValidationException(ResponseConstants.SIGNED_ADDRESS_NOT_PROVIDED);
             }
         }else{
-            resp.setMessage(ResponseConstants.ADDRESS_NOT_PROVIDED);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.ADDRESS_NOT_PROVIDED);
         }
         return new ResponseEntity<>(resp, resp.getStatus());
     }

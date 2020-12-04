@@ -6,6 +6,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.exception.SubscriptionException;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Api(tags = {"Onboarding Resource"})
 @RestController
@@ -55,16 +58,14 @@ public class SubscribeController {
                     SubscriptionType subTypeMocked = new SubscriptionType(Integer.MAX_VALUE);
                     resp.setContent(subscribeServices.createSubscription(us, subTypeMocked));
                 }else{
-                    resp.setMessage(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
-                    resp.setStatus(HttpStatus.CONFLICT);
+                    throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
                 }
 //            }else{
 //                resp.setMessage(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE);
 //                resp.setStatus(HttpStatus.CONFLICT);
 //            }
         }else{
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());
@@ -92,27 +93,21 @@ public class SubscribeController {
                             resp.setContent(subscribeServices.subscribeToTopic(userSentTopic, sub));
                         }else{
                             //Return an error because the user is sending a topic that he's already subscribed
-                            resp.setMessage(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC);
-                            resp.setContent(new SubscriptionResponse(topic.getId()));
-                            resp.setStatus(HttpStatus.CONFLICT);
+                            throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
                         }
                     }else{
                         //Return an error because the user sends a wrong structure of topic
-                        resp.setMessage(ResponseConstants.TOPIC_VALIDATION_FAILED);
-                        resp.setStatus(HttpStatus.CONFLICT);
+                        throw new SubscriptionException(ResponseConstants.TOPIC_VALIDATION_FAILED);
                     }
                 }else{
                     //Return an error because the user still did not create the subscription
-                    resp.setMessage(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-                    resp.setStatus(HttpStatus.CONFLICT);
+                    throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
                 }
             }else{
-                resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
             }
         } catch (IOException e) {
-            resp.setMessage(ResponseConstants.TOPIC_VALIDATION_FAILED);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new SubscriptionException(ResponseConstants.TOPIC_VALIDATION_FAILED);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());
@@ -132,12 +127,10 @@ public class SubscribeController {
                 resp.setContent(sub.toStringInfo());
             } else {
                 //Return an error because the user still did not create the subscription
-                resp.setMessage(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
             }
         } else {
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());
@@ -157,12 +150,10 @@ public class SubscribeController {
                 resp.setContent(luminoEventServices.getTokens());
             } else {
                 //Return an error because the user still did not create the subscription
-                resp.setMessage(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
             }
         } else {
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());
@@ -190,23 +181,18 @@ public class SubscribeController {
                         resp.setContent(subscribeServices.subscribeToTopic(openChannelTopic, sub));
                     }else{
                         //Return an error because the user is sending a topic that he's already subscribed
-                        resp.setMessage(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC);
-                        resp.setContent(new SubscriptionResponse(topic.getId()));
-                        resp.setStatus(HttpStatus.CONFLICT);
+                        throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
                     }
                 }else{
                     //Return an error because the user send a incorrect token
-                    resp.setMessage(ResponseConstants.INCORRECT_TOKEN);
-                    resp.setStatus(HttpStatus.CONFLICT);
+                    throw new SubscriptionException(ResponseConstants.INCORRECT_TOKEN);
                 }
             } else {
                 //Return an error because the user still did not create the subscription
-                resp.setMessage(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
             }
         } else {
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());
@@ -234,23 +220,18 @@ public class SubscribeController {
                         resp.setContent(subscribeServices.subscribeToTopic(closeChannelTopic, sub));
                     }else{
                         //Return an error because the user is sending a topic that he's already subscribed
-                        resp.setMessage(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC);
-                        resp.setContent(new SubscriptionResponse(topic.getId()));
-                        resp.setStatus(HttpStatus.CONFLICT);
+                        throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
                     }
                 }else{
                     //Return an error because the user send a incorrect token
-                    resp.setMessage(ResponseConstants.INCORRECT_TOKEN);
-                    resp.setStatus(HttpStatus.CONFLICT);
+                    throw new SubscriptionException(ResponseConstants.INCORRECT_TOKEN);
                 }
             } else {
                 //Return an error because the user still did not create the subscription
-                resp.setMessage(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
             }
         } else {
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());
@@ -271,21 +252,17 @@ public class SubscribeController {
                 Topic tp = subscribeServices.getTopicById(idTopic);
                 if(tp != null){
                     if(!subscribeServices.unsubscribeFromTopic(sub, tp)){
-                        resp.setMessage(ResponseConstants.UNSUBSCRIBED_FROM_TOPIC_FAILED);
-                        resp.setStatus(HttpStatus.CONFLICT);
+                        throw new SubscriptionException(ResponseConstants.UNSUBSCRIBED_FROM_TOPIC_FAILED);
                     }
                 }else{
-                    resp.setMessage(ResponseConstants.INVALID_TOPIC_ID);
-                    resp.setStatus(HttpStatus.CONFLICT);
+                    throw new SubscriptionException(ResponseConstants.INVALID_TOPIC_ID);
                 }
             }else{
                 //Return an error because the user still did not create the subscription
-                resp.setMessage(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
             }
         }else{
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
         }
         return new ResponseEntity<>(resp, resp.getStatus());
     }
@@ -311,20 +288,17 @@ public class SubscribeController {
                         lstTopicId.add(subscribeServices.subscribeToTopic(openChannelTopic, sub));
                     }else{
                         //Return an error because the user is sending a topic that he's already subscribed
-                        resp.setMessage(ResponseConstants.AlREADY_SUBSCRIBED_TO_SOME_TOPICS);
                         lstTopicId.add(new SubscriptionResponse(topic.getId()));
-                        resp.setStatus(HttpStatus.CONFLICT);
+                        throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_SOME_TOPICS, lstTopicId, null);
                     }
                 });
                 resp.setContent(lstTopicId);
             } else {
                 //Return an error because the user still did not create the subscription
-                resp.setMessage(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
             }
         } else {
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());

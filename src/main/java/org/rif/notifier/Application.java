@@ -18,7 +18,7 @@ import java.util.concurrent.Executor;
 @SpringBootApplication(
         scanBasePackages = {"org.rif.notifier.datafetcher","org.rif.notifier.controllers", "org.rif.notifier.services",
                 "org.rif.notifier.managers", "org.rif.notifier.managers.datamanagers", "org.rif.notifier.scheduled", "org.rif.notifier.repositories",
-                "org.rif.notifier.notificationmanagers", "org.rif.notifier.helpers"},
+                "org.rif.notifier.notificationmanagers", "org.rif.notifier.helpers", "org.rif.notifier.exception"},
         scanBasePackageClasses = {
                 WebConfiguration.class,
         })
@@ -29,18 +29,6 @@ public class Application extends SpringBootServletInitializer {
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
     }
-
-    @Bean
-    public Executor taskExecutor() {
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        //TODO move to properties of the configurator
-        executor.setCorePoolSize(7);
-        executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(11);
-        executor.initialize();
-        return executor;
-    }
-
 
     public static void main(String[] args) { SpringApplication.run(Application.class, args); }
 }
