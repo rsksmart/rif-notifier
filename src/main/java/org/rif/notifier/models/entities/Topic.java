@@ -1,5 +1,6 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -23,6 +24,7 @@ public class Topic {
 
     private String hash;
 
+    @JsonIgnore
     @ManyToMany()
     @JoinTable(name = "user_topic",
             joinColumns = @JoinColumn(name = "id_topic", referencedColumnName = "id"),
