@@ -4,27 +4,32 @@
 
 1. [Quick start](#quick-start) 
 2. [Installation](#installation-guide) 
-3. [Register user to notifier](#first-you-need-to-register-a-user)
-4. [Generate suscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
-5. [Suscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
-6. [Retrieve notifications](#getting-notifications)
-7. [Unsubscribe from topic](#unsubscribing-from-a-topic)
-8. [Other available endpoints](#other-available-endpoints)
+3. [Docker Installation](#docker-installation-guide) 
+4. [Get signed address and private key to register a user](#get-signed-address-and-privatekey)
+5. [Register user to notifier](#first-you-need-to-register-a-user)
+6. [Generate subscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
+7. [Subscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
+8. [Retrieve notifications](#getting-notifications)
+9. [Unsubscribe from topic](#unsubscribing-from-a-topic)
+10. [Save notification Preference](#save-notification-preference)
+11. [Remove notification Preference](#remove-notification-preference)
+12. [Other available endpoints](#other-available-endpoints)
 	1. [Get subscription info](#get-subscription-info)
 	2. [Get Lumino tokens](#get-lumino-tokens)
 	3. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
 	4. [Subscribe to close channel](#subscribe-to-close-channel)
 	5. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
 	6. [Get chain addresses events](#get-rns-events)
+13. [Verify blockchain events are processed](#verify-blockchain-events)
 
 
 ## Quick Start
 
 (This steps you can follow if you're already familiar with the notifier, otherwise jump to the installation guide first)
 
--First of all you need to set the blockchain endpoint in the application.properties of this project
+-First of all you need to set the blockchain endpoint property  ```rsk.blockchain.endpoint=``` for ex. ```http://localhost:4444``` in the application.properties of this project
 
--To subscribe to Events like Open Channel or Close Channel, there's a property that needs the Token Network Registry Address to be setted in the application.properties
+-To subscribe to Events like Open Channel or Close Channel, use the property  that needs the Token Network Registry Address to be setted in the application.properties
 
 -We use mysql for DB, please put your DB settings in the application.properties too
 
@@ -41,18 +46,63 @@
 		1. spring.datasource.url=jdbc:mysql://localhost:3306/notifierone 
 		2. spring.datasource.username=notifier1
 		3. spring.datasource.password=123456
-	2. RSK Node endpoint
+	2. RSK Blockchain endpoint for listening to contract events, new blocks and new transactions
+	    1. rsk.blockchain.endpoint=http://localhost:4444
+	3. RSK Node endpoint, listening to contract events and fetch lumino tokens
 		1. rsk.blockchain.tokennetworkregistry=0x088AF4986f3DBD66b4d97bE5f6742BC4853D8BA8
-	3. Multichain contract address, to obtain the chainaddresses event
+	4. Multichain contract address, to obtain the chainaddresses event
 		1. rsk.blockchain.multichaincontract=0x7557fcE0BbFAe81a9508FF469D481f2c72a8B5f3
 4. Now just rests to init the notifier, for that, you need to run the following command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=${PORT}" 
 
 (As a note, you can ignore the -Dspring-boot arguments, and just run the notifier with mvn spring-boot:run)
 
+## Docker Installation guide
+1. Download docker image <rifnotifier.tar> from gdrive link provided
+2. Run command below - 
+```
+docker load -i rifnotifier.tar
+docker run -it --name rifn2  -p 8080:8080 rifn2 bash
+cd ~/rif-notifier
+git pull
+mvn spring-boot:run
+```
+###### Get signed address and privatekey
+1. Get a wallet address and private key from a wallet for ex. nifty wallet
+2. Sign the address using the wallet private key with the below javascript 
+```
+var ethers = require('ethers');
+const Web3 = require('web3');
+const SigningHandler = () => {
+  let web3;
+  let wallet;
+  let decryptedAccount;
+  const init = (_web3, _privateKey) => {
+    web3 = _web3;
+    wallet = new ethers.Wallet(_privateKey);
+console.log(wallet);
+    decryptedAccount = web3.eth.accounts.privateKeyToAccount(_privateKey);
+  };
+  const offChainSign = data => {
+	console.log(wallet);
+    const signature = wallet.signMessage(data);
+    return signature;
+  };
+  const sign = async tx => {
+    const signed_tx = await decryptedAccount.signTransaction(tx);
+    return signed_tx.rawTransaction;
+  };
+  return { init, offChainSign, sign };
+};
+let privatekey = <your wallet private key>;
+let addressstoSign = <your wallet address>;
+let web3 = new Web3('ws://localhost:4444');
+var s = SigningHandler();
+s.init(web3, privatekey);
+console.log(s.offChainSign(addressToSign));
+```
+Note down the signed address to use as body to register user.
 
 ###### First you need to register a user
-
-
 ```
 POST Request: http://localhost:8080/users?address=YOUR_ADDRESS
 Body (Text/plain): Here you need to put your address signed with your private key
@@ -165,13 +215,13 @@ As an example for `NEW_BLOCKS` or `NEW_TRANSACTIONS`
 
 ```json
 {
-    "type": "NEW_BLOCKS", 
+    "type": "NEW_BLOCK", 
 }
 ```
 Or
 ```json
 {
-    "type": "NEW_TRANSACTIONS", 
+    "type": "NEW_TRANSACTION", 
 }
 ```
 
@@ -209,6 +259,77 @@ POST Request: http://localhost:8080/unsubscribeFromTopic?idTopic=ID_TOPIC
 Header param: 
 	key: apiKey
 	value: API_KEY 
+```
+
+###### Save Notification Preference
+Notification Preference allows to save a type of notification to send for all blockchain notifications. The different types of notifiction preference available are SMS, EMAIL and API. 
+A notification preference is usually associated to a user and topic id. When no topic id is provided a default topic id 0 is used, and set as default notification preference when no
+preference found for given user and topic id.
+```
+POST Request: http://localhost:8080/saveNotificationPreference
+Header param:
+    key: apiKey
+    value: API_KEY
+```
+Api Json Body:
+```
+        {
+          "notificationService":"API",
+          "destination":"http://host/notify",
+          "idTopic":"0",
+          "destinationParams":{
+              "apiKey":"test",
+              "username":"test",
+              "password":"test"
+            }
+        }
+```
+Email Json Body:
+```
+        {
+                "notificationService":"EMAIL",
+                "destination":"123456@abc.com;123@abc.com", /*(multiple email addresses separated by semi-colon)*/ 
+                "idTopic":"11",
+        }
+```
+Sms Json Body:
+```
+        {
+               "notificationService":"SMS",
+                "destination":"+191725245555", /* in exact format, +(country code)(phone number)*/
+                "idTopic":"10",
+        }     
+```
+
+###### RemoveNotification Preference
+Removes a given notification preference
+```
+POST Request: http://localhost:8080/removeNotificationPreference
+Header param:
+    key: apiKey
+    value: API_KEY
+```
+API Json Body
+```
+    {
+          "notificationService":"API",
+          "idTopic":"10",
+    }
+```
+SMS Json Body
+```
+    {
+          "notificationService":"SMS",
+          "idTopic":"10",
+    }
+```
+Email Json Body
+```
+    {
+          "notificationService":"EMAIL",
+          "idTopic":"10",
+    }
+
 ```
 
 ###### Other available endpoints
@@ -367,3 +488,21 @@ Return example:
 }
 ```
 
+
+###### Verify blockchain events
+1. Download ganache from tufflesuite.com/ganache
+```
+2. npm install -g truffle
+3. truffle unbox metacoin
+```
+4. uncomment the entire networks structure in truffle-config.js
+5. Open ganache and make sure you are pointing the truffle-config.js from the metacoin project
+6. Run commands below from truffle
+```
+ truffle console --network development
+ migrate --reset
+ let contract = await MetaCoin.deployed()
+ contract.sendCoin('###2nd address in ganache ###', 100)
+```
+7. Check results: Now under raw_data and notification tables there should be data.
+8. Check notifications are being sent by verifying sent=1 in notification table, for the notification preference set. In case not sent check the notification_log table.
