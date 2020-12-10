@@ -383,6 +383,7 @@ public class MockTestData {
             pref.setSubscription(sub);
             pref.setNotificationService(t);
             pref.setDestination("mockdestination");
+            pref.setDestinationParams(new DestinationParams());
             notificationPreferences.add(pref);
         });
         return notificationPreferences;

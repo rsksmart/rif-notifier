@@ -7,6 +7,8 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.exception.SubscriptionException;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.Notification;
 import org.rif.notifier.models.entities.Subscription;
@@ -61,19 +63,16 @@ public class NotificationController {
                 }else{
                     //It may be happend that the user has no notifications cause the balance of the subscription is 0
                     if(subscription.getNotificationBalance() == 0) {
-                        resp.setMessage(ResponseConstants.SUBSCRIPTION_OUT_OF_BALANCE);
-                        resp.setStatus(HttpStatus.CONFLICT);
+                        throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_OUT_OF_BALANCE);
                     }
                 }
             }else{
                 //Return error, user does not exist
-                resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
             }
         }else{
             //Return error, user does not exist
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.MISSING_APIKEY);
         }
         return new ResponseEntity<>(resp, resp.getStatus());
     }

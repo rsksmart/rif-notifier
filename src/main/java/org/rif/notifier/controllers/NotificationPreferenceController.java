@@ -5,6 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.exception.ResourceNotFoundException;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.DTOResponse;
@@ -18,10 +19,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
+
 
 
 @Api(tags = {"Notification Preference Resource"})
@@ -76,7 +80,7 @@ public class NotificationPreferenceController {
             response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
     @RequestMapping(value = "/saveNotificationPreference", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
-    public ResponseEntity<DTOResponse> saveNotificationPreference(
+    public ResponseEntity<DTOResponse> saveNotificationPreference   (
             @RequestHeader(value="apiKey") String apiKey,
             @RequestBody String notificationPreference
 
@@ -85,25 +89,23 @@ public class NotificationPreferenceController {
         NotificationPreference requestedPreference;
         User apiUser;
 
-        try {
+        //try {
             //validate apikey
-            apiUser = validateApiKeyAndGetUser(apiKey, resp);
+            apiUser = validateApiKeyAndGetUser(apiKey);
             //validate request json
-            requestedPreference = validateRequestJson(notificationPreference, resp);
+            requestedPreference = validateRequestJson(notificationPreference);
             //validate containing data
-            validateRequestNotificationPreference(requestedPreference, resp);
-        }
-        catch(ValidationException e)    {
-            return new ResponseEntity<>(resp, resp.getStatus());
-        }
+            validateRequestNotificationPreference(requestedPreference);
+        //}
+        //catch(ValidationException e)    {
+            //return new ResponseEntity<>(resp, resp.getStatus());
+        //}
 
         Subscription subscription = subscribeServices.getSubscriptionByAddress(apiUser.getAddress());
-        NotificationPreference preference = null;
         //check if notification preference already associated with topic and subscription for given type, if no topic specified, default topic 0 will be used
-        preference = notificationPreferenceManager.getNotificationPreference(subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService());
-        if (preference == null)  {
-            preference = new NotificationPreference();
-        }
+        NotificationPreference preference = Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(
+                        subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))
+                        .orElse(new NotificationPreference());
         preference.setSubscription(subscription);
         //the topic id sent as part of request. This is an integer topic id for ex. 10.
         // When the topic id is set to 0, this preference will be used as default preference for those
@@ -121,25 +123,16 @@ public class NotificationPreferenceController {
         if(preference.getId() > 0) {
             resp.setContent(preference);
         }else{
-            resp.setMessage(ResponseConstants.SAVE_NOTIFICATION_PREFERENCE_FAILED);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new PersistenceException(ResponseConstants.SAVE_NOTIFICATION_PREFERENCE_FAILED);
         }
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 
 
-    private User validateApiKeyAndGetUser(String apiKey, DTOResponse resp) throws ValidationException {
-        if(apiKey == null || apiKey.isEmpty()) {
-            //Return error, user does not exist
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
-        }
-        User apiUser = userServices.getUserByApiKey(apiKey);
-        if (apiUser == null)    {
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
-        }
-        return apiUser;
+    private User validateApiKeyAndGetUser(String apiKey) throws ValidationException {
+        //Return error, user does not exist
+        Optional.ofNullable(apiKey).orElseThrow(()->new ValidationException(ResponseConstants.MISSING_APIKEY));
+        return Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
     }
 
     @ApiOperation(value = "remove notification preference for subscription and topic and notification service type",
@@ -155,25 +148,17 @@ public class NotificationPreferenceController {
         NotificationPreference requestedPreference;
         User apiUser;
 
-        try {
-            //validate apikey
-            apiUser = validateApiKeyAndGetUser(apiKey, resp);
-            //validate request json
-            requestedPreference = validateRequestJson(notificationPreference, resp);
-        } catch (ValidationException e) {
-            return new ResponseEntity<>(resp, resp.getStatus());
-        }
+        //validate apikey
+        apiUser = validateApiKeyAndGetUser(apiKey);
+        //validate request json
+        requestedPreference = validateRequestJson(notificationPreference);
 
         Subscription subscription = subscribeServices.getSubscriptionByAddress(apiUser.getAddress());
-        NotificationPreference preference = null;
         //check if notification preference already associated with topic and subscription for given type
-        preference = notificationPreferenceManager.getNotificationPreference(subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService());
+        NotificationPreference preference = Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(
+                        subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))
+                        .orElseThrow(()->new ResourceNotFoundException(ResponseConstants.PREFERENCE_NOT_FOUND));
 
-        if (preference == null) {
-            resp.setStatus(HttpStatus.CONFLICT);
-            resp.setContent(ResponseConstants.PREFERENCE_NOT_FOUND);
-            return new ResponseEntity<>(resp, resp.getStatus());
-        }
         notificationPreferenceManager.removeNotificationPreference(preference);
         resp.setStatus(HttpStatus.OK);
         resp.setContent(ResponseConstants.PREFERENCE_REMOVED);
@@ -181,46 +166,37 @@ public class NotificationPreferenceController {
     }
 
 
-    private void validateRequestNotificationPreference(NotificationPreference preference, DTOResponse resp)   throws ValidationException {
+    private void validateRequestNotificationPreference(NotificationPreference preference)   throws ValidationException {
         if (preference.getNotificationService() == NotificationServiceType.EMAIL) {
-            validateEmail(preference, resp);
+            validateEmail(preference);
         }
         else if (preference.getNotificationService() == NotificationServiceType.SMS) {
-            validateSMS(preference, resp);
+            validateSMS(preference);
         }
     }
 
-    private void validateSMS(NotificationPreference preference, DTOResponse resp) throws ValidationException  {
+    private void validateSMS(NotificationPreference preference) throws ValidationException  {
         //validate phone with international prefix +13475555555
         if (!phoneRegex.matcher(preference.getDestination()).matches()) {
-                resp.setStatus(HttpStatus.CONFLICT);
-                resp.setContent(ResponseConstants.INVALID_PHONE_NUMBER);
                 throw new ValidationException(ResponseConstants.INVALID_PHONE_NUMBER);
         }
     }
 
-    private void validateEmail(NotificationPreference preference, DTOResponse resp) throws ValidationException  {
+    private void validateEmail(NotificationPreference preference) {
         //validate email in case of email service type
         List<String> emails = Arrays.asList(preference.getDestination().split(";"));
         emails.forEach(email->{
             if(!p.matcher(email).matches())   {
-                resp.setStatus(HttpStatus.CONFLICT);
-                resp.setContent(ResponseConstants.INVALID_EMAIL_ADDRESS);
-                return;
+                throw new ValidationException(ResponseConstants.INVALID_EMAIL_ADDRESS);
             }
         });
-        if(resp.getStatus() == HttpStatus.CONFLICT) {
-            throw new ValidationException(ResponseConstants.INVALID_EMAIL_ADDRESS);
-        };
     }
 
-    private NotificationPreference validateRequestJson(String notificationPreference, DTOResponse resp)  throws ValidationException {
+    private NotificationPreference validateRequestJson(String notificationPreference)  {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(notificationPreference, NotificationPreference.class);
         }catch(IOException e)   {
-            resp.setMessage(ResponseConstants.PREFERENCE_VALIDATION_FAILED);
-            resp.setStatus(HttpStatus.CONFLICT);
             throw new ValidationException(ResponseConstants.PREFERENCE_VALIDATION_FAILED, e);
         }
     }

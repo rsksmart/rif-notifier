@@ -4,6 +4,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.exception.SubscriptionException;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.ChainAddressEvent;
 import org.rif.notifier.models.entities.Subscription;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 
@@ -57,19 +60,16 @@ public class ChainAddressesController {
                 }else{
                     //It may be happend that the user has no notifications cause the balance of the subscription is 0
                     if(!subscription.getActive()) {
-                        resp.setMessage(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-                        resp.setStatus(HttpStatus.CONFLICT);
+                        throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
                     }
                 }
             }else{
                 //Return error, user does not exist
-                resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-                resp.setStatus(HttpStatus.CONFLICT);
+                throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
             }
         }else{
             //Return error, user does not exist
-            resp.setMessage(ResponseConstants.INCORRECT_APIKEY);
-            resp.setStatus(HttpStatus.CONFLICT);
+            throw new ValidationException(ResponseConstants.MISSING_APIKEY);
         }
         return new ResponseEntity<>(resp, resp.getStatus());
     }
