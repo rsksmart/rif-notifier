@@ -162,27 +162,27 @@ public class DbManagerFacade {
     @Transactional
     public List<Notification> saveNotificationBatch(List<Notification> notifications){
         return notifications.stream().map(notificationItem ->
-                notificationManager.insert(notificationItem.getTo_address(), notificationItem.getTimestamp(), notificationItem.isSent(), notificationItem.getData(), notificationItem.getIdTopic())
+                notificationManager.insert(notificationItem.getSubscription(), notificationItem.getTimestamp(), notificationItem.isSent(), notificationItem.getData(), notificationItem.getIdTopic())
         ).collect(Collectors.toList());
     }
 
-    public List<Notification> getNotificationByUserAddress(String user_address, Integer id, Integer lastRows, Set<Integer> idTopics){
+    public List<Notification> getNotificationsBySubscription(Subscription subscription, Integer id, Integer lastRows, Set<Integer> idTopics){
         if(id != null && lastRows != null && idTopics != null && idTopics.size() > 0)
-            return notificationManager.getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(user_address, id, lastRows, idTopics);
+            return notificationManager.getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(subscription, id, lastRows, idTopics);
         else if(lastRows == null && id != null && idTopics != null && idTopics.size() > 0)
-            return notificationManager.getNotificationsByUserAddressAndIdGraterThanAndIdTopic(user_address, id, idTopics);
+            return notificationManager.getNotificationsByUserAddressAndIdGraterThanAndIdTopic(subscription, id, idTopics);
         else if(id != null && lastRows != null)
-            return notificationManager.getNotificationsByUserAddressAndIdGraterThanWithLastRows(user_address, id, lastRows);
+            return notificationManager.getNotificationsByUserAddressAndIdGraterThanWithLastRows(subscription, id, lastRows);
         else if(lastRows != null && idTopics != null && idTopics.size() > 0)
-            return notificationManager.getNotificationsByUserAddressIdTopicIn(user_address, idTopics, lastRows);
+            return notificationManager.getNotificationsByUserAddressIdTopicIn(subscription, idTopics, lastRows);
         else if(id != null)
-            return notificationManager.getNotificationsByUserAddressAndIdGraterThan(user_address, id);
+            return notificationManager.getNotificationsByUserAddressAndIdGraterThan(subscription, id);
         else if(lastRows != null)
-            return notificationManager.getNotificationsByUserAddressWithLastRows(user_address, lastRows);
+            return notificationManager.getNotificationsByUserAddressWithLastRows(subscription, lastRows);
         else if(idTopics != null && idTopics.size() > 0)
-            return notificationManager.getNotificationsByUserAddressAndIdTopic(user_address, idTopics);
+            return notificationManager.getNotificationsByUserAddressAndIdTopic(subscription, idTopics);
         else
-            return notificationManager.getNotificationsByUserAddress(user_address);
+            return notificationManager.getNotificationsByUserAddress(subscription);
     }
 
     public List<ChainAddressEvent> getChainAddresses(String nodehash, Set<String> eventName){
@@ -237,7 +237,7 @@ public class DbManagerFacade {
     }
 
 
-    public Set<Notification> getUnsentNotifications(int maxRetries) {
+    public List<Notification> getUnsentNotifications(int maxRetries) {
         return notificationManager.getUnsentNotification(maxRetries);
     }
 

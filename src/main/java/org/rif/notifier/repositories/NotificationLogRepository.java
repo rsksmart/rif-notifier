@@ -9,9 +9,7 @@ import java.util.Set;
 
 public interface NotificationLogRepository extends JpaRepository<NotificationLog, Integer> {
     Set<NotificationLog> findAllBySentFalseAndRetryCountLessThan(int retryCount);
-    Set<NotificationLog> findAllByNotificationIdAndSentFalse(int notificationId);
-    NotificationLog findByNotificationIdAndNotificationPreferenceId(Notification notificationId, NotificationPreference notificationPreferenceId);
-    NotificationLog findByNotificationIdAndNotificationPreferenceIdAndSentFalse(int notificationId, int notificationPreferenceId);
+    Set<NotificationLog> findAllByNotificationAndSentFalse(Notification notification);
+    NotificationLog findByNotificationAndNotificationPreference(Notification notification, NotificationPreference notificationPreference);
+    NotificationLog findByNotificationAndNotificationPreferenceAndSentFalse(Notification notification, NotificationPreference notificationPreference);
 }
-
-

@@ -59,7 +59,7 @@ public class DataProcessorJob {
                     if(subscriptionsWithNotif.stream().noneMatch(subItem -> subItem.getUserAddress().equals(sub.getUserAddress()))){
                         //Just add the notification, if we're here it's because the user has at least 1 in notification balance
 
-                        ntfsData.add(new Notification(sub.getUserAddress(), new Timestamp(date.getTime()).toString(), false, dataForNotification, rawDataItem.getIdTopic()));
+                        ntfsData.add(new Notification(sub, new Timestamp(date.getTime()).toString(), false, dataForNotification, rawDataItem.getIdTopic()));
                         sub.decrementNotificationBalance();
                         subscriptionsWithNotif.add(sub);
                     }else{
@@ -67,7 +67,7 @@ public class DataProcessorJob {
                                 .findFirst().get();
                         //Before adding, we need to check if the sub has balance yet
                         if(addedSub.getNotificationBalance() > 0) {
-                            ntfsData.add(new Notification(sub.getUserAddress(), new Timestamp(date.getTime()).toString(), false, dataForNotification, rawDataItem.getIdTopic()));
+                            ntfsData.add(new Notification(sub, new Timestamp(date.getTime()).toString(), false, dataForNotification, rawDataItem.getIdTopic()));
                             addedSub.decrementNotificationBalance();
                         }
                     }

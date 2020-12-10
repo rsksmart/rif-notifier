@@ -4,16 +4,19 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
+import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 @Entity
-public class Notification {
+public class Notification implements Serializable  {
     @Id
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "to_address")
-    private String toAddress;
+    @ManyToOne
+    @JoinColumn(name="to_address", referencedColumnName = "user_address")
+    private Subscription subscription;
 
     private String timestamp;
 
@@ -24,13 +27,21 @@ public class Notification {
     @Column(name = "id_topic")
     private int idTopic;
 
-    @OneToMany(fetch=FetchType.LAZY, mappedBy="notification", cascade=CascadeType.ALL)
-    private Set<NotificationLog> notificationLogs;
+    @OneToMany(fetch=FetchType.EAGER, mappedBy="notification", cascade=CascadeType.ALL)
+    private List<NotificationLog> notificationLogs;
+
+    public Subscription getSubscription()   {
+        return subscription;
+    }
+
+    public void setSubscription(Subscription sub)   {
+        this.subscription = sub;
+    }
 
     public Notification(){}
 
-    public Notification(String to_address, String timestamp, boolean sent, String data, int idTopic) {
-        this.toAddress = to_address;
+    public Notification(Subscription subscription, String timestamp, boolean sent, String data, int idTopic) {
+        this.subscription = subscription;
         this.timestamp = timestamp;
         this.sent = sent;
         this.data = data;
@@ -43,14 +54,6 @@ public class Notification {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getTo_address() {
-        return toAddress;
-    }
-
-    public void setTo_address(String to_address) {
-        this.toAddress = to_address;
     }
 
     public String getTimestamp() {
@@ -77,14 +80,6 @@ public class Notification {
         this.data = data;
     }
 
-    public String getToAddress() {
-        return toAddress;
-    }
-
-    public void setToAddress(String toAddress) {
-        this.toAddress = toAddress;
-    }
-
     public int getIdTopic() {
         return idTopic;
     }
@@ -93,11 +88,15 @@ public class Notification {
         this.idTopic = idTopic;
     }
 
-    public Set<NotificationLog> getNotificationLogs() {
+    public List<NotificationLog> getNotificationLogs() {
         return notificationLogs;
     }
 
-    public void setNotificationLogs(Set<NotificationLog> notificationLogs) {
+    public void setNotificationLogs(List<NotificationLog> notificationLogs) {
         this.notificationLogs = notificationLogs;
+    }
+
+    public boolean areAllNotificationLogsSent()    {
+       return notificationLogs.stream().allMatch(log->log.isSent()) ;
     }
 }

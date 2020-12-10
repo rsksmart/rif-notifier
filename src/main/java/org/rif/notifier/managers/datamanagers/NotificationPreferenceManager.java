@@ -7,6 +7,8 @@ import org.rif.notifier.repositories.NotificationPreferenceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class NotificationPreferenceManager {
     @Autowired
@@ -27,5 +29,9 @@ public class NotificationPreferenceManager {
 
     public NotificationPreference getNotificationPreference(Subscription sub, NotificationServiceType type)   {
         return notificationPreferenceRepository.findBySubscriptionAndNotificationService(sub, type) ;
+    }
+
+    public List<NotificationPreference> getNotificationPreferences(Subscription sub, int idTopic)   {
+        return notificationPreferenceRepository.findBySubscriptionAndIdTopic(sub, idTopic) ;
     }
 }

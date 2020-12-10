@@ -40,10 +40,6 @@ public class NotificationPreference {
     @Column(name="id_topic")
     private int idTopic;
 
-    @OneToMany(mappedBy = "notificationPreference")
-    @LazyCollection(LazyCollectionOption.TRUE)
-    private Set<NotificationLog> log;
-
     public NotificationPreference() {
 
     }

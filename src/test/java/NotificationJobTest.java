@@ -28,6 +28,11 @@ public class NotificationJobTest {
 
     private MockTestData mockTestData = new MockTestData();
 
+    @Test
+    public void mockTest()  {
+
+    }
+
 
 }
 

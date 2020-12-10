@@ -200,11 +200,11 @@ public class MockTestData {
                 "}";
         return mapper.readValue(sTp, Topic.class);
     }
-    public List<Notification> mockNotifications(){
+    public List<Notification> mockNotifications() throws IOException {
         List<Notification> retLst = new ArrayList<>();
         Date date = new Date();
         for(int i=0;i<10;i++) {
-            Notification notif = new Notification("0x0", new Timestamp(date.getTime()).toString(), false, "{id: " + i + ", counter: " + i + "}", 0);
+            Notification notif = new Notification(mockSubscription(), new Timestamp(date.getTime()).toString(), false, "{id: " + i + ", counter: " + i + "}", 0);
             retLst.add(notif);
         }
         return retLst;
@@ -345,5 +345,28 @@ public class MockTestData {
         pref.setIdTopic(0);
         pref.setSubscription(subscription);
         return pref;
+    }
+
+    public NotificationPreference mockAPINotificationPreference(Subscription sub) {
+        NotificationPreference preference = new NotificationPreference();
+        preference.setNotificationService(NotificationServiceType.API);
+        int topicId = sub.getTopics().isEmpty() ? 12 : (sub.getTopics().stream().collect(Collectors.toList()).get(0).getId());
+        preference.setIdTopic(topicId);
+        preference.setSubscription(sub);
+        DestinationParams dp = new DestinationParams();
+        dp.setApiKey("integrationtest");
+        dp.setUsername("integrationtest");
+        dp.setPassword("integrationtest");
+        preference.setDestinationParams(dp);
+        return preference;
+    }
+
+    public NotificationLog newMockLog(Notification notif, NotificationPreference pref)    {
+        NotificationLog log = new NotificationLog();
+        log.setNotificationPreference(pref);
+        log.setNotification(notif);
+        log.setRetryCount(1);
+        log.setSent(false);
+        return log;
     }
 }
