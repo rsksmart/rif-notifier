@@ -1,7 +1,6 @@
 package org.rif.notifier.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.tools.javac.util.Pair;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.rif.notifier.constants.ControllerConstants;

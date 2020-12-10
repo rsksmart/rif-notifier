@@ -1,5 +1,6 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,6 +15,7 @@ public class NotificationLog {
     @Id
     private int id;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="notification_id")
     private Notification notification;

@@ -1,5 +1,6 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
@@ -14,6 +15,7 @@ public class SubscriptionType {
     @Id
     int id;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "type")
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Subscription> subscription;

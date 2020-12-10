@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Api(tags = {"Notification Resource"})
@@ -56,7 +57,9 @@ public class NotificationController {
         if(apiKey != null && !apiKey.isEmpty()){
             User us = userServices.getUserByApiKey(apiKey);
             if(us != null){
-                Subscription subscription = subscribeServices.getSubscriptionByAddress(us.getAddress());
+                Subscription subscription = Optional.ofNullable(subscribeServices.getSubscriptionByAddress(us.getAddress())).orElseThrow(
+                        ()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND)
+                );
                 notifications = notificationServices.getNotificationsForSubscription(subscription, id, lastRows, idTopic);
                 if(notifications.size() > 0) {
                     resp.setContent(notifications);

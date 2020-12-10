@@ -406,3 +406,18 @@ UNLOCK TABLES;
 -- Dump completed on 2020-11-17  8:34:48
 alter table notification_preference modify id int auto_increment;
 alter table notification_log add retry_count tinyint default 0;
+
+-- create indexes
+create index notification_idx_1 on notification (to_address);
+create index notification_idx_2 on notification (id_topic);
+
+create index notification_log_idx_1 on notification_log (notification_preference_id);
+create index notification_log_idx_2 on notification_log (notification_id);
+create index notification_log_idx_3 on notification_log (retry_count);
+
+create index notification_preference_idx_1 on notification_preference (id_subscription, id_topic);
+
+create index subscription_idx_1 on subscription (user_address);
+create index notif_users_idx_1 on notif_users (api_key);
+
+create index user_topic_idx_1 on user_topic (id_subscription, id_topic);
