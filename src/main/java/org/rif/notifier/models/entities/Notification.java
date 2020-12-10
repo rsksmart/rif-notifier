@@ -1,11 +1,10 @@
 package org.rif.notifier.models.entities;
 
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Notification {
@@ -18,19 +17,22 @@ public class Notification {
 
     private String timestamp;
 
-    private boolean sended;
+    private boolean sent;
 
     private String data;
 
     @Column(name = "id_topic")
     private int idTopic;
 
+    @OneToMany(fetch=FetchType.LAZY, mappedBy="notification", cascade=CascadeType.ALL)
+    private Set<NotificationLog> notificationLogs;
+
     public Notification(){}
 
-    public Notification(String to_address, String timestamp, boolean sended, String data, int idTopic) {
+    public Notification(String to_address, String timestamp, boolean sent, String data, int idTopic) {
         this.toAddress = to_address;
         this.timestamp = timestamp;
-        this.sended = sended;
+        this.sent = sent;
         this.data = data;
         this.idTopic = idTopic;
     }
@@ -59,12 +61,12 @@ public class Notification {
         this.timestamp = timestamp;
     }
 
-    public boolean isSended() {
-        return sended;
+    public boolean isSent() {
+        return sent;
     }
 
-    public void setSended(boolean sended) {
-        this.sended = sended;
+    public void setSent(boolean sent) {
+        this.sent = sent;
     }
 
     public String getData() {
@@ -89,5 +91,13 @@ public class Notification {
 
     public void setIdTopic(int idTopic) {
         this.idTopic = idTopic;
+    }
+
+    public Set<NotificationLog> getNotificationLogs() {
+        return notificationLogs;
+    }
+
+    public void setNotificationLogs(Set<NotificationLog> notificationLogs) {
+        this.notificationLogs = notificationLogs;
     }
 }

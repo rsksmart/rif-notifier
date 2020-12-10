@@ -28,7 +28,7 @@ public class SubscriptionManager {
 
     public List<Subscription> getActiveSubscriptions(){
         List<Subscription> lst = new ArrayList<>();
-        subscriptionRepositorty.findByActive(1).forEach(lst::add);
+        subscriptionRepositorty.findByActive(true).forEach(lst::add);
         return lst;
     }
 

@@ -317,7 +317,7 @@ Header param:
 Query params: 
 	closingParticipant [Optional]: Address of the participant who closes the channel
 	channelidentifier [Optional]: Id of the channel
-Short description: This endpoint subscribes you to all tokens, and returns an array of topic id, each topic will represent a event for each token. Also this endpoint accepts params for participantone and participanttwo, if sended, will filter all the topics.
+Short description: This endpoint subscribes you to all tokens, and returns an array of topic id, each topic will represent a event for each token. Also this endpoint accepts params for participantone and participanttwo, if sent, will filter all the topics.
 ```
 Return example:
 ```json

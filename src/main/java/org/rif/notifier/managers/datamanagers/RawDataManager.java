@@ -1,6 +1,5 @@
 package org.rif.notifier.managers.datamanagers;
 
-import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.entities.RawData;
 import org.rif.notifier.repositories.RawDataRepositorty;
 import org.slf4j.Logger;

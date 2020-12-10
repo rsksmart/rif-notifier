@@ -123,7 +123,7 @@ CREATE TABLE `notification` (
   `id` int NOT NULL AUTO_INCREMENT,
   `to_address` varchar(45) NOT NULL,
   `timestamp` varchar(45) DEFAULT NULL,
-  `sended` tinyint DEFAULT '0',
+  `sent` tinyint DEFAULT '0',
   `data` varchar(1000) NOT NULL,
   `id_topic` int NOT NULL,
   PRIMARY KEY (`id`)
@@ -140,6 +140,33 @@ LOCK TABLES `notification` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `notification_log`
+--
+
+DROP TABLE IF EXISTS `notification_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notification_log` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `notification_id` int NOT NULL,
+  `notification_preference_id` int NOT NULL,
+  `sent` tinyint(1) NOT NULL DEFAULT '0',
+  `result_text` tinytext,
+  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notification_log`
+--
+
+LOCK TABLES `notification_log` WRITE;
+/*!40000 ALTER TABLE `notification_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `notification_preference`
 --
 
@@ -148,9 +175,11 @@ DROP TABLE IF EXISTS `notification_preference`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notification_preference` (
   `id` int NOT NULL,
-  `user_address` varchar(45) NOT NULL,
-  `notification_service` varchar(45) NOT NULL,
-  `subscription` varchar(45) NOT NULL,
+  `notification_service` enum('SMS','EMAIL','API') DEFAULT NULL,
+  `id_subscription` int NOT NULL,
+  `id_topic` int DEFAULT NULL,
+  `destination` varchar(128) DEFAULT NULL,
+  `destination_params` json DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -226,10 +255,10 @@ CREATE TABLE `subscription` (
   `id` int NOT NULL AUTO_INCREMENT,
   `active_since` date DEFAULT NULL,
   `active` tinyint DEFAULT '0',
-  `user_address` varchar(45) NOT NULL,
   `type` int DEFAULT '0',
   `state` varchar(45) NOT NULL,
   `notification_balance` int NOT NULL,
+  `user_address` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -374,4 +403,6 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-13 12:25:51
+-- Dump completed on 2020-11-17  8:34:48
+alter table notification_preference modify id int auto_increment;
+alter table notification_log add retry_count tinyint default 0;

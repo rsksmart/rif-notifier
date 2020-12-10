@@ -15,15 +15,15 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class NotifEntityManager {
+public class NotificationManager {
     @Autowired
     private NotificationRepository notificationRepository;
 
     @Value("${notifier.notifications.maxquerylimit}")
     private int MAX_LIMIT_QUERY;
 
-    public Notification insert(String to_address, String timestamp, boolean sended, String data, int idTopic){
-        Notification ntf = new Notification(to_address, timestamp, sended, data, idTopic);
+    public Notification insert(String to_address, String timestamp, boolean sent, String data, int idTopic){
+        Notification ntf = new Notification(to_address, timestamp, sent, data, idTopic);
         Notification result = notificationRepository.save(ntf);
         return result;
 
@@ -60,5 +60,9 @@ public class NotifEntityManager {
     public List<Notification> getNotificationsByUserAddress(String user_address){
         Pageable DEFAULT_PAGEABLE = PageRequest.of(0, MAX_LIMIT_QUERY, Sort.by("id").descending());
         return new ArrayList<>(notificationRepository.findAllByToAddress(user_address, DEFAULT_PAGEABLE));
+    }
+
+    public Set<Notification> getUnsentNotification(int maxRetries) {
+        return notificationRepository.findAllBySentFalseAndNotificationLogs_RetryCountLessThan(maxRetries);
     }
 }

@@ -3,6 +3,7 @@ package org.rif.notifier.managers;
 import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.managers.datamanagers.*;
+import org.rif.notifier.managers.datamanagers.NotificationManager;
 import org.rif.notifier.models.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class DbManagerFacade {
     private TopicParamsManager topicParamsManager;
 
     @Autowired
-    private NotifEntityManager notifEntityManager;
+    private NotificationManager notificationManager;
 
     @Autowired
     private ChainAddressManager chainAddressManager;
@@ -47,6 +48,12 @@ public class DbManagerFacade {
 
     @Autowired
     private DataFetcherManager dataFetcherManager;
+
+    @Autowired
+    private NotificationLogManager notificationLogManager;
+
+    @Autowired
+    private NotificationPreferenceManager notificationPreferenceManager;
 
     public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode){
         return rawDataManager.insert(type,data,processed, block, idTopic, hashcode);
@@ -155,27 +162,27 @@ public class DbManagerFacade {
     @Transactional
     public List<Notification> saveNotificationBatch(List<Notification> notifications){
         return notifications.stream().map(notificationItem ->
-                notifEntityManager.insert(notificationItem.getTo_address(), notificationItem.getTimestamp(), notificationItem.isSended(), notificationItem.getData(), notificationItem.getIdTopic())
+                notificationManager.insert(notificationItem.getTo_address(), notificationItem.getTimestamp(), notificationItem.isSent(), notificationItem.getData(), notificationItem.getIdTopic())
         ).collect(Collectors.toList());
     }
 
     public List<Notification> getNotificationByUserAddress(String user_address, Integer id, Integer lastRows, Set<Integer> idTopics){
         if(id != null && lastRows != null && idTopics != null && idTopics.size() > 0)
-            return notifEntityManager.getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(user_address, id, lastRows, idTopics);
+            return notificationManager.getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(user_address, id, lastRows, idTopics);
         else if(lastRows == null && id != null && idTopics != null && idTopics.size() > 0)
-            return notifEntityManager.getNotificationsByUserAddressAndIdGraterThanAndIdTopic(user_address, id, idTopics);
+            return notificationManager.getNotificationsByUserAddressAndIdGraterThanAndIdTopic(user_address, id, idTopics);
         else if(id != null && lastRows != null)
-            return notifEntityManager.getNotificationsByUserAddressAndIdGraterThanWithLastRows(user_address, id, lastRows);
+            return notificationManager.getNotificationsByUserAddressAndIdGraterThanWithLastRows(user_address, id, lastRows);
         else if(lastRows != null && idTopics != null && idTopics.size() > 0)
-            return notifEntityManager.getNotificationsByUserAddressIdTopicIn(user_address, idTopics, lastRows);
+            return notificationManager.getNotificationsByUserAddressIdTopicIn(user_address, idTopics, lastRows);
         else if(id != null)
-            return notifEntityManager.getNotificationsByUserAddressAndIdGraterThan(user_address, id);
+            return notificationManager.getNotificationsByUserAddressAndIdGraterThan(user_address, id);
         else if(lastRows != null)
-            return notifEntityManager.getNotificationsByUserAddressWithLastRows(user_address, lastRows);
+            return notificationManager.getNotificationsByUserAddressWithLastRows(user_address, lastRows);
         else if(idTopics != null && idTopics.size() > 0)
-            return notifEntityManager.getNotificationsByUserAddressAndIdTopic(user_address, idTopics);
+            return notificationManager.getNotificationsByUserAddressAndIdTopic(user_address, idTopics);
         else
-            return notifEntityManager.getNotificationsByUserAddress(user_address);
+            return notificationManager.getNotificationsByUserAddress(user_address);
     }
 
     public List<ChainAddressEvent> getChainAddresses(String nodehash, Set<String> eventName){
@@ -227,5 +234,30 @@ public class DbManagerFacade {
         return chainAddressEvents.stream().map(chainAddressEvent ->
                 chainAddressManager.insert(chainAddressEvent.getNodehash(), chainAddressEvent.getEventName(), chainAddressEvent.getChain(), chainAddressEvent.getAddress(), chainAddressEvent.getRowhashcode(), chainAddressEvent.getBlock())
         ).collect(Collectors.toList());
+    }
+
+
+    public Set<Notification> getUnsentNotifications(int maxRetries) {
+        return notificationManager.getUnsentNotification(maxRetries);
+    }
+
+    public void logSuccessfulNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String resultText) {
+        notificationLogManager.logFailedNotification(notificationId, notificationPreferenceId, resultText);
+    }
+
+    public void logFailedNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String errorMessage) {
+        notificationLogManager.logFailedNotification(notificationId, notificationPreferenceId, errorMessage);
+    }
+
+    public NotificationPreference saveNotificationPreference(NotificationPreference preference) {
+        return notificationPreferenceManager.saveNotificationPreference(preference);
+    }
+
+    public NotificationPreference getNotificationPreference(Subscription sub, int idTopic, NotificationServiceType type)    {
+        return notificationPreferenceManager.getNotificationPreference(sub, idTopic, type);
+    }
+
+    public NotificationPreference getNotificationPreference(Subscription sub, NotificationServiceType type)    {
+        return notificationPreferenceManager.getNotificationPreference(sub, type);
     }
 }

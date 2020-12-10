@@ -31,7 +31,7 @@ public class Subscription {
 
     @OneToMany(mappedBy = "subscription")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<NotificationPreferences> notificationPreferences ;
+    private List<NotificationPreference> notificationPreferences ;
 
     @Column(name = "notification_balance")
     private int notificationBalance;
@@ -86,11 +86,11 @@ public class Subscription {
         this.type = type;
     }
 
-    public List<NotificationPreferences> getNotificationPreferences() {
+    public List<NotificationPreference> getNotificationPreferences() {
         return notificationPreferences;
     }
 
-    public void setNotificationPreferences(List<NotificationPreferences> notificationPreferences) {
+    public void setNotificationPreferences(List<NotificationPreference> notificationPreferences) {
         this.notificationPreferences = notificationPreferences;
     }
 

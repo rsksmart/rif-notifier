@@ -19,4 +19,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
     List<Notification> findAllByToAddressAndIdTopicIn(String to_address, Set<Integer> idTopic, Pageable pageable);
 
     List<Notification> findAllByToAddress(String to_address, Pageable pageable);
+
+    Set<Notification> findAllBySentFalseAndNotificationLogs_RetryCountLessThan(int count);
 }

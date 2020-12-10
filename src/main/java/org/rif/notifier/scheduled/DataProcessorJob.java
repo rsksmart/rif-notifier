@@ -22,7 +22,7 @@ public class DataProcessorJob {
 
     /**
      * Gets all raw data not processed and makes the relationship with the subscription.
-     * It saves the result on the notification table, ready to be sended to the user.
+     * It saves the result on the notification table, ready to be sent to the user.
      */
     @Scheduled(fixedDelayString = "${notifier.run.fixedDelayProcessJob}", initialDelayString = "${notifier.run.fixedInitialDelayProcessJob}")
     public void run() {
