@@ -1,4 +1,6 @@
 package org.rif.notifier.models.entities;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
@@ -121,6 +123,38 @@ public class Subscription implements Serializable {
 
     public void decrementNotificationBalance() {
         this.notificationBalance--;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Subscription that = (Subscription) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .append(active, that.active)
+                .append(notificationBalance, that.notificationBalance)
+                .append(activeSince, that.activeSince)
+                .append(userAddress, that.userAddress)
+                .append(type, that.type)
+                .append(state, that.state)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(id)
+                .append(activeSince)
+                .append(active)
+                .append(userAddress)
+                .append(type)
+                .append(state)
+                .append(notificationBalance)
+                .toHashCode();
     }
 
     @Override

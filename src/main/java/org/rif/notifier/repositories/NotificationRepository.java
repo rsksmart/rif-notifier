@@ -22,5 +22,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
     List<Notification> findAllBySubscription(Subscription subscription, Pageable pageable);
 
     List<Notification> findAllBySentFalseAndNotificationLogs_RetryCountLessThan(int count);
+    Set<Notification> findAllBySentFalseAndSubscription_ActiveTrueAndNotificationLogs_SentFalseAndNotificationLogs_RetryCountLessThan(int count);
 
 }

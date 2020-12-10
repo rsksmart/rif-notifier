@@ -166,6 +166,11 @@ public class DbManagerFacade {
         ).collect(Collectors.toList());
     }
 
+    @Transactional
+    public Notification saveNotification(Notification notification){
+        return notificationManager.saveNotification(notification);
+    }
+
     public List<Notification> getNotificationsBySubscription(Subscription subscription, Integer id, Integer lastRows, Set<Integer> idTopics){
         if(id != null && lastRows != null && idTopics != null && idTopics.size() > 0)
             return notificationManager.getNotificationsByUserAddressAndIdAndIdTopicsWithLastRows(subscription, id, lastRows, idTopics);
@@ -238,7 +243,11 @@ public class DbManagerFacade {
 
 
     public List<Notification> getUnsentNotifications(int maxRetries) {
-        return notificationManager.getUnsentNotification(maxRetries);
+        return notificationManager.getUnsentNotifications(maxRetries);
+    }
+
+    public Set<Notification> getUnsentNotificationsWithActiveSubscription(int maxRetries) {
+        return notificationManager.getUnsentNotificationsWithActiveSubscription(maxRetries);
     }
 
     public void logSuccessfulNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String resultText) {
@@ -259,5 +268,9 @@ public class DbManagerFacade {
 
     public NotificationPreference getNotificationPreference(Subscription sub, NotificationServiceType type)    {
         return notificationPreferenceManager.getNotificationPreference(sub, type);
+    }
+
+    public List<NotificationPreference> getNotificationPreferences(Subscription sub, int idTopic)    {
+        return notificationPreferenceManager.getNotificationPreferences(sub, idTopic);
     }
 }
