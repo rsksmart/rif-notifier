@@ -94,6 +94,6 @@ public class NotificationProcessorJob {
                 logger.info("Total sent: " + sent);
                 logger.info("Total failed: " + unsent);
             }
-        });
+        }).join();
     }
 }

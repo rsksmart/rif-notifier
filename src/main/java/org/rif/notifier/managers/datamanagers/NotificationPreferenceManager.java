@@ -27,6 +27,10 @@ public class NotificationPreferenceManager {
        return notificationPreferenceRepository.findBySubscriptionAndIdTopicAndNotificationService(sub, idTopic, type) ;
     }
 
+    public NotificationPreference getNotificationPreference(Subscription sub, int idTopic, NotificationServiceType type, String destination)   {
+        return notificationPreferenceRepository.findBySubscriptionAndIdTopicAndNotificationServiceAndDestination(sub, idTopic, type, destination) ;
+    }
+
     public NotificationPreference getNotificationPreference(Subscription sub, NotificationServiceType type)   {
         return notificationPreferenceRepository.findBySubscriptionAndNotificationService(sub, type) ;
     }

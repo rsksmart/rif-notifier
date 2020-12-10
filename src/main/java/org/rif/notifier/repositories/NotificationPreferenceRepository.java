@@ -14,5 +14,6 @@ public interface NotificationPreferenceRepository extends JpaRepository<Notifica
     public NotificationPreference findBySubscriptionAndIdTopicAndNotificationService(Subscription sub, int idTopic, NotificationServiceType type);
     public NotificationPreference findBySubscriptionAndNotificationService(Subscription sub, NotificationServiceType type);
     List<NotificationPreference> findBySubscriptionAndIdTopic(Subscription subscription, Integer idTopic);
+    public NotificationPreference findBySubscriptionAndIdTopicAndNotificationServiceAndDestination(Subscription sub, int idTopic, NotificationServiceType type, String destination);
 }
 

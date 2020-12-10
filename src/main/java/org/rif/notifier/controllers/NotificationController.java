@@ -1,7 +1,10 @@
 package org.rif.notifier.controllers;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.models.DTO.DTOResponse;
@@ -73,5 +76,25 @@ public class NotificationController {
             resp.setStatus(HttpStatus.CONFLICT);
         }
         return new ResponseEntity<>(resp, resp.getStatus());
+    }
+
+    /**
+     * This endpoint is used for mock testing of apiService. takes a valid json input and
+     * returns the same as response if request is valid
+     * @param apiKey
+     * @param requestJson
+     * @return
+     */
+    @ApiOperation(value = "test Endpoint for apiservice",
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @RequestMapping(value = "/testEndpoint", method = RequestMethod.POST, consumes= {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON}, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
+    @ResponseBody
+    public ResponseEntity<DTOResponse> GetNotifications(
+            @RequestHeader(value="apiKey") String apiKey,
+            @RequestBody JsonNode requestJson
+    ) {
+        DTOResponse resp = new DTOResponse();
+        resp.setContent(requestJson);
+        return new ResponseEntity(resp, resp.getStatus());
     }
 }
