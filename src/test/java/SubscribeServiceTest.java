@@ -5,11 +5,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.rif.notifier.managers.DbManagerFacade;
+import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.blockchain.lumino.LuminoInvoice;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -247,5 +250,72 @@ public class SubscribeServiceTest {
 
         // then
         assertEquals(expected, retVal);
+    }
+
+    @Test
+    public void canUnsubscribeFromTopic()   throws IOException  {
+        Topic topic = mockTestData.mockTopic();
+        Subscription sub = mockTestData.mockSubscription();
+        Set<Subscription> subs = new HashSet<>();
+        subs.add(sub);
+        topic.setSubscriptions(subs);
+        doReturn(topic).when(dbManagerFacade).updateTopic(topic);
+        assertTrue(subscribeServices.unsubscribeFromTopic(sub, topic));
+    }
+
+    @Test
+    public void errorUnsubscribeFromTopic()   throws IOException  {
+        Topic topic = mockTestData.mockTopic();
+        Subscription sub = mockTestData.mockSubscription();
+        Set<Subscription> subs = new HashSet<>();
+        subs.add(sub);
+        topic.setSubscriptions(subs);
+        doReturn(null).when(dbManagerFacade).updateTopic(topic);
+        assertFalse(subscribeServices.unsubscribeFromTopic(sub, topic));
+    }
+
+    @Test
+    public void errorUnsubscribeFromTopicSubscriptionMismatch()   throws IOException  {
+        Topic topic = mockTestData.mockTopic();
+        Subscription sub = mockTestData.mockSubscription();
+        Subscription subOther = mockTestData.mockSubscription();
+        subOther.setUserAddress("other");
+        Set<Subscription> subs = new HashSet<>();
+        subs.add(sub);
+        topic.setSubscriptions(subs);
+        assertFalse(subscribeServices.unsubscribeFromTopic(subOther, topic));
+    }
+
+    @Test
+    public void errorSubscribeToTopic() {
+        assertEquals(SubscriptionResponse.INVALID, subscribeServices.subscribeToTopic(null, null));
+    }
+
+    @Test
+    public void canGetSubscriptionByAddress() throws IOException    {
+        Subscription sub = mockTestData.mockSubscription();
+        doReturn(sub).when(dbManagerFacade).getSubscriptionByAddress(sub.getUserAddress());
+        assertEquals(sub, subscribeServices.getSubscriptionByAddress(sub.getUserAddress()));
+    }
+
+    @Test
+    public void errorGetSubscriptionByAddress() throws IOException    {
+        Subscription sub = mockTestData.mockSubscription();
+        doReturn(null).when(dbManagerFacade).getSubscriptionByAddress(sub.getUserAddress());
+        assertNull(subscribeServices.getSubscriptionByAddress(sub.getUserAddress()));
+    }
+
+    @Test
+    public void canGetTopicByHashcodeAndIdSubscription()    throws IOException  {
+        Topic topic = mockTestData.mockTopic();
+        doReturn(topic).when(dbManagerFacade).getTopicByHashCodeAndIdSubscription(topic.hashCode(), 0);
+        assertEquals(topic, subscribeServices.getTopicByHashCodeAndIdSubscription(topic, 0));
+    }
+
+    @Test
+    public void errorGetTopicByHashcodeAndIdSubscription()    throws IOException  {
+        Topic topic = mockTestData.mockTopic();
+        doReturn(null).when(dbManagerFacade).getTopicByHashCodeAndIdSubscription(topic.hashCode(), 0);
+        assertNull(subscribeServices.getTopicByHashCodeAndIdSubscription(topic, 0));
     }
 }

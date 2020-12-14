@@ -2,6 +2,9 @@ package org.rif.notifier.models.datafetching;
 
 import org.web3j.protocol.core.methods.response.Transaction;
 
+import java.math.BigInteger;
+import java.util.Optional;
+
 public class FetchedTransaction extends FetchedData {
 
     private Transaction transaction;
@@ -17,6 +20,11 @@ public class FetchedTransaction extends FetchedData {
 
     public void setTransaction(Transaction transaction) {
         this.transaction = transaction;
+    }
+
+    @Override
+    public BigInteger getBlockNumber() {
+        return Optional.ofNullable(getTransaction()).orElse(null).getBlockNumber();
     }
 
     @Override

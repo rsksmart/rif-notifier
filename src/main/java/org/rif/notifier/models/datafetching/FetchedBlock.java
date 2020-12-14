@@ -2,6 +2,7 @@ package org.rif.notifier.models.datafetching;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class FetchedBlock extends FetchedData {
@@ -18,6 +19,11 @@ public class FetchedBlock extends FetchedData {
 
     public void setBlock(Block block) {
         this.block = block;
+    }
+
+    @Override
+    public BigInteger getBlockNumber() {
+        return Optional.ofNullable(block).orElse(null).getNumber();
     }
 
     @Override

@@ -1,26 +1,35 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mocked.MockTestData;
+import org.hibernate.annotations.Fetch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.helpers.DataFetcherHelper;
+import org.rif.notifier.helpers.LuminoDataFetcherHelper;
 import org.rif.notifier.managers.DbManagerFacade;
+import org.rif.notifier.models.datafetching.FetchedBlock;
+import org.rif.notifier.models.datafetching.FetchedData;
 import org.rif.notifier.models.datafetching.FetchedEvent;
+import org.rif.notifier.models.datafetching.FetchedTransaction;
 import org.rif.notifier.models.entities.EventRawData;
+import org.rif.notifier.models.entities.RawData;
 import org.rif.notifier.models.entities.Subscription;
 import org.rif.notifier.models.entities.Topic;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
+import org.rif.notifier.models.listenable.EthereumBasedListenableTypes;
 import org.rif.notifier.scheduled.DataFetchingJob;
 import org.rif.notifier.services.blockchain.generic.rootstock.RskBlockchainService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
@@ -33,10 +42,19 @@ public class DataFetchingJobTest {
 
     @InjectMocks
     @Autowired
+    private DataFetcherHelper dataFetcherHelperInject;
+
+    @Mock
     private DataFetcherHelper dataFetcherHelper;
 
     @Mock
     private DbManagerFacade dbManagerFacade;
+
+    @Mock
+    private DbManagerFacade dbManagerFacadeHelper;
+
+    @Mock
+    private LuminoDataFetcherHelper luminoDataFetcherHelper;
 
     @InjectMocks
     @Autowired
@@ -44,21 +62,58 @@ public class DataFetchingJobTest {
 
     private MockTestData mockTestData = new MockTestData();
 
+    private void prepareDataFetcherTest() throws Exception    {
+        ReflectionTestUtils.setField(dataFetcherHelper, "dbManagerFacade", dbManagerFacadeHelper);
+        doReturn(new BigInteger("9")).when(dbManagerFacade).getLastBlock();
+        doReturn(new BigInteger("10")).when(rskBlockchainService).getLastBlock();
+        doReturn(mockTestData.mockMixedTopics()).when(dbManagerFacadeHelper).getAllTopicsWithActiveSubscriptionAndBalance();
+        doCallRealMethod().when(dataFetcherHelper).getListenablesForTopicsWithActiveSubscription();
+        doReturn(CompletableFuture.completedFuture(new ArrayList<>())).when(rskBlockchainService).getBlocks(any(), any(), any());
+        doReturn(CompletableFuture.completedFuture(new ArrayList<>())).when(rskBlockchainService).getTransactions(any(), any(), any());
+        doReturn(CompletableFuture.completedFuture(new ArrayList<>())).when(rskBlockchainService).getContractEvents(any(), any(), any());
+        when(luminoDataFetcherHelper.fetchTokens(anyLong(), any(BigInteger.class))).thenReturn(false);
+    }
+
+    @Test
+    public void canFetchData()  throws Exception    {
+        prepareDataFetcherTest();
+        dataFetchingJob.run();
+        verify(dbManagerFacade, atLeastOnce()).saveLastBlock(any());
+        verify(dataFetcherHelper, atLeastOnce()).processFetchedData(anyList(), anyLong(), any(BigInteger.class), any());
+        verify(dataFetcherHelper, atLeastOnce()).processEventTasks(anyList(), anyLong(), any(BigInteger.class), anyBoolean());
+        Mockito.reset(dataFetcherHelper);
+    }
+
+    @Test
+    public void canFetchDataFromLastBlock()  throws Exception    {
+        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
+        prepareDataFetcherTest();
+        dataFetchingJob.run();
+        verify(dbManagerFacade, atLeastOnce()).saveLastBlock(any());
+        verify(dataFetcherHelper, atLeastOnce()).processFetchedData(anyList(), anyLong(), any(BigInteger.class), any());
+        verify(dataFetcherHelper, atLeastOnce()).processEventTasks(anyList(), anyLong(), any(BigInteger.class), anyBoolean());
+        Mockito.reset(dataFetcherHelper);
+    }
+
     @Test
     public void canProcessFetchedEvents() throws Exception {
         List<Subscription> lstSubs = new ArrayList<>();
         Subscription subscription = mockTestData.mockSubscription();
         lstSubs.add(subscription);
         FetchedEvent fetchedEvent = mockTestData.mockFetchedEvent();
+        FetchedEvent fetchedEvent2 = new FetchedEvent
+                ("LogSellArticle", fetchedEvent.getValues(), new BigInteger("54"), "0x0", 0);
+        fetchedEvent2.setTopicId(-1);
         ObjectMapper mapper = new ObjectMapper();
         String rawEvent = mapper.writeValueAsString(fetchedEvent);
         EventRawData rwDt = mapper.readValue(rawEvent, EventRawData.class);
         List<FetchedEvent> fetchedEvents = new ArrayList<>();
         fetchedEvents.add(fetchedEvent);
+        fetchedEvents.add(fetchedEvent2);
 
         doReturn(lstSubs).when(dbManagerFacade).findByContractAddressAndSubscriptionActive(rwDt.getContractAddress());
 
-        dataFetcherHelper.processFetchedEvents(fetchedEvents);
+        dataFetcherHelperInject.processFetchedEvents(fetchedEvents);
 
         verify(dbManagerFacade, times(1)).saveRawDataBatch(any());
     }
@@ -76,7 +131,7 @@ public class DataFetchingJobTest {
 
         doReturn(lstSubs).when(dbManagerFacade).findByContractAddressAndSubscriptionActive(rwDt.getContractAddress());
 
-        dataFetcherHelper.processFetchedEvents(fetchedEvents);
+        dataFetcherHelperInject.processFetchedEvents(fetchedEvents);
 
         verify(dbManagerFacade, times(1)).findByContractAddressAndSubscriptionActive(any());
         verify(dbManagerFacade, times(1)).saveRawDataBatch(any());
@@ -95,7 +150,7 @@ public class DataFetchingJobTest {
 
         doReturn(lstSubs).when(dbManagerFacade).findByContractAddressAndSubscriptionActive(rwDt.getContractAddress());
 
-        dataFetcherHelper.processFetchedEvents(fetchedEvents);
+        dataFetcherHelperInject.processFetchedEvents(fetchedEvents);
 
         verify(dbManagerFacade, times(1)).findByContractAddressAndSubscriptionActive(any());
         verify(dbManagerFacade, times(1)).saveRawDataBatch(any());
@@ -105,7 +160,7 @@ public class DataFetchingJobTest {
         Subscription subscription = mockTestData.mockSubscription();
         EthereumBasedListenable toCompare = mockTestData.mockEthereumBasedListeneable();
         doReturn(subscription.getTopics()).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
-        List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
+        List<EthereumBasedListenable> lstExpected = dataFetcherHelperInject.getListenablesForTopicsWithActiveSubscription();
         assertEquals(lstExpected.get(0).toString(), toCompare.toString());
     }
 
@@ -122,22 +177,15 @@ public class DataFetchingJobTest {
         topics.add(mockTestData.mockInvalidTopic());
 
         doReturn(topics).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
-        List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
+        List<EthereumBasedListenable> lstExpected = dataFetcherHelperInject.getListenablesForTopicsWithActiveSubscription();
         verify(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
         assertEquals(lstExpected.size(), 3);
     }
 
     @Test
     public void canGetMixedListenablesAndFilterDuplicates()  throws Exception    {
-        Set<Topic> topics = new HashSet<>();
-        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_BLOCK ));
-        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_BLOCK ));
-        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_TRANSACTIONS));
-        topics.add(mockTestData.mockTopicForType(TopicTypes.NEW_TRANSACTIONS));
-        topics.add(mockTestData.mockTopic());
-        topics.add(mockTestData.mockTopic());
-        doReturn(topics).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
-        List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
+        doReturn(mockTestData.mockMixedTopics()).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
+        List<EthereumBasedListenable> lstExpected = dataFetcherHelperInject.getListenablesForTopicsWithActiveSubscription();
         assertEquals(lstExpected.size(), 3);
     }
 
@@ -145,7 +193,7 @@ public class DataFetchingJobTest {
     public void errorGetListeneablesNoActiveSubscription() throws Exception {
         doReturn(new HashSet<>()).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
 
-        List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
+        List<EthereumBasedListenable> lstExpected = dataFetcherHelperInject.getListenablesForTopicsWithActiveSubscription();
 
         //verify(dbManagerFacade, times(1)).saveRawDataBatch(any());
         assertEquals(0, lstExpected.size());
@@ -160,7 +208,7 @@ public class DataFetchingJobTest {
 
         doReturn(lstSubs).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
 
-        List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
+        List<EthereumBasedListenable> lstExpected = dataFetcherHelperInject.getListenablesForTopicsWithActiveSubscription();
 
         //verify(dbManagerFacade, times(1)).saveRawDataBatch(any());
         assertEquals(0, lstExpected.size());
@@ -169,7 +217,7 @@ public class DataFetchingJobTest {
     public void errorProcessFetchedEventsNoFetchedEvents() throws Exception {
         List<FetchedEvent> fetchedEvents = new ArrayList<>();
 
-        dataFetcherHelper.processFetchedEvents(fetchedEvents);
+        dataFetcherHelperInject.processFetchedEvents(fetchedEvents);
 
         verify(dbManagerFacade, times(0)).saveRawDataBatch(any());
         verify(dbManagerFacade, times(0)).findByContractAddressAndSubscriptionActive(any());
@@ -186,7 +234,7 @@ public class DataFetchingJobTest {
 
         doReturn(lstSubs).when(dbManagerFacade).findByContractAddressAndSubscriptionActive(rwDt.getContractAddress());
 
-        dataFetcherHelper.processFetchedEvents(fetchedEvents);
+        dataFetcherHelperInject.processFetchedEvents(fetchedEvents);
 
         verify(dbManagerFacade, times(1)).findByContractAddressAndSubscriptionActive(any());
         verify(dbManagerFacade, times(0)).saveRawDataBatch(any());
@@ -205,7 +253,7 @@ public class DataFetchingJobTest {
 
         doReturn(lstSubs).when(dbManagerFacade).findByContractAddressAndSubscriptionActive(rwDt.getContractAddress());
 
-        dataFetcherHelper.processFetchedEvents(fetchedEvents);
+        dataFetcherHelperInject.processFetchedEvents(fetchedEvents);
 
         verify(dbManagerFacade, times(1)).findByContractAddressAndSubscriptionActive(any());
         verify(dbManagerFacade, times(0)).saveRawDataBatch(any());
@@ -219,8 +267,52 @@ public class DataFetchingJobTest {
 
         doReturn(lstSubs).when(dbManagerFacade).getAllTopicsWithActiveSubscriptionAndBalance();
 
-        List<EthereumBasedListenable> lstExpected = dataFetcherHelper.getListenablesForTopicsWithActiveSubscription();
+        List<EthereumBasedListenable> lstExpected = dataFetcherHelperInject.getListenablesForTopicsWithActiveSubscription();
 
         assertEquals(new ArrayList<>(), lstExpected);
+    }
+
+    @Test
+    public void canProcessFetchedTransaction() {
+        FetchedTransaction trans = mockTestData.mockFetchedTransaction();
+        doReturn("0x0").when(trans).toString();
+        List<FetchedTransaction> list = Arrays.asList(new FetchedTransaction[]{trans});
+        CompletableFuture<List<FetchedTransaction>> futureTrans = CompletableFuture.completedFuture(list);
+        List<CompletableFuture<? extends List<? extends FetchedData>>> futures = new ArrayList<>();
+        futures.add(futureTrans);
+        dataFetcherHelperInject.processFetchedData(futures, 0, new BigInteger("10"), EthereumBasedListenableTypes.NEW_TRANSACTIONS);
+    }
+
+    @Test
+    public void canProcessFetchedTransactionNoExistingData() {
+        FetchedTransaction trans = mockTestData.mockFetchedTransaction();
+        doReturn(Mockito.mock(RawData.class)).when(dbManagerFacade).getRawdataByHashcode(anyInt());
+        doReturn("0x0").when(trans).toString();
+        List<FetchedTransaction> list = Arrays.asList(new FetchedTransaction[]{trans});
+        CompletableFuture<List<FetchedTransaction>> futureTrans = CompletableFuture.completedFuture(list);
+        List<CompletableFuture<? extends List<? extends FetchedData>>> futures = new ArrayList<>();
+        futures.add(futureTrans);
+        dataFetcherHelperInject.processFetchedData(futures, 0, new BigInteger("10"), EthereumBasedListenableTypes.NEW_TRANSACTIONS);
+    }
+
+    @Test
+    public void canProcessFetchedBlock() {
+        FetchedBlock block = mockTestData.mockFetchedBlock();
+        doReturn("0x0").when(block).toString();
+        List<FetchedBlock> list = Arrays.asList(new FetchedBlock[]{block});
+        CompletableFuture<List<FetchedBlock>> futureBlock = CompletableFuture.completedFuture(list);
+        List<CompletableFuture<? extends List<? extends FetchedData>>> futures = new ArrayList<>();
+        futures.add(futureBlock);
+        dataFetcherHelperInject.processFetchedData(futures, 0, new BigInteger("10"), EthereumBasedListenableTypes.NEW_BLOCK);
+    }
+
+    @Test
+    public void canProcessEventTasks() {
+        FetchedEvent event = mockTestData.mockFetchedEvent();
+        List<FetchedEvent> list = Arrays.asList(new FetchedEvent[]{event});
+        CompletableFuture<List<FetchedEvent>> futureEvent = CompletableFuture.completedFuture(list);
+        List<CompletableFuture<List<FetchedEvent>>> futures = new ArrayList<>();
+        futures.add(futureEvent);
+        dataFetcherHelperInject.processEventTasks(futures, 0, new BigInteger("10"), false);
     }
 }

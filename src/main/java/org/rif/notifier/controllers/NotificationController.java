@@ -86,7 +86,6 @@ public class NotificationController {
      * @param apiKey
      * @param requestJson
      * @return
-     */
     @ApiOperation(value = "test Endpoint for apiservice",
             response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
     @RequestMapping(value = "/testEndpoint", method = RequestMethod.POST, consumes= {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON}, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
@@ -99,4 +98,5 @@ public class NotificationController {
         resp.setContent(requestJson);
         return new ResponseEntity(resp, resp.getStatus());
     }
+     */
 }

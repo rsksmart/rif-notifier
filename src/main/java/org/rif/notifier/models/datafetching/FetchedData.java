@@ -1,5 +1,7 @@
 package org.rif.notifier.models.datafetching;
 
+import java.math.BigInteger;
+
 public abstract class FetchedData {
     private int topicId;
 
@@ -15,4 +17,6 @@ public abstract class FetchedData {
     public void setTopicId(int topicId) {
         this.topicId = topicId;
     }
+
+    abstract public BigInteger getBlockNumber() ;
 }
