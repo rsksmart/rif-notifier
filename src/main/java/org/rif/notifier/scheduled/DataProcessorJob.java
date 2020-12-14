@@ -15,7 +15,7 @@ import java.util.*;
 
 @Component
 public class DataProcessorJob {
-    private static final Logger logger = LoggerFactory.getLogger(DataFetchingJob.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataProcessorJob.class);
 
     @Autowired
     private DbManagerFacade dbManagerFacade;

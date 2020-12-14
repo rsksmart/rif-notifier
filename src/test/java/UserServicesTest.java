@@ -9,6 +9,7 @@ import org.rif.notifier.models.entities.User;
 import org.rif.notifier.services.UserServices;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,5 +61,17 @@ public class UserServicesTest {
 
         // then
         assertEquals(user, retVal);
+    }
+
+    @Test
+    public void canSaveUser()   {
+       User user = mockTestData.mockUser();
+       doReturn(user).when(dbManagerFacade).saveUser(anyString(), anyString());
+       assertEquals(user, userServices.saveUser(user.getAddress()));
+    }
+
+    @Test
+    public void errorSaveUser()   {
+        assertNull(userServices.saveUser(null));
     }
 }

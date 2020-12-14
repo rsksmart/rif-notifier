@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,18 +35,17 @@ public class NotificationServices {
      */
     public List<Notification> getNotificationsForSubscription(Subscription subscription, Integer id, Integer lastRows, Set<Integer> idTopic) {
         List<Notification> lst = new ArrayList<>();
-        Subscription sub = dbManagerFacade.getActiveSubscriptionByAddress(subscription.getUserAddress());
-        if (sub != null) {
             //This will need to be migrated by topic
+        Optional.ofNullable(subscription).ifPresent((sub) -> {
             if (sub.getActive())
-                lst = dbManagerFacade.getNotificationsBySubscription(subscription, id, lastRows, idTopic);
-        }
+                lst.addAll(dbManagerFacade.getNotificationsBySubscription(sub, id, lastRows, idTopic));
+            });
         return lst;
     }
 
     /**
      * First implementation of notifyUsers method, that will be called to send all notification by preferences indicated previously by the end-user
-     */
+     //TODO Remove this method
     public void notifyUsers() {
         List<Subscription> activeSubs = dbManagerFacade.getAllActiveSubscriptions();
         for (Subscription sub : activeSubs) {
@@ -55,6 +55,7 @@ public class NotificationServices {
             }
         }
     }
+     */
 
     /**
      * Sends a given notification for each preference (sms, api, email etc.) and saves the result of

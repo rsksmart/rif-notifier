@@ -83,34 +83,19 @@ public class DataFetcherHelper {
                     dbManagerFacade.saveLastBlock(lastBlock);
                 } else {
                     List<RawData> rawTrs = fetchedDetails.stream().map(fetchedDetail-> {
-                        RawData rwDt = new RawData(type.toString(), fetchedDetail.toString(), false, getBlockNumber(fetchedDetail, type), fetchedDetail.getTopicId());
+                        RawData rwDt = new RawData(type.toString(), fetchedDetail.toString(), false, fetchedDetail.getBlockNumber(), fetchedDetail.getTopicId());
                         rwDt.setRowhashcode(rwDt.hashCode());
                         if (dbManagerFacade.getRawdataByHashcode(rwDt.getRowhashcode()) == null) {
                             return rwDt;
                         }
                         return null;
-                    }).collect(Collectors.toList());
+                    }).filter(r->r!=null).collect(Collectors.toList());
                     if (!rawTrs.isEmpty()) {
                         dbManagerFacade.saveRawDataBatch(rawTrs);
                     }
                 }
             });
         });
-    }
-
-    /**
-     * Returns the block number given FetchedTransaction or FetchedBlock
-     * @param fetchedData
-     * @param type
-     * @return blockNumber
-     */
-    private BigInteger getBlockNumber(FetchedData fetchedData, EthereumBasedListenableTypes type)    {
-        try {
-            Method m = fetchedData.getClass().getMethod("get" + type.getType());
-            return ((EthBlock.Block) ReflectionUtils.invokeMethod(m, fetchedData)).getNumber();
-        }catch(NoSuchMethodException e) {
-            throw new InvalidListenableTypeException(type.getType(), e);
-        }
     }
 
     public void processEventTasks(List<CompletableFuture<List<FetchedEvent>>> eventTasks, long start, BigInteger lastBlock, boolean fetchedTokens) {

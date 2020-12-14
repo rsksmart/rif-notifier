@@ -22,6 +22,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     List<Notification> findAllBySubscription(Subscription subscription, Pageable pageable);
 
     List<Notification> findAllBySentFalseAndNotificationLogs_RetryCountLessThan(int count);
-    Set<Notification> findAllBySentFalseAndSubscription_ActiveTrueAndNotificationLogs_SentFalseAndNotificationLogs_RetryCountLessThan(int count);
+
+    //Set<Notification> findAllBySentFalseAndSubscription_ActiveTrueAndNotificationLogs_SentFalseAndNotificationLogs_RetryCountLessThan(int count);
+
+    @Query(value="SELECT * FROM notification n LEFT JOIN notification_log nl on nl.notification_id=n.id and nl.sent=FALSE and nl.retry_count < ?1 JOIN subscription s on s.user_address = n.to_address and s.active=TRUE where n.sent=FALSE;", nativeQuery = true)
+    Set<Notification> findUnsentNotifications(int retryCount);
+
 
 }

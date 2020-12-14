@@ -1,10 +1,13 @@
 package mocked;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mockito.Mockito;
 import org.rif.notifier.constants.SubscriptionConstants;
 import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.constants.TopicTypes;
+import org.rif.notifier.models.datafetching.FetchedBlock;
 import org.rif.notifier.models.datafetching.FetchedEvent;
+import org.rif.notifier.models.datafetching.FetchedTransaction;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
 import org.rif.notifier.models.listenable.EthereumBasedListenableTypes;
@@ -15,6 +18,8 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.protocol.core.methods.response.EthBlock;
+import org.web3j.protocol.core.methods.response.Transaction;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -200,6 +205,18 @@ public class MockTestData {
                 "}";
         return mapper.readValue(sTp, Topic.class);
     }
+
+    public Set<Topic> mockMixedTopics()    throws IOException  {
+        Set<Topic> topics = new HashSet<>();
+        topics.add(mockTopicForType(TopicTypes.NEW_BLOCK ));
+        topics.add(mockTopicForType(TopicTypes.NEW_BLOCK ));
+        topics.add(mockTopicForType(TopicTypes.NEW_TRANSACTIONS));
+        topics.add(mockTopicForType(TopicTypes.NEW_TRANSACTIONS));
+        topics.add(mockTopic());
+        topics.add(mockTopic());
+        return topics;
+    }
+
     public List<Notification> mockNotifications() throws IOException    {
         return mockNotifications(0);
     }
@@ -305,6 +322,24 @@ public class MockTestData {
     }
     public EthereumBasedListenable mockInvalidEthereumBasedListeneable(){
         return new EthereumBasedListenable("0x0", EthereumBasedListenableTypes.CONTRACT_EVENT, new ArrayList<>(), "InvalidName", 0);
+    }
+
+    public FetchedTransaction mockFetchedTransaction()  {
+        Transaction t = new Transaction();
+        t.setBlockNumber("0x0");
+        FetchedTransaction trans = Mockito.mock(FetchedTransaction.class);
+        trans.setTransaction(t);
+        trans.setTopicId(10);
+        return trans;
+    }
+
+    public FetchedBlock mockFetchedBlock()  {
+        EthBlock.Block b = new EthBlock.Block();
+        b.setNumber("0x0");
+        FetchedBlock block = Mockito.mock(FetchedBlock.class);
+        block.setBlock(b);
+        block.setTopicId(10);
+        return block;
     }
     public FetchedEvent mockFetchedEvent(){
         List<Type > values = new ArrayList<>();
