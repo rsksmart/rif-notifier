@@ -3,6 +3,7 @@ package org.rif.notifier.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.exception.ResourceNotFoundException;
@@ -38,6 +39,9 @@ public class NotificationPreferenceController {
     private static final Pattern phoneRegex = Pattern.compile("^\\+(?:[0-9] ?){6,14}[0-9]$");
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationPreferenceController.class);
+
+    @Autowired
+    NotifierConfig notifierConfig;
 
     @Autowired
     private NotificationPreferenceManager notificationPreferenceManager;
@@ -167,11 +171,16 @@ public class NotificationPreferenceController {
 
 
     private void validateRequestNotificationPreference(NotificationPreference preference)   throws ValidationException {
+        boolean enabled = notifierConfig.getEnabledServices().stream().anyMatch(p->preference.getNotificationService() == p);
+        if (!enabled)   throw new ValidationException(ResponseConstants.SERVICE_NOT_ENABLED);
         if (preference.getNotificationService() == NotificationServiceType.EMAIL) {
             validateEmail(preference);
         }
         else if (preference.getNotificationService() == NotificationServiceType.SMS) {
             validateSMS(preference);
+        }
+        else if (preference.getNotificationService() == NotificationServiceType.API) {
+            validateAPI(preference);
         }
     }
 
@@ -190,6 +199,12 @@ public class NotificationPreferenceController {
                 throw new ValidationException(ResponseConstants.INVALID_EMAIL_ADDRESS);
             }
         });
+    }
+
+    private void validateAPI(NotificationPreference preference) {
+        //validate that api has destination params
+        Optional.ofNullable(preference.getDestinationParams()).orElseThrow(()->new ValidationException(ResponseConstants.DESTINATION_PARAMS_REQUIRED));
+
     }
 
     private NotificationPreference validateRequestJson(String notificationPreference)  {

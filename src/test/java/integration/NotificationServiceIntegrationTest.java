@@ -112,8 +112,8 @@ public class NotificationServiceIntegrationTest {
     @Test
     public void canProcessUnsentNotifications()    {
         Notification notif = integrationTestData.newNotification();
-        integrationTestData.populateNotificationLog(notif);
-        notif = notificationServices.saveNotification(notif);
+        //integrationTestData.populateNotificationLog(notif);
+        notif = dbManagerFacade.saveNotification(notif);
         notificationProcessorJob.run();
         notif = notificationRepository.findById(notif.getId()).get();
         assertTrue(notif.isSent());
@@ -128,7 +128,7 @@ public class NotificationServiceIntegrationTest {
         integrationTestData.populateNotificationLog(notif);
         //use invalid endpoint to propagate error
         saveApiEndpoint(notif, IntegrationTestData.INVALID_API_DESTINATION);
-        notif = notificationServices.saveNotification(notif);
+        notif = dbManagerFacade.saveNotification(notif);
         notificationProcessorJob.run();
         notificationProcessorJob.run();
         notif = notificationRepository.findById(notif.getId()).get();

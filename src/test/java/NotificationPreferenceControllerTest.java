@@ -3,6 +3,7 @@ import mocked.MockTestData;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
+import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.controllers.NotificationPreferenceController;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.DTOResponse;
@@ -19,9 +20,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Arrays;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,6 +49,9 @@ public class NotificationPreferenceControllerTest {
     @MockBean
     private NotificationPreferenceManager notificationPreferenceManager;
 
+    @MockBean
+    private NotifierConfig notifierConfig;
+
     private MockTestData mockTestData = new MockTestData();
 
     @Test
@@ -60,6 +67,7 @@ public class NotificationPreferenceControllerTest {
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
+        doReturn(Arrays.asList(NotificationServiceType.SMS, NotificationServiceType.EMAIL, NotificationServiceType.API)).when(notifierConfig).getEnabledServices();
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")

@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 @Table(name = "NOTIFICATION_LOG")
 public class NotificationLog {
     @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
     private int id;
 
     @JsonIgnore
