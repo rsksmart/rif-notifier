@@ -85,7 +85,6 @@ public class NotifierConfig implements SchedulingConfigurer {
     @Value("${spring.mail.properties.mail.smtp.writetimeout:#{null}}")
     Optional<Long> smtpWriteTimeout;
 
-
     /**
      * Returns from PhoneNumber to use with twilio if sms service is enabled
      * @throws ValidationException
@@ -178,4 +177,5 @@ public class NotifierConfig implements SchedulingConfigurer {
     private void isPropertySet(Optional<?> propVal, String propName)   {
         propVal.orElseThrow(()->new ValidationException("Property " + propName + " is required."));
     }
+
 }

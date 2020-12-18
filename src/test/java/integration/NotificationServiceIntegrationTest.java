@@ -1,6 +1,5 @@
 package integration;
 
-import mocked.MockTestData;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -48,8 +47,6 @@ public class NotificationServiceIntegrationTest {
     @Autowired NotificationServices notificationServices;
     @Autowired IntegrationTestData integrationTestData;
     @Autowired NotificationProcessorJob notificationProcessorJob;
-
-    private MockTestData mockTestData = new MockTestData();
 
 
     private void saveApiEndpoint(Notification notif, String endpoint)    {

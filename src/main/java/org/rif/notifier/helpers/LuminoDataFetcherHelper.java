@@ -62,7 +62,7 @@ public class LuminoDataFetcherHelper {
         ), "ChainAddrChanged", -3);
     }
 
-    public boolean fetchTokens(long start, BigInteger toBlock) throws Exception {
+    public boolean fetchTokens(long start, BigInteger toBlock) {
         List<CompletableFuture<List<FetchedEvent>>> tokenTasks = new ArrayList<>();
         tokenTasks.add(rskBlockchainService.getContractEvents(getTokensNetwork(), new BigInteger("0"), toBlock));
         tokenTasks.forEach(listCompletableFuture -> {

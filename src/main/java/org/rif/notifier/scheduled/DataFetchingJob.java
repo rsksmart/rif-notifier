@@ -1,6 +1,7 @@
 package org.rif.notifier.scheduled;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.rif.notifier.exception.RSKBlockChainException;
 import org.rif.notifier.helpers.DataFetcherHelper;
 import org.rif.notifier.helpers.LuminoDataFetcherHelper;
 import org.rif.notifier.managers.DbManagerFacade;
@@ -14,27 +15,22 @@ import org.rif.notifier.services.blockchain.generic.rootstock.RskBlockchainServi
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.web3j.abi.TypeReference;
-import org.web3j.utils.Numeric;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Utf8String;
 
-import java.io.IOException;
+
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.rif.notifier.constants.CommonConstants.RSK_SLIP_ADDRESS;
-import static org.rif.notifier.constants.TopicParamTypes.*;
-import static org.rif.notifier.constants.TopicTypes.*;
 
 
 @Component
+@ConfigurationProperties(prefix="notifier.blocks")
 public class DataFetchingJob {
+
+    private static final BigInteger DEFAULT_CONFIRMATION_COUNT = BigInteger.valueOf(20);
 
     private static final Logger logger = LoggerFactory.getLogger(DataFetchingJob.class);
 
@@ -53,32 +49,30 @@ public class DataFetchingJob {
     @Autowired
     private LuminoDataFetcherHelper luminoHelper;
 
-
+    private boolean startFromRSKLastBlock = false;
+    private BigInteger blockConfirmationCount = DEFAULT_CONFIRMATION_COUNT;
 
     private boolean fetchedTokens = false;
-
-    @Value("${notifier.blocks.startFromLast}")
-    private boolean onInit;
 
     /**
      * Creates listeneables, then try to get the blockchain events related.
      * When all the events are fetched try to process the rawdata getted calling methods
      */
     @Scheduled(fixedDelayString = "${notifier.run.fixedDelayFetchingJob}", initialDelayString = "${notifier.run.fixedInitialDelayFetchingJob}")
-    public void run() throws Exception {
-        // Get latest block for this run
-        BigInteger rskLastBlock = rskBlockchainService.getLastBlock();
-        BigInteger dbLastBlock = dbManagerFacade.getLastBlock();
-        //fetch upto the last block
-        BigInteger to = rskLastBlock;
-        BigInteger from;
-        BigInteger fromChainAddresses;
-        if (onInit) {
-            //if the rsk last block already fetched in db, don't fetch again - increment to avoid getting fetched again, fetch always for rskblasblock 0
-            from = rskLastBlock.equals(dbLastBlock) && !rskLastBlock.equals(BigInteger.ZERO)? rskLastBlock.add(BigInteger.ONE) : rskLastBlock;
-            //Saving lastblock so it starts fetching from here
-            dbManagerFacade.saveLastBlock(rskLastBlock);
-            onInit = false;
+        public void run() throws RSKBlockChainException {
+            // Get latest block for this run
+            BigInteger rskLastBlock = rskBlockchainService.getLastConfirmedBlock(blockConfirmationCount);
+            BigInteger dbLastBlock = dbManagerFacade.getLastBlock();
+            //fetch upto the last block
+            BigInteger to = rskLastBlock;
+            BigInteger from;
+            BigInteger fromChainAddresses;
+            if (startFromRSKLastBlock) {
+                //if the rsk last block already fetched in db, don't fetch again - increment to avoid getting fetched again, fetch always for rskblasblock 0
+                from = rskLastBlock.equals(dbLastBlock) && !rskLastBlock.equals(BigInteger.ZERO)? rskLastBlock.add(BigInteger.ONE) : rskLastBlock;
+                //Saving lastblock so it starts fetching from here
+                dbManagerFacade.saveLastBlock(rskLastBlock);
+            startFromRSKLastBlock = false;
         } else {
             from = dbLastBlock.add(BigInteger.ONE);
         }
@@ -111,6 +105,8 @@ public class DataFetchingJob {
                     }
                 } catch (Exception e) {
                     logger.error("Error during DataFetching job: ", e);
+                    // throw exception so it can be reprocessed if necessary the data has to be fetched again for all transaction types
+                    throw new RSKBlockChainException("Error while getting logs from blockchain - " + e.getMessage(), e);
                 }
             }
             dbManagerFacade.saveLastBlock(to);
