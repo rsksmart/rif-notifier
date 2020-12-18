@@ -1,5 +1,6 @@
 package org.rif.notifier.datafetcher;
 
+import org.rif.notifier.exception.RSKBlockChainException;
 import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Service
 public class ContractEventEthereumBasedDataFetcher extends EthereumBasedDataFetcher {
@@ -31,6 +33,7 @@ public class ContractEventEthereumBasedDataFetcher extends EthereumBasedDataFetc
 
     /**
      * Generates a list of FetchedEvents from the blockchain, using the getLogs method
+     * Throws completionexception in case, unable to fetch
      * @param ethereumBasedListenable
      * @param from Block number from, to fetch
      * @param to Block number to, to fetch
@@ -48,7 +51,8 @@ public class ContractEventEthereumBasedDataFetcher extends EthereumBasedDataFetc
                fetchedEventData = getLogs(web3j,from, to, ethereumBasedListenable.getAddress(), ethereumBasedListenable.getEventName(), ethereumBasedListenable.getEventFields(), ethereumBasedListenable.getTopicId());
            } catch (Exception e) {
                logger.error(Thread.currentThread().getId() + " - Error fetching contract data for subscription: "+ ethereumBasedListenable, e);
-               return new ArrayList<FetchedEvent>();
+               throw new CompletionException("Error fetching contract data for subscription " + ethereumBasedListenable, e);
+               //return new ArrayList<FetchedEvent>();
            }
            long end = System.currentTimeMillis();
            logger.info(Thread.currentThread().getId() + " - End Contract Data fetching time = "+ (end-start));
@@ -56,7 +60,8 @@ public class ContractEventEthereumBasedDataFetcher extends EthereumBasedDataFetc
 
        }).exceptionally(throwable -> {
            logger.error("Error fetching contract data for subscription: "+ ethereumBasedListenable, throwable);
-           return new ArrayList<>();
+           throw throwable instanceof CompletionException ? (CompletionException)throwable : new CompletionException(throwable);
+           //return new ArrayList<>();
        });
     }
 

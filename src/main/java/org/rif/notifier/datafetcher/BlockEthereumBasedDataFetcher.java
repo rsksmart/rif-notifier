@@ -15,6 +15,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -42,14 +43,16 @@ public class BlockEthereumBasedDataFetcher extends EthereumBasedDataFetcher {
                     blocks.add(new FetchedBlock(web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(i), false).send().getBlock(), ethereumBasedListenable.getTopicId()));
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(Thread.currentThread().getId() + " - Error fetching blocks data for subscription: "+ ethereumBasedListenable);
+                throw new CompletionException("Error fetching blocks data for subscription " + ethereumBasedListenable, e);
             }
             long end = System.currentTimeMillis();
             logger.info(Thread.currentThread().getId() + " - End block events for subscription = " + (end - start));
             return blocks;
         }).exceptionally(throwable -> {
             logger.error(Thread.currentThread().getId() + " - Error fetching blocks data for subscription: "+ ethereumBasedListenable, throwable);
-            return new ArrayList<>();
+            throw throwable instanceof CompletionException ? (CompletionException)throwable : new CompletionException(throwable);
+            //return new ArrayList<>();
         });
     }
 

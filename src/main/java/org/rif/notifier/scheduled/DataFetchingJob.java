@@ -59,19 +59,19 @@ public class DataFetchingJob {
      * When all the events are fetched try to process the rawdata getted calling methods
      */
     @Scheduled(fixedDelayString = "${notifier.run.fixedDelayFetchingJob}", initialDelayString = "${notifier.run.fixedInitialDelayFetchingJob}")
-        public void run() throws RSKBlockChainException {
-            // Get latest block for this run
-            BigInteger rskLastBlock = rskBlockchainService.getLastConfirmedBlock(blockConfirmationCount);
-            BigInteger dbLastBlock = dbManagerFacade.getLastBlock();
-            //fetch upto the last block
-            BigInteger to = rskLastBlock;
-            BigInteger from;
-            BigInteger fromChainAddresses;
-            if (startFromRSKLastBlock) {
-                //if the rsk last block already fetched in db, don't fetch again - increment to avoid getting fetched again, fetch always for rskblasblock 0
-                from = rskLastBlock.equals(dbLastBlock) && !rskLastBlock.equals(BigInteger.ZERO)? rskLastBlock.add(BigInteger.ONE) : rskLastBlock;
-                //Saving lastblock so it starts fetching from here
-                dbManagerFacade.saveLastBlock(rskLastBlock);
+    public void run() throws RSKBlockChainException {
+        // Get latest block for this run
+        BigInteger rskLastBlock = rskBlockchainService.getLastConfirmedBlock(blockConfirmationCount);
+        BigInteger dbLastBlock = dbManagerFacade.getLastBlock();
+        //fetch upto the last block
+        BigInteger to = rskLastBlock;
+        BigInteger from;
+        BigInteger fromChainAddresses;
+        if (startFromRSKLastBlock) {
+            //if the rsk last block already fetched in db, don't fetch again - increment to avoid getting fetched again, fetch always for rskblasblock 0
+            from = rskLastBlock.equals(dbLastBlock) && !rskLastBlock.equals(BigInteger.ZERO)? rskLastBlock.add(BigInteger.ONE) : rskLastBlock;
+            //Saving lastblock so it starts fetching from here
+            dbManagerFacade.saveLastBlock(rskLastBlock);
             startFromRSKLastBlock = false;
         } else {
             from = dbLastBlock.add(BigInteger.ONE);
@@ -111,11 +111,10 @@ public class DataFetchingJob {
             }
             dbManagerFacade.saveLastBlock(to);
 
-
-
-            dataFetcherHelper.processFetchedData(blockTasks, start, finalFrom, EthereumBasedListenableTypes.NEW_BLOCK);
-            dataFetcherHelper.processFetchedData(transactionTasks, start, finalFrom,EthereumBasedListenableTypes.NEW_TRANSACTIONS);
-            dataFetcherHelper.processEventTasks(eventTasks, start, finalFrom, fetchedTokens);
+            //in case of any failure, set the block back to dbLastBlock
+            dataFetcherHelper.processFetchedData(blockTasks, start, dbLastBlock, EthereumBasedListenableTypes.NEW_BLOCK);
+            dataFetcherHelper.processFetchedData(transactionTasks, start, dbLastBlock,EthereumBasedListenableTypes.NEW_TRANSACTIONS);
+            dataFetcherHelper.processEventTasks(eventTasks, start, dbLastBlock, fetchedTokens);
 
             ///////////////////////////////////Token Registry extract///////////////////////////////////////////
             if (!fetchedTokens) {
