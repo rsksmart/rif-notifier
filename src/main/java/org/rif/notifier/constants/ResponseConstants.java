@@ -51,4 +51,8 @@ public interface ResponseConstants {
     String PREFERENCE_NOT_FOUND = "Notification Preference not found for the given subscription, topic and type combination";
 
     String PREFERENCE_REMOVED = "The requested notification preference has been removed successfully";
+
+    String DESTINATION_PARAMS_REQUIRED = "Destination params is required for api service";
+
+    String SERVICE_NOT_ENABLED = "Notification Service is not enabled";
 }

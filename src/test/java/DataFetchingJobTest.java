@@ -1,14 +1,11 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mocked.MockTestData;
-import org.hibernate.annotations.Fetch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.helpers.DataFetcherHelper;
 import org.rif.notifier.helpers.LuminoDataFetcherHelper;
 import org.rif.notifier.managers.DbManagerFacade;
@@ -62,10 +59,10 @@ public class DataFetchingJobTest {
 
     private MockTestData mockTestData = new MockTestData();
 
-    private void prepareDataFetcherTest() throws Exception    {
+    public void prepareDataFetcherTest(String dbLastBlock, String rskLastBlock) throws Exception    {
         ReflectionTestUtils.setField(dataFetcherHelper, "dbManagerFacade", dbManagerFacadeHelper);
-        doReturn(new BigInteger("9")).when(dbManagerFacade).getLastBlock();
-        doReturn(new BigInteger("10")).when(rskBlockchainService).getLastBlock();
+        doReturn(new BigInteger(dbLastBlock)).when(dbManagerFacade).getLastBlock();
+        doReturn(new BigInteger(rskLastBlock)).when(rskBlockchainService).getLastBlock();
         doReturn(mockTestData.mockMixedTopics()).when(dbManagerFacadeHelper).getAllTopicsWithActiveSubscriptionAndBalance();
         doCallRealMethod().when(dataFetcherHelper).getListenablesForTopicsWithActiveSubscription();
         doReturn(CompletableFuture.completedFuture(new ArrayList<>())).when(rskBlockchainService).getBlocks(any(), any(), any());
@@ -74,24 +71,77 @@ public class DataFetchingJobTest {
         when(luminoDataFetcherHelper.fetchTokens(anyLong(), any(BigInteger.class))).thenReturn(false);
     }
 
+    /*
+     * Verify either success or failure case depending on successMode parameter
+     * For failure case, none of the methods should be executed except saveLastBlock depending on the invocation count
+     */
+    private void verifyDataFetcherRun(int saveLastBlockInvocationCount, boolean successMode) throws Exception    {
+        verify(rskBlockchainService, successMode ? times(1) : never()).getBlocks(any(), any(BigInteger.class), any(BigInteger.class));
+        verify(rskBlockchainService, successMode ? times(1) : never()).getTransactions(any(), any(BigInteger.class), any(BigInteger.class));
+        verify(rskBlockchainService, successMode ? times(1) : never()).getContractEvents(any(), any(BigInteger.class), any(BigInteger.class));
+        verify(dbManagerFacade, times(saveLastBlockInvocationCount)).saveLastBlock(any());
+        verify(dataFetcherHelper, successMode ? times(2) : never()).processFetchedData(anyList(), anyLong(), any(BigInteger.class), any());
+        verify(dataFetcherHelper, successMode ? times(1): never()).processEventTasks(anyList(), anyLong(), any(BigInteger.class), anyBoolean());
+    }
+
+    /**
+     * This is the when onInit is false
+     * @throws Exception
+     */
     @Test
-    public void canFetchData()  throws Exception    {
-        prepareDataFetcherTest();
+    public void skipFetchingWhenDBAndRSKAreSameLastBlock()  throws Exception    {
+        prepareDataFetcherTest("10","10");
         dataFetchingJob.run();
-        verify(dbManagerFacade, atLeastOnce()).saveLastBlock(any());
-        verify(dataFetcherHelper, atLeastOnce()).processFetchedData(anyList(), anyLong(), any(BigInteger.class), any());
-        verify(dataFetcherHelper, atLeastOnce()).processEventTasks(anyList(), anyLong(), any(BigInteger.class), anyBoolean());
+        verifyDataFetcherRun(0, false);
         Mockito.reset(dataFetcherHelper);
     }
 
     @Test
-    public void canFetchDataFromLastBlock()  throws Exception    {
-        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
-        prepareDataFetcherTest();
+    public void skipFetchingWhenDBBlockGreatherThanRSKLastBlock()  throws Exception    {
+        prepareDataFetcherTest("11","10");
         dataFetchingJob.run();
-        verify(dbManagerFacade, atLeastOnce()).saveLastBlock(any());
-        verify(dataFetcherHelper, atLeastOnce()).processFetchedData(anyList(), anyLong(), any(BigInteger.class), any());
-        verify(dataFetcherHelper, atLeastOnce()).processEventTasks(anyList(), anyLong(), any(BigInteger.class), anyBoolean());
+        verifyDataFetcherRun(0, false);
+        Mockito.reset(dataFetcherHelper);
+    }
+
+    @Test
+    public void canFetchDataFromDBLastBlock()  throws Exception    {
+        prepareDataFetcherTest("9","10");
+        dataFetchingJob.run();
+        verifyDataFetcherRun(1, true);
+        Mockito.reset(dataFetcherHelper);
+    }
+
+    @Test
+    public void canFetchDataFromRSKLastBlock()  throws Exception    {
+        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
+        //using random for db block since this is ignored in onInit
+        prepareDataFetcherTest(String.valueOf(new Random().nextInt()),"10");
+        dataFetchingJob.run();
+        verifyDataFetcherRun(2, true);
+        Mockito.reset(dataFetcherHelper);
+    }
+
+    /**
+     * This is the when onInit is true
+     * @throws Exception
+     */
+    @Test
+    public void skipFetchingWhenSameBlockForRSKAndDB()  throws Exception    {
+        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
+        prepareDataFetcherTest("10","10");
+        dataFetchingJob.run();
+        verifyDataFetcherRun(1, false);
+        Mockito.reset(dataFetcherHelper);
+    }
+
+    @Test
+    public void canFetchWhenZerothRskBlock()  throws Exception    {
+        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
+        //using random for db block since this is ignored in onInit
+        prepareDataFetcherTest(String.valueOf(new Random().nextInt()),"0");
+        dataFetchingJob.run();
+        verifyDataFetcherRun(2, true);
         Mockito.reset(dataFetcherHelper);
     }
 

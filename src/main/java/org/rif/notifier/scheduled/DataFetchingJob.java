@@ -67,17 +67,20 @@ public class DataFetchingJob {
     @Scheduled(fixedDelayString = "${notifier.run.fixedDelayFetchingJob}", initialDelayString = "${notifier.run.fixedInitialDelayFetchingJob}")
     public void run() throws Exception {
         // Get latest block for this run
-        BigInteger to = rskBlockchainService.getLastBlock();
+        BigInteger rskLastBlock = rskBlockchainService.getLastBlock();
+        BigInteger dbLastBlock = dbManagerFacade.getLastBlock();
+        //fetch upto the last block
+        BigInteger to = rskLastBlock;
         BigInteger from;
         BigInteger fromChainAddresses;
         if (onInit) {
+            //if the rsk last block already fetched in db, don't fetch again - increment to avoid getting fetched again, fetch always for rskblasblock 0
+            from = rskLastBlock.equals(dbLastBlock) && !rskLastBlock.equals(BigInteger.ZERO)? rskLastBlock.add(BigInteger.ONE) : rskLastBlock;
             //Saving lastblock so it starts fetching from here
-            dbManagerFacade.saveLastBlock(to);
-            from = to;
+            dbManagerFacade.saveLastBlock(rskLastBlock);
             onInit = false;
         } else {
-            from = dbManagerFacade.getLastBlock();
-            from = from.add(new BigInteger("1"));
+            from = dbLastBlock.add(BigInteger.ONE);
         }
         BigInteger finalFrom = from;
         //ensure fetching 1 or more blocks, if from and to are same 1 block is fetched, and if to is greater 1 or more blocks are fetched

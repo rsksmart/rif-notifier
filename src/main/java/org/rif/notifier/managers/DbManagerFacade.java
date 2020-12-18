@@ -1,5 +1,6 @@
 package org.rif.notifier.managers;
 
+import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.managers.datamanagers.*;
@@ -21,6 +22,9 @@ import java.util.stream.Collectors;
 @Service
 public class DbManagerFacade {
     private static final Logger logger = LoggerFactory.getLogger(DbManagerFacade.class);
+
+    @Autowired
+    NotifierConfig notifierConfig;
 
     @Autowired
     private RawDataManager rawDataManager;
@@ -271,6 +275,9 @@ public class DbManagerFacade {
     }
 
     public List<NotificationPreference> getNotificationPreferences(Subscription sub, int idTopic)    {
-        return notificationPreferenceManager.getNotificationPreferences(sub, idTopic);
+        List<NotificationServiceType> enabledServices = notifierConfig.getEnabledServices();
+        List<NotificationPreference> enabledPreferences = notificationPreferenceManager.getNotificationPreferences(sub, idTopic).stream().filter(
+                p->enabledServices.stream().anyMatch(p2-> p2 == p.getNotificationService())).collect(Collectors.toList());
+        return enabledPreferences;
     }
 }
