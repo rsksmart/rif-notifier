@@ -26,11 +26,13 @@ public class ChainAddressesServices {
      */
     public List<ChainAddressEvent> getChainAddresses(String address, String nodehash, Set<String> eventName){
         List<ChainAddressEvent> lst = new ArrayList<>();
-        Subscription sub = dbManagerFacade.getActiveSubscriptionByAddress(address);
-        if(sub != null) {
-            if (sub.getActive() )
-                lst = dbManagerFacade.getChainAddresses(nodehash, eventName);
-        }
+        List<Subscription> subs = dbManagerFacade.getActiveSubscriptionByAddress(address);
+        subs.forEach(sub->{
+            if(sub != null) {
+                if (sub.getActive())
+                    lst.addAll(dbManagerFacade.getChainAddresses(nodehash, eventName));
+            }
+        });
         return lst;
     }
 }

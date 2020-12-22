@@ -117,12 +117,20 @@ public class DbManagerFacade {
         return subscriptionManager.findByContractAddressAndSubscriptionActive(address);
     }
 
-    public Subscription getActiveSubscriptionByAddress(String user_address){
+    public List<Subscription> getActiveSubscriptionByAddress(String user_address){
         return subscriptionManager.getActiveSubscriptionByAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddress(String user_address){
+    public Subscription getActiveSubscriptionByAddressAndType(String user_address, SubscriptionType type){
+        return subscriptionManager.getActiveSubscriptionByAddressAndType(user_address, type);
+    }
+
+    public List<Subscription> getSubscriptionByAddress(String user_address){
         return subscriptionManager.getSubscriptionByAddress(user_address);
+    }
+
+    public Subscription getSubscriptionByAddressAndType(String user_address, SubscriptionType type){
+        return subscriptionManager.getSubscriptionByAddressAndType(user_address, type);
     }
 
     public Subscription createSubscription(Date activeUntil, String userAddress, SubscriptionType type, String state) {

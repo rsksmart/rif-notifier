@@ -23,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -61,7 +63,7 @@ public class NotificationControllerTest {
         List<Notification> notifs = mockTestData.mockNotifications();
         dto.setContent(notifs);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(subscription).collect(Collectors.toList()));
         //Return notifications
         when(notificationServices.getNotificationsForSubscription(subscription, null, null, null)).thenReturn(notifs);
         mockMvc.perform(

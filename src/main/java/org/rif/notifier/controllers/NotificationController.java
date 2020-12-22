@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -53,21 +54,25 @@ public class NotificationController {
             @RequestParam(name = "idTopic", required = false) Set<Integer> idTopic
     ) {
         DTOResponse resp = new DTOResponse();
-        List<Notification> notifications;
+        List<Notification> notifications = new ArrayList<>();
         if(apiKey != null && !apiKey.isEmpty()){
             User us = userServices.getUserByApiKey(apiKey);
             if(us != null){
-                Subscription subscription = Optional.ofNullable(subscribeServices.getSubscriptionByAddress(us.getAddress())).orElseThrow(
+                List<Subscription> subscriptions = Optional.ofNullable(subscribeServices.getSubscriptionByAddress(us.getAddress())).orElseThrow(
                         ()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND)
                 );
-                notifications = notificationServices.getNotificationsForSubscription(subscription, id, lastRows, idTopic);
+                subscriptions.forEach(s-> {
+                    notifications.addAll(notificationServices.getNotificationsForSubscription(s, id, lastRows, idTopic));
+                });
                 if(notifications.size() > 0) {
                     resp.setContent(notifications);
                 }else{
                     //It may be happend that the user has no notifications cause the balance of the subscription is 0
-                    if(subscription.getNotificationBalance() == 0) {
-                        throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_OUT_OF_BALANCE);
-                    }
+                    subscriptions.forEach(s-> {
+                        if (s.getNotificationBalance() == 0) {
+                            throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_OUT_OF_BALANCE);
+                        }
+                    });
                 }
             }else{
                 //Return error, user does not exist

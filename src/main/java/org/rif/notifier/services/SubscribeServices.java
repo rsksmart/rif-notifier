@@ -90,12 +90,20 @@ public class SubscribeServices  {
         return retVal;
     }
 
-    public Subscription getActiveSubscriptionByAddress(String user_address){
+    public List<Subscription> getActiveSubscriptionByAddress(String user_address){
         return dbManagerFacade.getActiveSubscriptionByAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddress(String user_address){
+    public Subscription getActiveSubscriptionByAddressAndType(String user_address, SubscriptionType type){
+        return dbManagerFacade.getActiveSubscriptionByAddressAndType(user_address, type);
+    }
+
+    public List<Subscription> getSubscriptionByAddress(String user_address){
         return dbManagerFacade.getSubscriptionByAddress(user_address);
+    }
+
+    public Subscription getSubscriptionByAddressAndType(String user_address, SubscriptionType type){
+        return dbManagerFacade.getSubscriptionByAddressAndType(user_address, type);
     }
 
     /**

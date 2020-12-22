@@ -23,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Date;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,7 +86,8 @@ public class SubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getActiveSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
         //Need to mock with any, cause it was always returning false, maybe cause the Topic that we bring in here was not the same as in the controller
         when(subscribeServices.validateTopic(any(Topic.class))).thenReturn(true);
         //when(subscribeServices.validateTopic(tp)).thenCallRealMethod();
@@ -112,7 +115,9 @@ public class SubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
         Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelOpenedTopicForToken("12345", null, null)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -120,6 +125,7 @@ public class SubscribeControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
+                        .param("type", "0")
                         .param("token", "12345")
         )
                 .andExpect(status().isOk())
@@ -137,7 +143,9 @@ public class SubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
         Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelOpenedTopicForToken("12345", participantOne, participantTwo)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -146,6 +154,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
                         .param("token", "12345")
+                        .param("type", "0")
                         .param("participantone", participantOne)
                         .param("participanttwo", participantTwo)
         )
@@ -164,7 +173,9 @@ public class SubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
         Topic tp = luminoEventServices.getChannelClosedTopicForToken(token, null, null);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelClosedTopicForToken("12345", null, null)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -172,6 +183,7 @@ public class SubscribeControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/subscribeToCloseChannel")
                         .header("apiKey", apiKey)
+                        .param("type", "0")
                         .param("token", token)
         )
                 .andExpect(status().isOk())
@@ -189,8 +201,10 @@ public class SubscribeControllerTest {
         SubscriptionType subType = new SubscriptionType(1000);
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
         Topic tp = luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closeParticipant);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closeParticipant)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -199,6 +213,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
                         .param("token", token)
+                        .param("type", "0")
                         .param("closingparticipant", closeParticipant)
                         .param("channelidentifier", String.valueOf(channelIdentifier))
         )
@@ -214,8 +229,11 @@ public class SubscribeControllerTest {
         User us = mockTestData.mockUser();
         Subscription sub = mockTestData.mockSubscription();
         Topic tp = mockTestData.mockTopic();
+        SubscriptionType subType = mockTestData.mockSubscriptionType();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getTopicById(idTopic)).thenReturn(tp);
         when(subscribeServices.unsubscribeFromTopic(sub, tp)).thenReturn(true);
 
@@ -223,6 +241,7 @@ public class SubscribeControllerTest {
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
                         .param("idTopic", String.valueOf(idTopic))
+                        .param("type", "0")
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -238,13 +257,17 @@ public class SubscribeControllerTest {
         User us = mockTestData.mockUser();
         Subscription sub = mockTestData.mockSubscription();
         Topic tp = mockTestData.mockTopic();
+        SubscriptionType subType = mockTestData.mockSubscriptionType();
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(subscribeServices.getTopicById(idTopic)).thenReturn(null);
 
         MvcResult result = mockMvc.perform(
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
+                        .param("type", "0")
                         .param("idTopic", String.valueOf(idTopic))
         )
                 .andExpect(status().isConflict())
@@ -277,14 +300,17 @@ public class SubscribeControllerTest {
         SubscriptionType subType = new SubscriptionType(1000);
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
         Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(luminoEventServices.isToken(any())).thenReturn(false);
         when(luminoEventServices.getChannelOpenedTopicForToken("12345", null, null)).thenReturn(tp);
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
+                        .param("type", "0")
                         .param("token", "54321")
         )
                 .andExpect(status().isConflict())
@@ -317,14 +343,17 @@ public class SubscribeControllerTest {
         User us = new User(closeParticipant, apiKey);
         SubscriptionType subType = new SubscriptionType(1000);
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(luminoEventServices.isToken(any())).thenReturn(false);
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToCloseChannel")
                         .header("apiKey", apiKey)
                         .param("token", token)
+                        .param("type", "0")
                         .param("closingparticipant", closeParticipant)
                         .param("channelidentifier", String.valueOf(channelIdentifier))
         )
@@ -366,8 +395,10 @@ public class SubscribeControllerTest {
         dto.setMessage(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
+        SubscriptionType subType = mockTestData.mockSubscriptionType();
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
@@ -393,7 +424,8 @@ public class SubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
         Topic tp = mockTestData.mockInvalidTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(sub);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getActiveSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(sub);
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")

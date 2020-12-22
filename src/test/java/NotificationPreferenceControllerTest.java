@@ -61,10 +61,12 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
+        SubscriptionType subType = mockTestData.mockSubscriptionType();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         doReturn(Arrays.asList(NotificationServiceType.SMS, NotificationServiceType.EMAIL, NotificationServiceType.API)).when(notifierConfig).getEnabledServices();
@@ -72,6 +74,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
+                        .param("type", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isOk())
@@ -90,16 +93,19 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
+        SubscriptionType subType = mockTestData.mockSubscriptionType();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.getNotificationPreference(any(Subscription.class), any(Integer.class), any(NotificationServiceType.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/removeNotificationPreference")
                         .header("apiKey", apiKey)
+                        .param("type", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isOk())
@@ -118,17 +124,20 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
+        SubscriptionType subType = mockTestData.mockSubscriptionType();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         pref.setDestination("test.com");
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
+                        .param("type", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isConflict())
@@ -147,16 +156,19 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
+        SubscriptionType subType = mockTestData.mockSubscriptionType();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
+                        .param("type", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref).replace("EMAIL", "INVALID"))
         )
                 .andExpect(status().isConflict())
