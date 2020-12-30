@@ -1,6 +1,5 @@
 package org.rif.notifier.exception;
 
-import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ErrorHandler;

@@ -7,6 +7,7 @@ import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.exception.ResourceNotFoundException;
+import org.rif.notifier.exception.SubscriptionException;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.DTOResponse;
@@ -26,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
+import java.util.stream.Collectors;
 
 
 @Api(tags = {"Notification Preference Resource"})
@@ -86,6 +87,7 @@ public class NotificationPreferenceController {
     @ResponseBody
     public ResponseEntity<DTOResponse> saveNotificationPreference   (
             @RequestHeader(value="apiKey") String apiKey,
+            @RequestParam(name = "type", defaultValue = "0") Integer type,
             @RequestBody String notificationPreference
 
     ) {
@@ -93,23 +95,21 @@ public class NotificationPreferenceController {
         NotificationPreference requestedPreference;
         User apiUser;
 
-        //try {
-            //validate apikey
-            apiUser = validateApiKeyAndGetUser(apiKey);
-            //validate request json
-            requestedPreference = validateRequestJson(notificationPreference);
-            //validate containing data
-            validateRequestNotificationPreference(requestedPreference);
-        //}
-        //catch(ValidationException e)    {
-            //return new ResponseEntity<>(resp, resp.getStatus());
-        //}
-
-        Subscription subscription = subscribeServices.getSubscriptionByAddress(apiUser.getAddress());
-        //check if notification preference already associated with topic and subscription for given type, if no topic specified, default topic 0 will be used
+        //validate apikey
+        apiUser = validateApiKeyAndGetUser(apiKey);
+        //validate request json
+        requestedPreference = validateRequestJson(notificationPreference);
+        //validate containing data
+        validateRequestNotificationPreference(requestedPreference);
+        SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+        Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        Subscription subscription = subscribeServices.getSubscriptionByAddressAndType(apiUser.getAddress(), subType);
+        Optional.ofNullable(subscription).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
+        validateNoExistingUserSubcriptionForTopicAndPreference(subscription, requestedPreference);
+        //overwrite existing preference if one found, or create new
         NotificationPreference preference = Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(
-                        subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))
-                        .orElse(new NotificationPreference());
+                            subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))
+                            .orElseGet(() -> new NotificationPreference());
         preference.setSubscription(subscription);
         //the topic id sent as part of request. This is an integer topic id for ex. 10.
         // When the topic id is set to 0, this preference will be used as default preference for those
@@ -145,6 +145,7 @@ public class NotificationPreferenceController {
     @ResponseBody
     public ResponseEntity<DTOResponse> removeNotificationPreference(
             @RequestHeader(value="apiKey") String apiKey,
+            @RequestParam(name = "type", defaultValue = "0") Integer type,
             @RequestBody String notificationPreference
 
     ) {
@@ -157,7 +158,9 @@ public class NotificationPreferenceController {
         //validate request json
         requestedPreference = validateRequestJson(notificationPreference);
 
-        Subscription subscription = subscribeServices.getSubscriptionByAddress(apiUser.getAddress());
+        SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+        Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        Subscription subscription = subscribeServices.getSubscriptionByAddressAndType(apiUser.getAddress(), subType);
         //check if notification preference already associated with topic and subscription for given type
         NotificationPreference preference = Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(
                         subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))
@@ -167,6 +170,21 @@ public class NotificationPreferenceController {
         resp.setStatus(HttpStatus.OK);
         resp.setContent(ResponseConstants.PREFERENCE_REMOVED);
         return new ResponseEntity<>(resp, resp.getStatus());
+    }
+
+    /*
+    * check if notification preference already associated with same topic from another subscription for given user, if no topic specified, default topic 0 will be used
+    * get all subscriptions by user address and verify if there is already a subscription with the given notification preference
+    * for the given topic
+    */
+    private void validateNoExistingUserSubcriptionForTopicAndPreference(Subscription subscription, NotificationPreference requestedPreference)    {
+        List<Subscription> subs = subscribeServices.getSubscriptionByAddress(subscription.getUserAddress());
+        subs = subs.stream().filter(s->!s.equals(subscription)).collect(Collectors.toList());
+        subs.forEach(sub-> {
+            Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(sub, requestedPreference.getIdTopic(), requestedPreference.getNotificationService())).ifPresent(p-> {
+                throw new SubscriptionException("The notification service is already asssociated with another subscription for the same topic for this user ");
+            });
+        });
     }
 
 

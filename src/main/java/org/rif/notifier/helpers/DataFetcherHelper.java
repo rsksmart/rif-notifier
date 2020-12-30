@@ -77,11 +77,12 @@ public class DataFetcherHelper {
         tasks.forEach(listCompletableFuture -> {
             listCompletableFuture.whenComplete((fetchedDetails, throwable) -> {
                 long end = System.currentTimeMillis();
-                logger.info(Thread.currentThread().getId() + " - End fetching " + type.getType() + " task = " + (end - start));
-                logger.info(Thread.currentThread().getId() + " - Completed fetching " + type.getType() +"s, Size: " + fetchedDetails.size());
                 if (throwable != null) {
+                    //set the database block to the original starting block for failure
                     dbManagerFacade.saveLastBlock(lastBlock);
                 } else {
+                    logger.info(Thread.currentThread().getId() + " - End fetching " + type.getType() + " task = " + (end - start));
+                    logger.info(Thread.currentThread().getId() + " - Completed fetching " + type.getType() +"s, Size: " + fetchedDetails.size());
                     List<RawData> rawTrs = fetchedDetails.stream().map(fetchedDetail-> {
                         RawData rwDt = new RawData(type.toString(), fetchedDetail.toString(), false, fetchedDetail.getBlockNumber(), fetchedDetail.getTopicId());
                         rwDt.setRowhashcode(rwDt.hashCode());
@@ -102,11 +103,12 @@ public class DataFetcherHelper {
         eventTasks.forEach(listCompletableFuture -> {
             listCompletableFuture.whenComplete((fetchedEvents, throwable) -> {
                 long end = System.currentTimeMillis();
-                logger.info(Thread.currentThread().getId() + " - End fetching events task = " + (end - start));
-                logger.info(Thread.currentThread().getId() + " - Completed fetching events, size: " + fetchedEvents.size());
                 if(throwable != null) {
+                    //set the database block to the original starting block for failure
                     dbManagerFacade.saveLastBlock(lastBlock);
                 } else {
+                    logger.info(Thread.currentThread().getId() + " - End fetching events task = " + (end - start));
+                    logger.info(Thread.currentThread().getId() + " - Completed fetching events, size: " + fetchedEvents.size());
                     //Check if tokens were registered we can filter by idTopic -1
                     if (fetchedTokens) {
                         fetchedEvents.stream().filter(item -> item.getTopicId() == -1).forEach(item -> {
@@ -196,6 +198,7 @@ public class DataFetcherHelper {
                     });
                 }
             } catch (IOException e) {
+                //this is not a blockchain exception
                 e.printStackTrace();
             }
         });

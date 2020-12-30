@@ -5,7 +5,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.rif.notifier.exception.RSKBlockChainException;
 import org.rif.notifier.helpers.DataFetcherHelper;
 import org.rif.notifier.helpers.LuminoDataFetcherHelper;
 import org.rif.notifier.managers.DbManagerFacade;
@@ -34,6 +36,9 @@ import static org.junit.Assert.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataFetchingJobTest {
+
+    private static final String START_FROM_RSK_LAST_BLOCK = "startFromRSKLastBlock";
+
     @Mock
     private RskBlockchainService rskBlockchainService;
 
@@ -57,12 +62,12 @@ public class DataFetchingJobTest {
     @Autowired
     private DataFetchingJob dataFetchingJob;
 
-    private MockTestData mockTestData = new MockTestData();
+   private MockTestData mockTestData = new MockTestData();
 
     public void prepareDataFetcherTest(String dbLastBlock, String rskLastBlock) throws Exception    {
         ReflectionTestUtils.setField(dataFetcherHelper, "dbManagerFacade", dbManagerFacadeHelper);
         doReturn(new BigInteger(dbLastBlock)).when(dbManagerFacade).getLastBlock();
-        doReturn(new BigInteger(rskLastBlock)).when(rskBlockchainService).getLastBlock();
+        doReturn(new BigInteger(rskLastBlock)).when(rskBlockchainService).getLastConfirmedBlock(any(BigInteger.class));
         doReturn(mockTestData.mockMixedTopics()).when(dbManagerFacadeHelper).getAllTopicsWithActiveSubscriptionAndBalance();
         doCallRealMethod().when(dataFetcherHelper).getListenablesForTopicsWithActiveSubscription();
         doReturn(CompletableFuture.completedFuture(new ArrayList<>())).when(rskBlockchainService).getBlocks(any(), any(), any());
@@ -85,7 +90,7 @@ public class DataFetchingJobTest {
     }
 
     /**
-     * This is the when onInit is false
+     * This is the when startFromRSKLastBlock is false
      * @throws Exception
      */
     @Test
@@ -114,8 +119,8 @@ public class DataFetchingJobTest {
 
     @Test
     public void canFetchDataFromRSKLastBlock()  throws Exception    {
-        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
-        //using random for db block since this is ignored in onInit
+        ReflectionTestUtils.setField(dataFetchingJob, START_FROM_RSK_LAST_BLOCK, true);
+        //using random for db block since this is ignored in startFromRSKLastBlock
         prepareDataFetcherTest(String.valueOf(new Random().nextInt()),"10");
         dataFetchingJob.run();
         verifyDataFetcherRun(2, true);
@@ -123,12 +128,12 @@ public class DataFetchingJobTest {
     }
 
     /**
-     * This is the when onInit is true
+     * This is the when startFromRSKLastBlock is true
      * @throws Exception
      */
     @Test
     public void skipFetchingWhenSameBlockForRSKAndDB()  throws Exception    {
-        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
+        ReflectionTestUtils.setField(dataFetchingJob, "startFromRSKLastBlock", true);
         prepareDataFetcherTest("10","10");
         dataFetchingJob.run();
         verifyDataFetcherRun(1, false);
@@ -137,8 +142,8 @@ public class DataFetchingJobTest {
 
     @Test
     public void canFetchWhenZerothRskBlock()  throws Exception    {
-        ReflectionTestUtils.setField(dataFetchingJob, "onInit", true);
-        //using random for db block since this is ignored in onInit
+        ReflectionTestUtils.setField(dataFetchingJob, START_FROM_RSK_LAST_BLOCK, true);
+        //using random for db block since this is ignored in startFromRSKLastBlock
         prepareDataFetcherTest(String.valueOf(new Random().nextInt()),"0");
         dataFetchingJob.run();
         verifyDataFetcherRun(2, true);
@@ -364,5 +369,12 @@ public class DataFetchingJobTest {
         List<CompletableFuture<List<FetchedEvent>>> futures = new ArrayList<>();
         futures.add(futureEvent);
         dataFetcherHelperInject.processEventTasks(futures, 0, new BigInteger("10"), false);
+    }
+
+    @Test(expected=RSKBlockChainException.class)
+    public void errorFetchLastConfirmedBlock()    throws Exception {
+        prepareDataFetcherTest("9", "10");
+        doThrow(RuntimeException.class).when(rskBlockchainService).getBlocks(any(), any(BigInteger.class), any(BigInteger.class));
+        dataFetchingJob.run();
     }
 }

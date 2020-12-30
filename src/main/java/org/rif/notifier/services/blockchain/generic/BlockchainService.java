@@ -1,5 +1,6 @@
 package org.rif.notifier.services.blockchain.generic;
 
+import org.rif.notifier.exception.RSKBlockChainException;
 import org.rif.notifier.models.datafetching.FetchedBlock;
 import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.datafetching.FetchedTransaction;
@@ -20,6 +21,7 @@ public abstract class BlockchainService<T extends Listenable> {
 
 
     public abstract BigInteger getLastBlock () throws IOException;
+    public abstract BigInteger getLastConfirmedBlock(BigInteger confirmations) throws RSKBlockChainException;
 
 
 

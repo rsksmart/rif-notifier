@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Api(tags = {"Onboarding Resource"})
@@ -46,27 +47,18 @@ public class SubscribeController {
     @RequestMapping(value = "/subscribe", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> subscribe(
-            @RequestParam(name = "type", required = false) Integer type,
+            @RequestParam(name = "type", defaultValue= "0") Integer type,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
-        User us = userServices.getUserByApiKey(apiKey);
-        if(us != null){
-//            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
-//            if(subType != null) {
-                if (subscribeServices.getActiveSubscriptionByAddress(us.getAddress()) == null) {
-                    SubscriptionType subTypeMocked = new SubscriptionType(Integer.MAX_VALUE);
-                    resp.setContent(subscribeServices.createSubscription(us, subTypeMocked));
-                }else{
-                    throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
-                }
-//            }else{
-//                resp.setMessage(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE);
-//                resp.setStatus(HttpStatus.CONFLICT);
-//            }
-        }else{
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
-        }
-
+        User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
+        SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+        Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        //throw exception if subscription already added
+        Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndType(us.getAddress(), subType)).ifPresent(p-> {
+           throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED) ;
+        });
+        //if no active subscription for given user and subscription type found, then create a new subscriiption
+        resp.setContent(subscribeServices.createSubscription(us, subType));
         return new ResponseEntity<>(resp, resp.getStatus());
     }
     @ApiOperation(value = "Subscribes to a topic",
@@ -75,38 +67,31 @@ public class SubscribeController {
     @ResponseBody
     public ResponseEntity<DTOResponse> subscribeToTopic(
             @RequestHeader(value="apiKey") String apiKey,
+            @RequestParam(name = "type", defaultValue= "0") Integer type,
             @RequestBody String userTopic) {
         ObjectMapper mapper = new ObjectMapper();
         Topic userSentTopic = null;
         DTOResponse resp = new DTOResponse();
         try {
             userSentTopic = mapper.readValue(userTopic, Topic.class);
-            User us = userServices.getUserByApiKey(apiKey);
-            if(us != null){
-                //Check if the user did subscribe
-                Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
-                if(sub != null) {
-                    if(subscribeServices.validateTopic(userSentTopic)){
-                        Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(userSentTopic, sub.getId());
-                        if(topic == null) {
-                            resp.setContent(subscribeServices.subscribeToTopic(userSentTopic, sub));
-                        }else{
-                            //Return an error because the user is sending a topic that he's already subscribed
-                            throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
-                        }
-                    }else{
-                        //Return an error because the user sends a wrong structure of topic
-                        throw new SubscriptionException(ResponseConstants.TOPIC_VALIDATION_FAILED);
-                    }
-                }else{
-                    //Return an error because the user still did not create the subscription
-                    throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-                }
+            //check valid user and if not throw exception
+            User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
+            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            //check valid subscription type otherwise throw error
+            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+            //if no active subscription is found for type and user address then throw exception
+            Subscription sub = Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndType(us.getAddress(), subType)).orElseThrow(()->new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION));
+            //validate the user sent topic
+            if(subscribeServices.validateTopic(userSentTopic)){
+                //Return an error if the user sent topic is already subscribed
+                Optional.ofNullable(subscribeServices.getTopicByHashCodeAndIdSubscription(userSentTopic, sub.getId())).ifPresent(t->new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(t.getId()), null));
+                resp.setContent(subscribeServices.subscribeToTopic(userSentTopic, sub));
             }else{
-                throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+                //Return an error when the user sends a wrong structure of topic
+                throw new ValidationException(ResponseConstants.TOPIC_VALIDATION_FAILED);
             }
         } catch (IOException e) {
-            throw new SubscriptionException(ResponseConstants.TOPIC_VALIDATION_FAILED);
+            throw new ValidationException(ResponseConstants.TOPIC_VALIDATION_FAILED);
         }
 
         return new ResponseEntity<>(resp, resp.getStatus());
@@ -116,22 +101,17 @@ public class SubscribeController {
     @RequestMapping(value = "/getSubscriptionInfo", method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> getSubscriptionInfo(
+            @RequestParam(name = "type", defaultValue = "0") Integer type,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
-        User us = userServices.getUserByApiKey(apiKey);
-        if (us != null) {
-            //Check if the user did subscribe
-            Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
-            if (sub != null) {
-                resp.setContent(sub.toStringInfo());
-            } else {
-                //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
-            }
-        } else {
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
-        }
-
+        //check valid user and if not throw exception
+        User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
+        SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+        //check valid subscription type otherwise throw error
+        Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        //Check if the user has a subscription otherwise throw exception
+        Subscription sub = Optional.ofNullable(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
+        resp.setContent(sub.toStringInfo());
         return new ResponseEntity<>(resp, resp.getStatus());
     }
     @ApiOperation(value = "Gets all preloaded events",
@@ -139,12 +119,15 @@ public class SubscribeController {
     @RequestMapping(value = "/getLuminoTokens", method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> getLuminoTokens(
+            @RequestParam(name = "type", defaultValue= "0") Integer type,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
+            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
             if (sub != null) {
                 resp.setContent(luminoEventServices.getTokens());
             } else {
@@ -165,12 +148,15 @@ public class SubscribeController {
             @RequestParam(name = "token") String token,
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
+            @RequestParam(name = "type", defaultValue= "0") Integer type,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
+            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
             if (sub != null) {
                 token = token.toLowerCase();
                 if(luminoEventServices.isToken(token)){
@@ -204,12 +190,15 @@ public class SubscribeController {
             @RequestParam(name = "token") String token,
             @RequestParam(name = "channelidentifier", required = false) Integer channelIdentifier,
             @RequestParam(name = "closingparticipant", required = false) String closingParticipant,
+            @RequestParam(name = "type", defaultValue= "0") Integer type,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
+            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
             if (sub != null) {
                 token = token.toLowerCase();
                 if(luminoEventServices.isToken(token)){
@@ -241,12 +230,15 @@ public class SubscribeController {
     @ResponseBody
     public ResponseEntity<DTOResponse> unsubscribeFromTopic(
             @RequestHeader(value="apiKey") String apiKey,
+            @RequestParam(name = "type", defaultValue= "0") Integer type,
             @RequestParam(value="idTopic") int idTopic) {
         DTOResponse resp = new DTOResponse();
          User us = userServices.getUserByApiKey(apiKey);
         if(us != null){
             //Check if the user did subscribe
-            Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
+            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
             if(sub != null) {
                 Topic tp = subscribeServices.getTopicById(idTopic);
                 if(tp != null){
@@ -272,12 +264,15 @@ public class SubscribeController {
     public ResponseEntity<DTOResponse> subscribeToLuminoOpenChannels(
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
+            @RequestParam(name = "type", defaultValue= "0") Integer type,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            Subscription sub = subscribeServices.getSubscriptionByAddress(us.getAddress());
+            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
             if (sub != null) {
                 List<SubscriptionResponse> lstTopicId = new ArrayList<>();
                 luminoEventServices.getTokens().forEach(token -> {

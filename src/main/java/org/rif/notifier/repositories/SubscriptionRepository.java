@@ -1,6 +1,7 @@
 package org.rif.notifier.repositories;
 
 import org.rif.notifier.models.entities.Subscription;
+import org.rif.notifier.models.entities.SubscriptionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -11,9 +12,13 @@ import java.util.List;
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, String> {
 
-    Subscription findByUserAddress(String user_address);
+    List<Subscription> findByUserAddress(String user_address);
 
-    Subscription findByUserAddressAndActive(String user_address, boolean active);
+    Subscription findByUserAddressAndType(String user_address, SubscriptionType type);
+
+    List<Subscription> findByUserAddressAndActive(String user_address, boolean active);
+
+    Subscription findByUserAddressAndTypeAndActiveTrue(String user_address, SubscriptionType type);
 
     List<Subscription> findByActive(boolean active);
 

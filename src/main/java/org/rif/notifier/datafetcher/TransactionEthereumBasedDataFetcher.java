@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Service
 public class TransactionEthereumBasedDataFetcher extends EthereumBasedDataFetcher {
@@ -43,7 +44,8 @@ public class TransactionEthereumBasedDataFetcher extends EthereumBasedDataFetche
 
         }).exceptionally(throwable -> {
             logger.error(Thread.currentThread().getId() + " - Error fetching transaction data for subscription: "+ ethereumBasedListenable, throwable);
-            return new ArrayList<>();
+            throw throwable instanceof CompletionException ? (CompletionException)throwable : new CompletionException(throwable);
+            //return new ArrayList<>();
         });
     }
 }

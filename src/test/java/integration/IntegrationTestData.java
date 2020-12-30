@@ -147,7 +147,7 @@ public class IntegrationTestData {
     }
     private void setupSubscription()    {
         Date date = new Date();
-        activeSubscription = dbManagerFacade.getSubscriptionByAddress(user);
+        activeSubscription = dbManagerFacade.getSubscriptionByAddress(user).get(0);
         if (activeSubscription == null) {
             activeSubscription = dbManagerFacade.createSubscription(date, user, subscriptionType, SubscriptionConstants.PAYED_PAYMENT);
         }

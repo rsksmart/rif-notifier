@@ -12,7 +12,10 @@ import org.rif.notifier.services.blockchain.lumino.LuminoInvoice;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -174,11 +177,11 @@ public class SubscribeServiceTest {
     public void getActiveSubscriptionByAddress() throws IOException {
         Subscription subscription = mockTestData.mockSubscription();
 
-        doReturn(subscription).when(dbManagerFacade).getActiveSubscriptionByAddress("0x0");
+        doReturn(Stream.of(subscription).collect(Collectors.toList())).when(dbManagerFacade).getActiveSubscriptionByAddress("0x0");
 
-        Subscription retVal = subscribeServices.getActiveSubscriptionByAddress("0x0");
+        List<Subscription> retVal = subscribeServices.getActiveSubscriptionByAddress("0x0");
 
-        assertEquals(subscription, retVal);
+        assertTrue(retVal.stream().allMatch(s->s.getActive()));
     }
     @Test
     public void canActivateSubscription() throws IOException {
@@ -294,8 +297,8 @@ public class SubscribeServiceTest {
     @Test
     public void canGetSubscriptionByAddress() throws IOException    {
         Subscription sub = mockTestData.mockSubscription();
-        doReturn(sub).when(dbManagerFacade).getSubscriptionByAddress(sub.getUserAddress());
-        assertEquals(sub, subscribeServices.getSubscriptionByAddress(sub.getUserAddress()));
+        doReturn(Stream.of(sub).collect(Collectors.toList())).when(dbManagerFacade).getSubscriptionByAddress(sub.getUserAddress());
+        assertEquals(sub, subscribeServices.getSubscriptionByAddress(sub.getUserAddress()).get(0));
     }
 
     @Test
