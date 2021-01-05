@@ -33,7 +33,7 @@ public class SMSService implements NotificationService {
         logger.info("sending sms notification for id " + notificationLog.getNotification().getId());
         String destination = notificationLog.getNotificationPreference().getDestination();
         String data = notificationLog.getNotification().getData();
-        Message message = Message.creator(from, new PhoneNumber(destination),
+        Message message = Message.creator(new PhoneNumber(destination), from,
                 data).create();
         return message.getStatus().toString();
     }
