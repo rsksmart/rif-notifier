@@ -3,6 +3,7 @@ import mocked.MockTestData;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
+import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.controllers.SubscribeController;
 import org.rif.notifier.models.DTO.DTOResponse;
@@ -35,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = SubscribeController.class)
-@ContextConfiguration(classes={Application.class})
+@ContextConfiguration(classes={Application.class, NotifierConfig.class})
 public class SubscribeControllerTest {
 
     @Autowired
@@ -105,123 +106,7 @@ public class SubscribeControllerTest {
 
         assertEquals(dto.getStatus(), dtResponse.getStatus());
     }
-    @Test
-    public void canSubscribeToOpenChannel() throws Exception {
-        String address = "0x0";
-        DTOResponse dto = new DTOResponse();
-        String apiKey = Utils.generateNewToken();
-        User us = new User(address, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
-        Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
-        when(luminoEventServices.isToken(any())).thenReturn(true);
-        when(luminoEventServices.getChannelOpenedTopicForToken("12345", null, null)).thenReturn(tp);
-        when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
 
-        MvcResult result = mockMvc.perform(
-                post("/subscribeToOpenChannel")
-                        .header("apiKey", apiKey)
-                        .param("type", "0")
-                        .param("token", "12345")
-        )
-                .andExpect(status().isOk())
-                .andReturn();
-
-        verify(subscribeServices, times(1)).subscribeToTopic(tp, sub);
-    }
-    @Test
-    public void canSubscribeToOpenChannelWithFilters() throws Exception {
-        String participantOne = "0x0";
-        String participantTwo = "0x1";
-        String apiKey = Utils.generateNewToken();
-        User us = new User(participantOne, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
-        Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
-        when(luminoEventServices.isToken(any())).thenReturn(true);
-        when(luminoEventServices.getChannelOpenedTopicForToken("12345", participantOne, participantTwo)).thenReturn(tp);
-        when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
-
-        MvcResult result = mockMvc.perform(
-                post("/subscribeToOpenChannel")
-                        .header("apiKey", apiKey)
-                        .param("token", "12345")
-                        .param("type", "0")
-                        .param("participantone", participantOne)
-                        .param("participanttwo", participantTwo)
-        )
-                .andExpect(status().isOk())
-                .andReturn();
-
-        verify(subscribeServices, times(1)).subscribeToTopic(tp, sub);
-    }
-    @Test
-    public void canSubscribeToCloseChannel() throws Exception {
-        String address = "0x0";
-        String token = "12345";
-        String apiKey = Utils.generateNewToken();
-        User us = new User(address, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
-        Topic tp = luminoEventServices.getChannelClosedTopicForToken(token, null, null);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
-        when(luminoEventServices.isToken(any())).thenReturn(true);
-        when(luminoEventServices.getChannelClosedTopicForToken("12345", null, null)).thenReturn(tp);
-        when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
-
-        MvcResult result = mockMvc.perform(
-                post("/subscribeToCloseChannel")
-                        .header("apiKey", apiKey)
-                        .param("type", "0")
-                        .param("token", token)
-        )
-                .andExpect(status().isOk())
-                .andReturn();
-
-        verify(subscribeServices, times(1)).subscribeToTopic(tp, sub);
-    }
-    @Test
-    public void canSubscribeToCloseChannelWithFilters() throws Exception {
-        String closeParticipant = "0x0";
-        String token = "12345";
-        Integer channelIdentifier = 1;
-        String apiKey = Utils.generateNewToken();
-        User us = new User(closeParticipant, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
-        Topic tp = luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closeParticipant);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
-        when(luminoEventServices.isToken(any())).thenReturn(true);
-        when(luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closeParticipant)).thenReturn(tp);
-        when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
-
-        MvcResult result = mockMvc.perform(
-                post("/subscribeToOpenChannel")
-                        .header("apiKey", apiKey)
-                        .param("token", token)
-                        .param("type", "0")
-                        .param("closingparticipant", closeParticipant)
-                        .param("channelidentifier", String.valueOf(channelIdentifier))
-        )
-                .andExpect(status().isOk())
-                .andReturn();
-
-        verify(subscribeServices, times(1)).subscribeToTopic(tp, sub);
-    }
     @Test
     public void canUnsubscribeFromTopic() throws Exception {
         int idTopic = 35;
@@ -279,93 +164,7 @@ public class SubscribeControllerTest {
 
         assertEquals(dto.getMessage(), dtResponse.getMessage());
     }
-    @Test
-    public void errorSubscribeToOpenChannelNoTokenProvided() throws Exception {
-        String apiKey = Utils.generateNewToken();
 
-        MvcResult result = mockMvc.perform(
-                post("/subscribeToOpenChannel")
-                        .header("apiKey", apiKey)
-        )
-                .andExpect(status().isBadRequest())
-                .andReturn();
-    }
-    @Test
-    public void errorSubscribeToOpenChannelIncorrectTokenProvided() throws Exception {
-        DTOResponse dto = new DTOResponse();
-        dto.setMessage(ResponseConstants.INCORRECT_TOKEN);
-        String participantOne = "0x0";
-        String apiKey = Utils.generateNewToken();
-        User us = new User(participantOne, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
-        Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(luminoEventServices.isToken(any())).thenReturn(false);
-        when(luminoEventServices.getChannelOpenedTopicForToken("12345", null, null)).thenReturn(tp);
-
-        MvcResult result = mockMvc.perform(
-                post("/subscribeToOpenChannel")
-                        .header("apiKey", apiKey)
-                        .param("type", "0")
-                        .param("token", "54321")
-        )
-                .andExpect(status().isConflict())
-                .andReturn();
-
-        DTOResponse dtResponse = new ObjectMapper().readValue(
-                result.getResponse().getContentAsByteArray(),
-                DTOResponse.class);
-
-        assertEquals(dto.getMessage(), dtResponse.getMessage());
-    }
-    @Test
-    public void errorSubscribeToCloseChannelNoTokenProvided() throws Exception {
-        String apiKey = Utils.generateNewToken();
-
-        mockMvc.perform(
-                post("/subscribeToCloseChannel")
-                        .header("apiKey", apiKey)
-        )
-                .andExpect(status().isBadRequest());
-    }
-    @Test
-    public void errorSubscribeToCloseChannelIncorrectTokenProvided() throws Exception {
-        DTOResponse dto = new DTOResponse();
-        dto.setMessage(ResponseConstants.INCORRECT_TOKEN);
-        String closeParticipant = "0x0";
-        String token = "12345";
-        Integer channelIdentifier = 1;
-        String apiKey = Utils.generateNewToken();
-        User us = new User(closeParticipant, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
-        when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(luminoEventServices.isToken(any())).thenReturn(false);
-
-        MvcResult result = mockMvc.perform(
-                post("/subscribeToCloseChannel")
-                        .header("apiKey", apiKey)
-                        .param("token", token)
-                        .param("type", "0")
-                        .param("closingparticipant", closeParticipant)
-                        .param("channelidentifier", String.valueOf(channelIdentifier))
-        )
-                .andExpect(status().isConflict())
-                .andReturn();
-
-        DTOResponse dtResponse = new ObjectMapper().readValue(
-                result.getResponse().getContentAsByteArray(),
-                DTOResponse.class);
-
-        assertEquals(dto.getMessage(), dtResponse.getMessage());
-    }
     @Test
     public void errorSubscribeToTopicWhenNotProvidingCorrectApiKey() throws Exception {
         String address = "0x0";
