@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.web3j.abi.datatypes.Address;
 
 import javax.validation.constraints.Pattern;
 import java.util.List;
@@ -85,6 +86,9 @@ public class NotifierConfig implements SchedulingConfigurer {
     @Value("${spring.mail.properties.mail.smtp.writetimeout:#{null}}")
     Optional<Long> smtpWriteTimeout;
 
+    @Value("${rif.notifier.provider.address:#{null}}")
+    Optional<String> providerAddress;
+
     /**
      * Returns from PhoneNumber to use with twilio if sms service is enabled
      * @throws ValidationException
@@ -107,6 +111,22 @@ public class NotifierConfig implements SchedulingConfigurer {
     public String initEmail()  {
         boolean enabled = getEnabledServices().stream().anyMatch(e->e==NotificationServiceType.EMAIL);
         return enabled ? fromEmail.orElseThrow(()->new ValidationException("Required application property notificationservice.email.from not set")) : "";
+    }
+
+    /**
+     * validate the provider address and make the property available for other classes
+     */
+    @Bean(name="providerAddress")
+    public String providerAddress() {
+       String address = providerAddress.orElseThrow(()->new ValidationException("rif.notifier.provider.address property is mandatory. Please provide a valid address"));
+       try {
+           //TODO: extended validation to verify address length
+           //verifies if it's a valid hex address
+           Address add = new Address(address);
+           return address;
+       } catch(RuntimeException e)  {
+           throw new ValidationException("Invalid provider address format specified in rif.notifier.provider.address property. Please provide a valid address", e);
+       }
     }
 
     /**
