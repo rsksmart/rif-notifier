@@ -33,7 +33,7 @@ public class DbManagerFacade {
     private SubscriptionManager subscriptionManager;
 
     @Autowired
-    private SubscriptionTypeManager subscriptionTypeManager;
+    private SubscriptionPlanManager subscriptionPlanManager;
 
     @Autowired
     private TopicManager topicManager;
@@ -121,27 +121,28 @@ public class DbManagerFacade {
         return subscriptionManager.getActiveSubscriptionByAddress(user_address);
     }
 
-    public Subscription getActiveSubscriptionByAddressAndType(String user_address, SubscriptionType type){
-        return subscriptionManager.getActiveSubscriptionByAddressAndType(user_address, type);
+    public Subscription getActiveSubscriptionByAddressAndType(String user_address, SubscriptionPlan subscriptionPlan){
+        return subscriptionManager.getActiveSubscriptionByAddressAndType(user_address, subscriptionPlan);
     }
 
     public List<Subscription> getSubscriptionByAddress(String user_address){
         return subscriptionManager.getSubscriptionByAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddressAndType(String user_address, SubscriptionType type){
-        return subscriptionManager.getSubscriptionByAddressAndType(user_address, type);
+    public Subscription getSubscriptionByAddressAndType(String user_address, SubscriptionPlan subscriptionPlan){
+        return subscriptionManager.getSubscriptionByAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 
-    public Subscription createSubscription(Date activeUntil, String userAddress, SubscriptionType type, String state) {
-        return subscriptionManager.insert(activeUntil, userAddress, type, state);
+    @Transactional
+    public Subscription createSubscription(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus subscriptionStatus, SubscriptionPrice subscriptionPrice) {
+        return subscriptionManager.insert(activeUntil, userAddress, subscriptionPlan, subscriptionStatus, subscriptionPrice);
     }
 
     public Subscription updateSubscription(Subscription sub) {
         return subscriptionManager.update(sub);
     }
 
-    public SubscriptionType getSubscriptionTypeByType(int id){ return  subscriptionTypeManager.getSubscriptionTypeById(id); }
+    public SubscriptionPlan getSubscriptionPlanById(int id){ return  subscriptionPlanManager.getSubscriptionPlanById(id); }
 
     public Topic getTopicById(int Id){
         return topicManager.getTopicById(Id);

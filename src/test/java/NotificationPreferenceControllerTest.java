@@ -61,12 +61,12 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
-        SubscriptionType subType = mockTestData.mockSubscriptionType();
+        SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         doReturn(Arrays.asList(NotificationServiceType.SMS, NotificationServiceType.EMAIL, NotificationServiceType.API)).when(notifierConfig).getEnabledServices();
@@ -93,12 +93,12 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
-        SubscriptionType subType = mockTestData.mockSubscriptionType();
+        SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.getNotificationPreference(any(Subscription.class), any(Integer.class), any(NotificationServiceType.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
@@ -124,13 +124,13 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
-        SubscriptionType subType = mockTestData.mockSubscriptionType();
+        SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         pref.setDestination("test.com");
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
@@ -156,12 +156,12 @@ public class NotificationPreferenceControllerTest {
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
         Subscription subscription = mockTestData.mockSubscription();
-        SubscriptionType subType = mockTestData.mockSubscriptionType();
+        SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();

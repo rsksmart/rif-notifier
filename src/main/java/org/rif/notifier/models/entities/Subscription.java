@@ -3,9 +3,12 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.*;
 
 @Entity
@@ -17,16 +20,36 @@ public class Subscription implements Serializable {
     @Column(name = "active_since")
     private Date activeSince;
 
-    private boolean active = true;
+    @Enumerated(EnumType.STRING)
+    @Column(name="status")
+    private SubscriptionStatus status;
+
+    @ManyToOne
+    @JoinColumn(name="subscription_plan_id")
+    private SubscriptionPlan subscriptionPlan;
+
+    @Column(name="price")
+    private BigInteger price;
+
+    @Column(name="currency")
+    private String currency;
+
+    @OneToOne
+    @JoinColumn(name="previous_subscription_id")
+    private Subscription previousSubscription;
+
+    @Column(name="hash")
+    private String hash;
+
+    @Column(name="expiration_date")
+    private Date expirationDate;
+
+    @UpdateTimestamp
+    @Column(name="last_updated")
+    private Timestamp last_updated;
 
     @Column(name = "user_address")
     private String userAddress;
-
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "type")
-    private SubscriptionType type;
-
-    private String state;
 
     //Setted to EAGER, at the start of DataFetchingJob we iterate through Topics, and if it's lazy, it throws errors
     @ManyToMany(mappedBy = "subscriptions", fetch=FetchType.EAGER)
@@ -41,12 +64,12 @@ public class Subscription implements Serializable {
 
     public Subscription() {}
 
-    public Subscription(Date activeSince, String userAddress, SubscriptionType type, String state) {
+    public Subscription(Date activeSince, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus status) {
         this.activeSince = activeSince;
         this.userAddress = userAddress;
-        this.type = type;
-        this.state = state;
-        this.notificationBalance = type.getNotifications();
+        this.status = status;
+        this.notificationBalance = subscriptionPlan.getNotificationAmount();
+        this.subscriptionPlan = subscriptionPlan;
     }
 
     public int getId() {
@@ -65,14 +88,6 @@ public class Subscription implements Serializable {
         this.activeSince = activeSince;
     }
 
-    public boolean getActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
     public String getUserAddress() {
         return userAddress;
     }
@@ -81,12 +96,68 @@ public class Subscription implements Serializable {
         this.userAddress = userAddress;
     }
 
-    public SubscriptionType getType() {
-        return type;
+    public SubscriptionStatus getStatus() {
+        return status;
     }
 
-    public void setType(SubscriptionType type) {
-        this.type = type;
+    public void setStatus(SubscriptionStatus status) {
+        this.status = status;
+    }
+
+    public SubscriptionPlan getSubscriptionPlan() {
+        return subscriptionPlan;
+    }
+
+    public void setSubscriptionPlan(SubscriptionPlan subscriptionPlan) {
+        this.subscriptionPlan = subscriptionPlan;
+    }
+
+    public BigInteger getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigInteger price) {
+        this.price = price;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public Subscription getPreviousSubscription() {
+        return previousSubscription;
+    }
+
+    public void setPreviousSubscription(Subscription previousSubscription) {
+        this.previousSubscription = previousSubscription;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public Date getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(Date expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
+    public Timestamp getLast_updated() {
+        return last_updated;
+    }
+
+    public void setLast_updated(Timestamp last_updated) {
+        this.last_updated = last_updated;
     }
 
     public List<NotificationPreference> getNotificationPreferences() {
@@ -95,14 +166,6 @@ public class Subscription implements Serializable {
 
     public void setNotificationPreferences(List<NotificationPreference> notificationPreferences) {
         this.notificationPreferences = notificationPreferences;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
     }
 
     public Set<Topic> getTopics() {
@@ -125,6 +188,10 @@ public class Subscription implements Serializable {
         this.notificationBalance--;
     }
 
+    public boolean isActive()  {
+        return this.status == SubscriptionStatus.ACTIVE;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,12 +202,11 @@ public class Subscription implements Serializable {
 
         return new EqualsBuilder()
                 .append(id, that.id)
-                .append(active, that.active)
+                .append(status, that.status)
                 .append(notificationBalance, that.notificationBalance)
                 .append(activeSince, that.activeSince)
                 .append(userAddress, that.userAddress)
-                .append(type, that.type)
-                .append(state, that.state)
+                .append(subscriptionPlan, that.subscriptionPlan)
                 .isEquals();
     }
 
@@ -149,10 +215,9 @@ public class Subscription implements Serializable {
         return new HashCodeBuilder(17, 37)
                 .append(id)
                 .append(activeSince)
-                .append(active)
+                .append(status)
                 .append(userAddress)
-                .append(type)
-                .append(state)
+                .append(subscriptionPlan)
                 .append(notificationBalance)
                 .toHashCode();
     }
@@ -162,10 +227,9 @@ public class Subscription implements Serializable {
         return "{" +
                 "\"id\":" + id +
                 ", \"activeSince\":" + activeSince +
-                ", \"active\":" + active +
+                ", \"status\":" + status +
                 ", \"userAddress\":'" + userAddress + '\'' +
-                ", \"type\":" + type.toString() +
-                ", \"state\":'" + state + '\'' +
+                ", \"type\":" + subscriptionPlan.toString() +
                 ", \"notificationPreferences\":" + notificationPreferences +
                 ", \"notificationBalance\":" + notificationBalance +
                 '}';
@@ -184,10 +248,9 @@ public class Subscription implements Serializable {
         return "{" +
                 "\"id\":" + id +
                 ", \"activeSince\":\"" + activeSince + "\"" +
-                ", \"active\":" + active +
+                ", \"status\":" + status+
                 ", \"userAddress\":\"" + userAddress + '\"' +
-                ", \"type\":" + type +
-                ", \"state\":\"" + state + '\"' +
+                ", \"type\":" + subscriptionPlan+
                 ", \"topics\":" + tps +
                 ", \"notificationPreferences\":" + notificationPreferences +
                 ", \"notificationBalance\":" + notificationBalance +

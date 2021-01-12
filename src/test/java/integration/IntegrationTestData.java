@@ -1,20 +1,21 @@
 package integration;
 
 import mocked.MockTestData;
-import org.rif.notifier.constants.SubscriptionConstants;
 import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.managers.datamanagers.TopicManager;
 import org.rif.notifier.models.entities.*;
-import org.rif.notifier.repositories.SubscriptionTypeRepository;
+import org.rif.notifier.repositories.SubscriptionPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 /**
@@ -26,7 +27,7 @@ public class IntegrationTestData {
 
     protected static final String INVALID_API_DESTINATION = "http://localhost:8080/invalidendpoint";
 
-    @Autowired private SubscriptionTypeRepository subTypeRepo;
+    @Autowired private SubscriptionPlanRepository subTypeRepo;
     @Autowired private TopicManager topicManager;
     @Autowired DbManagerFacade dbManagerFacade;
     @Autowired NotificationPreferenceManager notificationPreferenceManager;
@@ -44,7 +45,8 @@ public class IntegrationTestData {
     @Value("${notificationservice.integrationtest.smsdestination}") private String smsDestination;
     @Value("${notificationservice.integrationtest.emaildestination}") private String emailDestination;
 
-    private SubscriptionType subscriptionType ;
+    private SubscriptionPlan subscriptionPlan ;
+    private SubscriptionPrice subscriptionPrice;
     private Subscription activeSubscription;
     private int topicId;
     private NotificationPreference apiPreference;
@@ -54,8 +56,8 @@ public class IntegrationTestData {
     private Notification notification;
     private MockTestData mockTestData = new MockTestData();
 
-    protected SubscriptionType getSubscriptionType() {
-        return subscriptionType;
+    protected SubscriptionPlan getSubscriptionType() {
+        return subscriptionPlan;
     }
 
     protected Subscription getActiveSubscription() {
@@ -137,19 +139,30 @@ public class IntegrationTestData {
     private void setupUser()    {
         dbManagerFacade.saveUser(user, userApiKey);
     }
-    private void setupSubscriptionType()       {
-        subscriptionType  = subTypeRepo.findByNotifications(10000);
-        if (subscriptionType == null) {
-            subscriptionType = new SubscriptionType();
-            subscriptionType.setNotifications(10000);
-            subscriptionType = subTypeRepo.save(subscriptionType);
+
+    private void setupSubscriptionPlan()       {
+        subscriptionPlan  = subTypeRepo.findByNotificationAmount(10000);
+        if (subscriptionPlan == null) {
+            subscriptionPlan = new SubscriptionPlan(10000);
+            subscriptionPrice = new SubscriptionPrice();
+            subscriptionPlan.setName("test");
+            subscriptionPrice.setCurrency("RSK");
+            subscriptionPrice.setPrice(new BigInteger("100"));
+            subscriptionPrice.setSubscriptionPlan(subscriptionPlan);
+            subscriptionPlan.setSubscriptionPriceList(Collections.singletonList(subscriptionPrice));
+            subscriptionPlan.setNotificationPreferences(Collections.singleton(NotificationServiceType.SMS));
+            subscriptionPlan = subTypeRepo.save(subscriptionPlan);
+        }
+        else    {
+            subscriptionPrice = subscriptionPlan.getSubscriptionPriceList().stream().findFirst().get();
         }
     }
+
     private void setupSubscription()    {
         Date date = new Date();
         activeSubscription = dbManagerFacade.getSubscriptionByAddress(user).stream().findFirst().orElse(null);
         if (activeSubscription == null) {
-            activeSubscription = dbManagerFacade.createSubscription(date, user, subscriptionType, SubscriptionConstants.PAYED_PAYMENT);
+            activeSubscription = dbManagerFacade.createSubscription(date, user, subscriptionPlan, SubscriptionStatus.ACTIVE, subscriptionPrice);
         }
     }
     private void setupTopic()   {
@@ -178,7 +191,7 @@ public class IntegrationTestData {
 
     public void setup() {
         setupUser();
-        setupSubscriptionType();
+        setupSubscriptionPlan();
         setupSubscription();
         setupTopic();
         setupNotificationPreferences();

@@ -1,6 +1,5 @@
 package org.rif.notifier.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.rif.notifier.constants.ControllerConstants;
@@ -9,21 +8,16 @@ import org.rif.notifier.exception.SubscriptionException;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
-import org.rif.notifier.models.entities.Subscription;
-import org.rif.notifier.models.entities.SubscriptionType;
-import org.rif.notifier.models.entities.Topic;
-import org.rif.notifier.models.entities.User;
+import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,9 +50,9 @@ public class LuminoSubscribeController {
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
             Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
             if (sub != null) {
                 resp.setContent(luminoEventServices.getTokens());
             } else {
@@ -86,9 +80,9 @@ public class LuminoSubscribeController {
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
             Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
             if (sub != null) {
                 token = token.toLowerCase();
                 if(luminoEventServices.isToken(token)){
@@ -129,9 +123,9 @@ public class LuminoSubscribeController {
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
             Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
             if (sub != null) {
                 token = token.toLowerCase();
                 if(luminoEventServices.isToken(token)){
@@ -171,9 +165,9 @@ public class LuminoSubscribeController {
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
+            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
             Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndType(us.getAddress(), subType);
+            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
             if (sub != null) {
                 List<SubscriptionResponse> lstTopicId = new ArrayList<>();
                 luminoEventServices.getTokens().forEach(token -> {

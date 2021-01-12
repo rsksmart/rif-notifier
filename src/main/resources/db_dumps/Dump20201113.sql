@@ -99,7 +99,8 @@ DROP TABLE IF EXISTS `notif_users`;
 CREATE TABLE `notif_users` (
   `address` varchar(45) NOT NULL,
   `api_key` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`address`)
+  PRIMARY KEY (`address`),
+  KEY `notif_users_idx_1` (`api_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -126,7 +127,9 @@ CREATE TABLE `notification` (
   `sent` tinyint DEFAULT '0',
   `data` varchar(1000) NOT NULL,
   `id_topic` int NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `notification_idx_1` (`to_address`),
+  KEY `notification_idx_2` (`id_topic`)
 ) ENGINE=InnoDB AUTO_INCREMENT=612 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -153,7 +156,11 @@ CREATE TABLE `notification_log` (
   `sent` tinyint(1) NOT NULL DEFAULT '0',
   `result_text` tinytext,
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `retry_count` tinyint DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `notification_log_idx_1` (`notification_preference_id`),
+  KEY `notification_log_idx_2` (`notification_id`),
+  KEY `notification_log_idx_3` (`retry_count`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -174,13 +181,14 @@ DROP TABLE IF EXISTS `notification_preference`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notification_preference` (
-  `id` int NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
   `notification_service` enum('SMS','EMAIL','API') DEFAULT NULL,
   `id_subscription` int NOT NULL,
   `id_topic` int DEFAULT NULL,
   `destination` varchar(128) DEFAULT NULL,
   `destination_params` json DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `notification_preference_idx_1` (`id_subscription`,`id_topic`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -254,12 +262,18 @@ DROP TABLE IF EXISTS `subscription`;
 CREATE TABLE `subscription` (
   `id` int NOT NULL AUTO_INCREMENT,
   `active_since` date DEFAULT NULL,
-  `active` tinyint DEFAULT '0',
-  `type` int DEFAULT '0',
-  `state` varchar(45) NOT NULL,
   `notification_balance` int NOT NULL,
   `user_address` varchar(45) NOT NULL,
-  PRIMARY KEY (`id`)
+  `status` enum('PENDING','ACTIVE','EXPIRED','COMPLETED') NOT NULL,
+  `subscription_plan_id` int NOT NULL,
+  `price` bigint NOT NULL,
+  `currency` varchar(20) NOT NULL,
+  `previous_subscription_id` int DEFAULT NULL,
+  `hash` varchar(100) NOT NULL,
+  `expiration_date` date NOT NULL,
+  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `subscription_idx_1` (`user_address`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -270,6 +284,85 @@ CREATE TABLE `subscription` (
 LOCK TABLES `subscription` WRITE;
 /*!40000 ALTER TABLE `subscription` DISABLE KEYS */;
 /*!40000 ALTER TABLE `subscription` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `subscription_payment`
+--
+
+DROP TABLE IF EXISTS `subscription_payment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subscription_payment` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `subscription_id` int NOT NULL,
+  `payment_reference` varchar(128) DEFAULT NULL,
+  `amount` bigint NOT NULL,
+  `payment_date` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `subscription_payment_idx_1` (`subscription_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subscription_payment`
+--
+
+LOCK TABLES `subscription_payment` WRITE;
+/*!40000 ALTER TABLE `subscription_payment` DISABLE KEYS */;
+/*!40000 ALTER TABLE `subscription_payment` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `subscription_plan`
+--
+
+DROP TABLE IF EXISTS `subscription_plan`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subscription_plan` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) DEFAULT NULL,
+  `validity` int NOT NULL,
+  `notification_amount` int NOT NULL,
+  `notification_preferences` set('SMS','EMAIL','API') NOT NULL,
+  `status` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subscription_plan`
+--
+
+LOCK TABLES `subscription_plan` WRITE;
+/*!40000 ALTER TABLE `subscription_plan` DISABLE KEYS */;
+/*!40000 ALTER TABLE `subscription_plan` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `subscription_price`
+--
+
+DROP TABLE IF EXISTS `subscription_price`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subscription_price` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `price` bigint NOT NULL,
+  `currency` varchar(20) NOT NULL,
+  `subscription_plan_id` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subscription_price`
+--
+
+LOCK TABLES `subscription_price` WRITE;
+/*!40000 ALTER TABLE `subscription_price` DISABLE KEYS */;
+/*!40000 ALTER TABLE `subscription_price` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -381,7 +474,8 @@ DROP TABLE IF EXISTS `user_topic`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_topic` (
   `id_topic` int NOT NULL,
-  `id_subscription` varchar(45) NOT NULL
+  `id_subscription` varchar(45) NOT NULL,
+  KEY `user_topic_idx_1` (`id_subscription`,`id_topic`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -403,21 +497,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-17  8:34:48
-alter table notification_preference modify id int auto_increment;
-alter table notification_log add retry_count tinyint default 0;
-
--- create indexes
-create index notification_idx_1 on notification (to_address);
-create index notification_idx_2 on notification (id_topic);
-
-create index notification_log_idx_1 on notification_log (notification_preference_id);
-create index notification_log_idx_2 on notification_log (notification_id);
-create index notification_log_idx_3 on notification_log (retry_count);
-
-create index notification_preference_idx_1 on notification_preference (id_subscription, id_topic);
-
-create index subscription_idx_1 on subscription (user_address);
-create index notif_users_idx_1 on notif_users (api_key);
-
-create index user_topic_idx_1 on user_topic (id_subscription, id_topic);
+-- Dump completed on 2021-01-12 16:32:24

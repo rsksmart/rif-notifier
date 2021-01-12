@@ -37,7 +37,7 @@ public class NotificationServices {
         List<Notification> lst = new ArrayList<>();
             //This will need to be migrated by topic
         Optional.ofNullable(subscription).ifPresent((sub) -> {
-            if (sub.getActive())
+            if (sub.isActive())
                 lst.addAll(dbManagerFacade.getNotificationsBySubscription(sub, id, lastRows, idTopic));
             });
         return lst;

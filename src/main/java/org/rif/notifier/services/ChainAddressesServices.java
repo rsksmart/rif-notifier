@@ -29,7 +29,7 @@ public class ChainAddressesServices {
         List<Subscription> subs = dbManagerFacade.getActiveSubscriptionByAddress(address);
         subs.forEach(sub->{
             if(sub != null) {
-                if (sub.getActive())
+                if (sub.isActive())
                     lst.addAll(dbManagerFacade.getChainAddresses(nodehash, eventName));
             }
         });

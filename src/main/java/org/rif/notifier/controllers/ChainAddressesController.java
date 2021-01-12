@@ -60,7 +60,7 @@ public class ChainAddressesController {
                 }else{
                     //It may be happend that the user has no notifications cause the balance of the subscription is 0
                     subscriptions.forEach(s-> {
-                        if (!s.getActive()) {
+                        if (!s.isActive()) {
                             throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
                         }
                     });

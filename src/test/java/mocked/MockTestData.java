@@ -231,9 +231,9 @@ public class MockTestData {
         return retLst;
     }
     public Subscription mockSubscription() throws IOException {
-        SubscriptionType type = this.mockSubscriptionType();
+        SubscriptionPlan type = this.mockSubscriptionPlan();
         User user = this.mockUser();
-        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionConstants.PAYED_PAYMENT);
+        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.ACTIVE);
         Topic topic = this.mockTopic();
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
@@ -241,9 +241,9 @@ public class MockTestData {
         return sub;
     }
     public Subscription mockSubscriptionWithInvalidTopic() throws IOException {
-        SubscriptionType type = this.mockSubscriptionType();
+        SubscriptionPlan type = this.mockSubscriptionPlan();
         User user = this.mockUser();
-        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionConstants.PAYED_PAYMENT);
+        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.ACTIVE);
         Topic topic = this.mockInvalidTopic();
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
@@ -251,9 +251,9 @@ public class MockTestData {
         return sub;
     }
     public Subscription mockSubscriptionWithFilters() throws IOException {
-        SubscriptionType type = this.mockSubscriptionType();
+        SubscriptionPlan type = this.mockSubscriptionPlan();
         User user = this.mockUser();
-        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionConstants.PAYED_PAYMENT);
+        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.ACTIVE);
         Topic topic = this.mockTopicWithFilters();
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
@@ -261,9 +261,9 @@ public class MockTestData {
         return sub;
     }
     public Subscription mockSubscriptionWithTopicWithoutParameters() throws IOException {
-        SubscriptionType type = this.mockSubscriptionType();
+        SubscriptionPlan type = this.mockSubscriptionPlan();
         User user = this.mockUser();
-        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionConstants.PAYED_PAYMENT);
+        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.ACTIVE);
         Topic topic = this.mockTopicWithoutParams();
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
@@ -271,17 +271,17 @@ public class MockTestData {
         return sub;
     }
     public Subscription mockInactiveSubscription(){
-        SubscriptionType type = this.mockSubscriptionType();
+        SubscriptionPlan type = this.mockSubscriptionPlan();
         User user = this.mockUser();
-        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionConstants.PENDING_PAYMENT);
-        sub.setActive(false);
+        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.PENDING);
+        sub.setStatus(SubscriptionStatus.PENDING);
         return sub;
     }
     public User mockUser(){
         return new User("0x7bDB21b2d21EE4b30FB4Bb791781F7D17f465309", "123456789");
     }
-    public SubscriptionType mockSubscriptionType(){
-        return new SubscriptionType(1000);
+    public SubscriptionPlan mockSubscriptionPlan(){
+        return new SubscriptionPlan(1000);
     }
     public List<Subscription> mockListActiveSubs() throws IOException {
         List<Subscription> lstSubs = new ArrayList<>();
