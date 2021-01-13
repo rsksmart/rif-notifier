@@ -34,14 +34,14 @@ public class SubscribeServiceTest {
     public void canCreateSubscription() throws IOException {
         // given
         User user = mockTestData.mockUser();
-        SubscriptionType type = mockTestData.mockSubscriptionType();
+        SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
         Subscription sub = mockTestData.mockSubscription();
         String luminoVal = LuminoInvoice.generateInvoice(user.getAddress());
 
         //doReturn(type).when(dbManagerFacade).getSubscriptionTypeByType(0);
 
         // when
-        String retVal = subscribeServices.createSubscription(user, type);
+        String retVal = subscribeServices.createSubscription(user, type, null);
 
         // then
         assertEquals(luminoVal, retVal);
@@ -84,10 +84,10 @@ public class SubscribeServiceTest {
     public void errorCreateSubscriptionNotProvidingUser(){
         // given
         User user = null;
-        SubscriptionType type = mockTestData.mockSubscriptionType();
+        SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
         // when
-        String retVal = subscribeServices.createSubscription(user, type);
+        String retVal = subscribeServices.createSubscription(user, type, null);
 
         // then
         assertEquals("", retVal);
@@ -96,10 +96,10 @@ public class SubscribeServiceTest {
     public void errorCreateSubscriptionNotProvidingType(){
         // given
         User user = mockTestData.mockUser();
-        SubscriptionType type = null;
+        SubscriptionPlan type = null;
 
         // when
-        String retVal = subscribeServices.createSubscription(user, type);
+        String retVal = subscribeServices.createSubscription(user, type, null);
 
         // then
         assertEquals("", retVal);
@@ -121,31 +121,31 @@ public class SubscribeServiceTest {
      */
     @Test
     public void isSubscriptionTypeValid() {
-        SubscriptionType type = mockTestData.mockSubscriptionType();
+        SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
-        doReturn(type).when(dbManagerFacade).getSubscriptionTypeByType(0);
+        doReturn(type).when(dbManagerFacade).getSubscriptionPlanById(0);
 
-        boolean retVal = subscribeServices.isSubscriptionTypeValid(0);
+        boolean retVal = subscribeServices.isSubscriptionPlanValid(0);
 
         assertTrue(retVal);
     }
     @Test
     public void errorSubscriptionTypeInvalid() {
-        SubscriptionType type = mockTestData.mockSubscriptionType();
+        SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
-        doReturn(null).when(dbManagerFacade).getSubscriptionTypeByType(0);
+        doReturn(null).when(dbManagerFacade).getSubscriptionPlanById(0);
 
-        boolean retVal = subscribeServices.isSubscriptionTypeValid(0);
+        boolean retVal = subscribeServices.isSubscriptionPlanValid(0);
 
         assertFalse(retVal);
     }
     @Test
     public void getSubscriptionTypeByType() {
-        SubscriptionType type = mockTestData.mockSubscriptionType();
+        SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
-        doReturn(type).when(dbManagerFacade).getSubscriptionTypeByType(0);
+        doReturn(type).when(dbManagerFacade).getSubscriptionPlanById(0);
 
-        SubscriptionType retVal = subscribeServices.getSubscriptionTypeByType(0);
+        SubscriptionPlan retVal = subscribeServices.getSubscriptionPlanById(0);
 
         assertEquals(retVal, type);
     }
@@ -181,7 +181,7 @@ public class SubscribeServiceTest {
 
         List<Subscription> retVal = subscribeServices.getActiveSubscriptionByAddress("0x0");
 
-        assertTrue(retVal.stream().allMatch(s->s.getActive()));
+        assertTrue(retVal.stream().allMatch(s->s.isActive()));
     }
     @Test
     public void canActivateSubscription() throws IOException {
@@ -214,7 +214,7 @@ public class SubscribeServiceTest {
         // given
         String luminoInvoice = "123457A90123457B901234C579012345D79012E345790F12345G790123H45790I";
         Subscription subscription = mockTestData.mockSubscription();
-        SubscriptionType type = mockTestData.mockSubscriptionType();
+        SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
         doReturn(subscription).when(dbManagerFacade).updateSubscription(subscription);
 
@@ -229,7 +229,7 @@ public class SubscribeServiceTest {
         // given
         String expected = "";
         //Subscription subscription = mockTestData.mockSubscription();
-        SubscriptionType type = mockTestData.mockSubscriptionType();
+        SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
         //doReturn(subscription).when(dbManagerFacade).updateSubscription(subscription);
 

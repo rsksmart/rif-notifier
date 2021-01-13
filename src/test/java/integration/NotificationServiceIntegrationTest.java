@@ -5,31 +5,20 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
-import org.rif.notifier.constants.SubscriptionConstants;
-import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
-import org.rif.notifier.managers.datamanagers.TopicManager;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.repositories.NotificationPreferenceRepository;
 import org.rif.notifier.repositories.NotificationRepository;
-import org.rif.notifier.repositories.SubscriptionTypeRepository;
 import org.rif.notifier.scheduled.NotificationProcessorJob;
 import org.rif.notifier.services.NotificationServices;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -44,17 +33,19 @@ public class NotificationServiceIntegrationTest {
     @Autowired NotificationPreferenceManager notificationPreferenceManager;
 
     @Autowired NotificationRepository notificationRepository;
+    @Autowired
+    NotificationPreferenceRepository notificationPreferenceRepository;
     @Autowired NotificationServices notificationServices;
     @Autowired IntegrationTestData integrationTestData;
     @Autowired NotificationProcessorJob notificationProcessorJob;
 
 
     private void saveApiEndpoint(Notification notif, String endpoint)    {
-        notif.getNotificationLogs().forEach(l->{
-            if(l.getNotificationPreference().getNotificationService() == NotificationServiceType.API)
-                l.getNotificationPreference().setDestination(endpoint);
-                notificationPreferenceManager.saveNotificationPreference(l.getNotificationPreference());
-        });
+        Subscription activeSubscription = integrationTestData.getActiveSubscription();
+        int topicId = integrationTestData.getTopicId();
+        NotificationPreference pref = notificationPreferenceRepository.findBySubscriptionAndIdTopicAndNotificationService(activeSubscription, topicId, NotificationServiceType.API);
+        pref.setDestination(endpoint);
+        notificationPreferenceManager.saveNotificationPreference(pref);
     }
 
     @Before
@@ -75,12 +66,10 @@ public class NotificationServiceIntegrationTest {
         Notification notif = integrationTestData.newNotification();
         integrationTestData.populateNotificationLog(notif);
         //use invalid api endpoint to propagate error
-        saveApiEndpoint(notif, IntegrationTestData.INVALID_API_DESTINATION);
+        notif.getNotificationLogs().stream().findFirst().get().getNotificationPreference().setDestination(IntegrationTestData.INVALID_API_DESTINATION);
         notificationServices.sendNotification(notif, maxRetries);
         notif = notificationServices.saveNotification(notif);
         assertFalse(notif.isSent());
-        //reset the api endpoint to valid
-        saveApiEndpoint(notif, integrationTestData.getApiEndpoint());
     }
 
     @Test
@@ -108,6 +97,11 @@ public class NotificationServiceIntegrationTest {
      */
     @Test
     public void canProcessUnsentNotifications()    {
+        //ensure to set all notifications sent to true so the test can start fresh
+        List<Notification> nots = notificationRepository.findAll();
+        nots.forEach(n->n.setSent(true));
+        notificationRepository.saveAll(nots);
+        //now run the actual test
         Notification notif = integrationTestData.newNotification();
         //integrationTestData.populateNotificationLog(notif);
         notif = dbManagerFacade.saveNotification(notif);
@@ -122,7 +116,7 @@ public class NotificationServiceIntegrationTest {
     @Test
     public void errorProcessingUnsentNotifications()    {
         Notification notif = integrationTestData.newNotification();
-        integrationTestData.populateNotificationLog(notif);
+        //integrationTestData.populateNotificationLog(notif);
         //use invalid endpoint to propagate error
         saveApiEndpoint(notif, IntegrationTestData.INVALID_API_DESTINATION);
         notif = dbManagerFacade.saveNotification(notif);

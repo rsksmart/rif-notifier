@@ -77,6 +77,10 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
         ;
     }
+
+    /**
+     * Ignore this test as the user registration doesn't require signed address anymore
+     * @throws Exception
     @Test
     public void errorSignedAddressNotProvided() throws Exception {
         String address = "0xE82e938B33954E231c51FcE98576049f13471226";
@@ -89,6 +93,11 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest());
         ;
     }
+     */
+
+    /**
+     * Ignore this test as signed address not required for registration, only wallet address needed
+     * @throws Exception
     @Test
     public void errorWhenProvidingSignedAddressIncorrect() throws Exception {
         String address = "0xE82e938B33954E231c51FcE98576049f13471226";
@@ -106,5 +115,5 @@ public class UserControllerTest {
                 result.getResponse().getContentAsByteArray(),
                 DTOResponse.class);
         assertEquals(dto.getMessage(), dtResponse.getMessage());
-    }
+    }*/
 }

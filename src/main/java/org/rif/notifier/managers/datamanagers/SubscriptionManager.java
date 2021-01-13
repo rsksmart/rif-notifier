@@ -1,16 +1,21 @@
 package org.rif.notifier.managers.datamanagers;
 
 import org.rif.notifier.models.entities.Subscription;
-import org.rif.notifier.models.entities.SubscriptionType;
+import org.rif.notifier.models.entities.SubscriptionPlan;
+import org.rif.notifier.models.entities.SubscriptionPrice;
+import org.rif.notifier.models.entities.SubscriptionStatus;
 import org.rif.notifier.repositories.SubscriptionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static java.time.LocalDate.now;
 
 @Service
 public class SubscriptionManager {
@@ -28,7 +33,7 @@ public class SubscriptionManager {
 
     public List<Subscription> getActiveSubscriptions(){
         List<Subscription> lst = new ArrayList<>();
-        subscriptionRepository.findByActive(true).forEach(lst::add);
+        subscriptionRepository.findByStatus(SubscriptionStatus.ACTIVE).forEach(lst::add);
         return lst;
     }
 
@@ -54,20 +59,24 @@ public class SubscriptionManager {
         return subscriptionRepository.findByUserAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddressAndType(String user_address, SubscriptionType type){
-        return subscriptionRepository.findByUserAddressAndType(user_address, type);
+    public Subscription getSubscriptionByAddressAndSubscriptionPlan(String user_address, SubscriptionPlan subscriptionPlan){
+        return subscriptionRepository.findByUserAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 
     public List<Subscription> getActiveSubscriptionByAddress(String user_address){
-        return subscriptionRepository.findByUserAddressAndActive(user_address, true);
+        return subscriptionRepository.findByUserAddressAndStatus(user_address, SubscriptionStatus.ACTIVE);
     }
 
-    public Subscription getActiveSubscriptionByAddressAndType(String user_address,SubscriptionType type){
-        return subscriptionRepository.findByUserAddressAndTypeAndActiveTrue(user_address, type);
+    public Subscription getActiveSubscriptionByAddressAndType(String user_address, SubscriptionPlan subscriptionPlan){
+        return subscriptionRepository.findByUserAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 
-    public Subscription insert(Date activeUntil, String userAddress, SubscriptionType type, String state) {
-        Subscription sub = new Subscription(activeUntil, userAddress, type, state);
+    public Subscription insert(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus status, SubscriptionPrice subscriptionPrice) {
+        Subscription sub = new Subscription(activeUntil, userAddress, subscriptionPlan, status);
+        sub.setCurrency(subscriptionPrice.getCurrency());
+        sub.setPrice(subscriptionPrice.getPrice());
+        sub.setHash(String.valueOf(sub.hashCode()));
+        sub.setExpirationDate(java.sql.Date.valueOf(now().plusDays(subscriptionPlan.getValidity())));
         Subscription result = subscriptionRepository.save(sub);
         return result;
     }

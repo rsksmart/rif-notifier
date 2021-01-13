@@ -1,7 +1,7 @@
 package org.rif.notifier.services;
 
-import org.rif.notifier.constants.SubscriptionConstants;
 import org.rif.notifier.constants.TopicParamTypes;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.rif.notifier.constants.TopicParamTypes.*;
 
@@ -35,15 +36,15 @@ public class SubscribeServices  {
      * When the user pays the invoice, the subscription will be activated
      * Actually we are not validating the subscription type, so it can be any number
      * @param user User that will be associated with the subscription
-     * @param type Subscription type to create the subscription
+     * @param plan Subscription plan to create the subscription
      * @return LuminoInvoice string hash
      */
-    public String createSubscription(User user, SubscriptionType type){
+    public String createSubscription(User user, SubscriptionPlan plan, SubscriptionPrice subscriptionPrice){
         String retVal = "";
-        if(user != null && type != null) {
+        if(user != null && plan!= null) {
 //            if(isSubscriptionTypeValid(type.getId())) {
             //Subscription sub = dbManagerFacade.createSubscription(new Date(), user.getAddress(), type, SubscriptionConstants.PENDING_PAYMENT);
-            Subscription sub = dbManagerFacade.createSubscription(new Date(), user.getAddress(), type, SubscriptionConstants.PAYED_PAYMENT);
+            Subscription sub = dbManagerFacade.createSubscription(new Date(), user.getAddress(), plan, SubscriptionStatus.ACTIVE, subscriptionPrice);
             //Pending to generate a lumino-invoice
             retVal = LuminoInvoice.generateInvoice(user.getAddress());
 //            }
@@ -59,9 +60,8 @@ public class SubscribeServices  {
     public boolean activateSubscription(Subscription subscription){
         boolean retVal = false;
         if(subscription != null) {
-            if(!subscription.getActive()) {
-                subscription.setActive(true);
-                subscription.setState(SubscriptionConstants.PAYED_PAYMENT);
+            if(!subscription.isActive()) {
+                subscription.setStatus(SubscriptionStatus.ACTIVE);
                 subscription.setActiveSince(new Date());
                 Subscription sub = dbManagerFacade.updateSubscription(subscription);
                 retVal = sub != null;
@@ -76,12 +76,11 @@ public class SubscribeServices  {
      * @param type Type selected, to get the new balance
      * @return Lumino invoice
      */
-    public String addBalanceToSubscription(Subscription subscription, SubscriptionType type){
+    public String addBalanceToSubscription(Subscription subscription, SubscriptionPlan type){
         String retVal = "";
         if(subscription != null && type != null) {
-            subscription.setState(SubscriptionConstants.PENDING_PAYMENT);
-            subscription.setNotificationBalance(subscription.getNotificationBalance() + type.getNotifications());
-            subscription.setActive(false);
+            subscription.setStatus(SubscriptionStatus.PENDING);
+            subscription.setNotificationBalance(subscription.getNotificationBalance() + type.getNotificationAmount());
             retVal = LuminoInvoice.generateInvoice(subscription.getUserAddress());
             if(!retVal.isEmpty()) {
                 Subscription sub = dbManagerFacade.updateSubscription(subscription);
@@ -94,16 +93,16 @@ public class SubscribeServices  {
         return dbManagerFacade.getActiveSubscriptionByAddress(user_address);
     }
 
-    public Subscription getActiveSubscriptionByAddressAndType(String user_address, SubscriptionType type){
-        return dbManagerFacade.getActiveSubscriptionByAddressAndType(user_address, type);
+    public Subscription getActiveSubscriptionByAddressAndPlan(String user_address, SubscriptionPlan subscriptionPlan){
+        return dbManagerFacade.getActiveSubscriptionByAddressAndType(user_address, subscriptionPlan);
     }
 
     public List<Subscription> getSubscriptionByAddress(String user_address){
         return dbManagerFacade.getSubscriptionByAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddressAndType(String user_address, SubscriptionType type){
-        return dbManagerFacade.getSubscriptionByAddressAndType(user_address, type);
+    public Subscription getSubscriptionByAddressAndPlan(String user_address, SubscriptionPlan subscriptionPlan){
+        return dbManagerFacade.getSubscriptionByAddressAndType(user_address, subscriptionPlan);
     }
 
     /**
@@ -153,18 +152,17 @@ public class SubscribeServices  {
      * @param type Type that need to exists in subscription types
      * @return if type exists
      */
-    public boolean isSubscriptionTypeValid(int type){
-        SubscriptionType subType = dbManagerFacade.getSubscriptionTypeByType(type);
-        return subType != null;
+    public boolean isSubscriptionPlanValid(int type){
+        return Optional.ofNullable(dbManagerFacade.getSubscriptionPlanById(type)).isPresent();
     }
 
     /**
      * Returns a subscription type by giving it the int type
-     * @param type Int type, to be searched
+     * @param planId Int type, to be searched
      * @return Subscription type in case finds it
      */
-    public SubscriptionType getSubscriptionTypeByType(int type){
-        return dbManagerFacade.getSubscriptionTypeByType(type);
+    public SubscriptionPlan getSubscriptionPlanById(int planId){
+        return dbManagerFacade.getSubscriptionPlanById(planId);
     }
 
     /**
@@ -284,5 +282,17 @@ public class SubscribeServices  {
             ret = true;
 
         return ret;
+    }
+
+    /**
+     * Verifies if a given price is valid for the given subsriptionplan
+     * @param plan
+     * @param price
+     */
+    public void validateSubscriptionPrice(SubscriptionPrice price, SubscriptionPlan plan) {
+        List<SubscriptionPrice> planPriceList = plan.getSubscriptionPriceList();
+        boolean match = planPriceList.stream().anyMatch(p->p.getCurrency().equals(price.getCurrency()) &&
+                p.getPrice().equals(price.getPrice()));
+        if (!match) throw new ValidationException("Subscription price or currency not valid for this plan");
     }
 }

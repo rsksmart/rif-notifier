@@ -87,7 +87,7 @@ public class NotificationPreferenceController {
     @ResponseBody
     public ResponseEntity<DTOResponse> saveNotificationPreference   (
             @RequestHeader(value="apiKey") String apiKey,
-            @RequestParam(name = "type", defaultValue = "0") Integer type,
+            @RequestParam(name = "planId") Integer planId,
             @RequestBody String notificationPreference
 
     ) {
@@ -101,9 +101,9 @@ public class NotificationPreferenceController {
         requestedPreference = validateRequestJson(notificationPreference);
         //validate containing data
         validateRequestNotificationPreference(requestedPreference);
-        SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
-        Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-        Subscription subscription = subscribeServices.getSubscriptionByAddressAndType(apiUser.getAddress(), subType);
+        SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(planId);
+        Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        Subscription subscription = subscribeServices.getSubscriptionByAddressAndPlan(apiUser.getAddress(), subscriptionPlan);
         Optional.ofNullable(subscription).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
         validateNoExistingUserSubcriptionForTopicAndPreference(subscription, requestedPreference);
         //overwrite existing preference if one found, or create new
@@ -145,7 +145,7 @@ public class NotificationPreferenceController {
     @ResponseBody
     public ResponseEntity<DTOResponse> removeNotificationPreference(
             @RequestHeader(value="apiKey") String apiKey,
-            @RequestParam(name = "type", defaultValue = "0") Integer type,
+            @RequestParam(name = "planId") Integer planId,
             @RequestBody String notificationPreference
 
     ) {
@@ -158,9 +158,9 @@ public class NotificationPreferenceController {
         //validate request json
         requestedPreference = validateRequestJson(notificationPreference);
 
-        SubscriptionType subType = subscribeServices.getSubscriptionTypeByType(type);
-        Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-        Subscription subscription = subscribeServices.getSubscriptionByAddressAndType(apiUser.getAddress(), subType);
+        SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(planId);
+        Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        Subscription subscription = subscribeServices.getSubscriptionByAddressAndPlan(apiUser.getAddress(), subscriptionPlan);
         //check if notification preference already associated with topic and subscription for given type
         NotificationPreference preference = Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(
                         subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))

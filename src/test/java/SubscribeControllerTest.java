@@ -7,10 +7,7 @@ import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.controllers.SubscribeController;
 import org.rif.notifier.models.DTO.DTOResponse;
-import org.rif.notifier.models.entities.Subscription;
-import org.rif.notifier.models.entities.SubscriptionType;
-import org.rif.notifier.models.entities.Topic;
-import org.rif.notifier.models.entities.User;
+import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
@@ -61,14 +58,17 @@ public class SubscribeControllerTest {
         dto.setContent(luminoInvoice);
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
+        SubscriptionPlan subType = new SubscriptionPlan(1000);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getActiveSubscriptionByAddress(us.getAddress())).thenReturn(null);
-        when(subscribeServices.getSubscriptionTypeByType(0)).thenReturn(subType);
+        when(subscribeServices.getSubscriptionPlanById(0)).thenReturn(subType);
+        SubscriptionPrice price = mockTestData.mockSubscriptionPrice();
         MvcResult result = mockMvc.perform(
                 post("/subscribe")
-                        .param("type", "0")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("planId", "0")
                         .header("apiKey", apiKey)
+                        .content(price.toString())
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -83,12 +83,12 @@ public class SubscribeControllerTest {
         DTOResponse dto = new DTOResponse();
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
+        SubscriptionPlan subType = new SubscriptionPlan(1000);
+        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getActiveSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         //Need to mock with any, cause it was always returning false, maybe cause the Topic that we bring in here was not the same as in the controller
         when(subscribeServices.validateTopic(any(Topic.class))).thenReturn(true);
         //when(subscribeServices.validateTopic(tp)).thenCallRealMethod();
@@ -96,6 +96,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId","0")
                         .content(tp.toString())
         )
                 .andExpect(status().isOk())
@@ -114,11 +115,11 @@ public class SubscribeControllerTest {
         User us = mockTestData.mockUser();
         Subscription sub = mockTestData.mockSubscription();
         Topic tp = mockTestData.mockTopic();
-        SubscriptionType subType = mockTestData.mockSubscriptionType();
+        SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getTopicById(idTopic)).thenReturn(tp);
         when(subscribeServices.unsubscribeFromTopic(sub, tp)).thenReturn(true);
 
@@ -126,7 +127,7 @@ public class SubscribeControllerTest {
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
                         .param("idTopic", String.valueOf(idTopic))
-                        .param("type", "0")
+                        .param("planId", "0")
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -142,17 +143,17 @@ public class SubscribeControllerTest {
         User us = mockTestData.mockUser();
         Subscription sub = mockTestData.mockSubscription();
         Topic tp = mockTestData.mockTopic();
-        SubscriptionType subType = mockTestData.mockSubscriptionType();
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddressAndType(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(subscribeServices.getTopicById(idTopic)).thenReturn(null);
 
         MvcResult result = mockMvc.perform(
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
-                        .param("type", "0")
+                        .param("planId", "0")
                         .param("idTopic", String.valueOf(idTopic))
         )
                 .andExpect(status().isConflict())
@@ -177,6 +178,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId", "0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -194,14 +196,15 @@ public class SubscribeControllerTest {
         dto.setMessage(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
-        SubscriptionType subType = mockTestData.mockSubscriptionType();
+        SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId","0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -219,17 +222,18 @@ public class SubscribeControllerTest {
         dto.setMessage(ResponseConstants.TOPIC_VALIDATION_FAILED);
         String apiKey = Utils.generateNewToken();
         User us = new User(address, apiKey);
-        SubscriptionType subType = new SubscriptionType(1000);
-        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, "PAYED");
+        SubscriptionPlan subType = new SubscriptionPlan(1000);
+        Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         Topic tp = mockTestData.mockInvalidTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionTypeByType(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getActiveSubscriptionByAddressAndType(us.getAddress(), subType)).thenReturn(sub);
+        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(sub);
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId", "0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -247,10 +251,13 @@ public class SubscribeControllerTest {
         String apiKey = Utils.generateNewToken();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(null);
 
+        SubscriptionPrice price = mockTestData.mockSubscriptionPrice();
         MvcResult result = mockMvc.perform(
                 post("/subscribe")
-                        .param("type", "0")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("planId", "0")
                         .header("apiKey", apiKey)
+                        .content(price.toString())
         )
                 .andExpect(status().isConflict())
                 .andReturn();
@@ -288,7 +295,7 @@ public class SubscribeControllerTest {
     public void errorSubscribeNotProvidingApiKey() throws Exception {
         mockMvc.perform(
                 post("/subscribe")
-                        .param("type", "0")
+                        .param("planId", "0")
         )
                 .andExpect(status().isBadRequest());
     }
