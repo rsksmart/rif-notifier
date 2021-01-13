@@ -56,7 +56,7 @@ public interface ResponseConstants {
 
     String SERVICE_NOT_ENABLED = "Notification Service is not enabled";
 
-    String SUBSCRIPTION_PRICE_VALIDATION_FAILED = "Subscription Price strcture is incorrect. Please review your json";
+    String SUBSCRIPTION_PRICE_VALIDATION_FAILED = "Subscription Price structure is incorrect. Please review the json format";
 
     String SUBSCRIPTION_PLAN_ID_INVALID = "Invalid subscription plan id. Please provide a valid subscription plan id.";
 }
