@@ -55,4 +55,8 @@ public interface ResponseConstants {
     String DESTINATION_PARAMS_REQUIRED = "Destination params is required for api service";
 
     String SERVICE_NOT_ENABLED = "Notification Service is not enabled";
+
+    String SUBSCRIPTION_PRICE_VALIDATION_FAILED = "Subscription Price strcture is incorrect. Please review your json";
+
+    String SUBSCRIPTION_PLAN_ID_INVALID = "Invalid subscription plan id. Please provide a valid subscription plan id.";
 }

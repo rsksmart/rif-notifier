@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -141,5 +142,16 @@ public class SubscriptionPlan {
                 .append(notificationAmount)
                 .append(status)
                 .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\":" + id+
+                ",\"name\":" + "\""+name+"\""+
+                ",\"validity\":" + validity+
+                ",\"notificationAmount\":\"" + notificationAmount+ "\"" +
+                ",\"status\":\"" + status+ "\"" +
+                '}';
     }
 }

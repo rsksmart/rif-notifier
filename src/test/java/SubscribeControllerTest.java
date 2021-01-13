@@ -62,10 +62,13 @@ public class SubscribeControllerTest {
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getActiveSubscriptionByAddress(us.getAddress())).thenReturn(null);
         when(subscribeServices.getSubscriptionPlanById(0)).thenReturn(subType);
+        SubscriptionPrice price = mockTestData.mockSubscriptionPrice();
         MvcResult result = mockMvc.perform(
                 post("/subscribe")
-                        .param("type", "0")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("planId", "0")
                         .header("apiKey", apiKey)
+                        .content(price.toString())
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -93,6 +96,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId","0")
                         .content(tp.toString())
         )
                 .andExpect(status().isOk())
@@ -123,7 +127,7 @@ public class SubscribeControllerTest {
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
                         .param("idTopic", String.valueOf(idTopic))
-                        .param("type", "0")
+                        .param("planId", "0")
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -149,7 +153,7 @@ public class SubscribeControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
-                        .param("type", "0")
+                        .param("planId", "0")
                         .param("idTopic", String.valueOf(idTopic))
         )
                 .andExpect(status().isConflict())
@@ -174,6 +178,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId", "0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -199,6 +204,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId","0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -227,6 +233,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
+                        .param("planId", "0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -244,10 +251,13 @@ public class SubscribeControllerTest {
         String apiKey = Utils.generateNewToken();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(null);
 
+        SubscriptionPrice price = mockTestData.mockSubscriptionPrice();
         MvcResult result = mockMvc.perform(
                 post("/subscribe")
-                        .param("type", "0")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("planId", "0")
                         .header("apiKey", apiKey)
+                        .content(price.toString())
         )
                 .andExpect(status().isConflict())
                 .andReturn();
@@ -285,7 +295,7 @@ public class SubscribeControllerTest {
     public void errorSubscribeNotProvidingApiKey() throws Exception {
         mockMvc.perform(
                 post("/subscribe")
-                        .param("type", "0")
+                        .param("planId", "0")
         )
                 .andExpect(status().isBadRequest());
     }

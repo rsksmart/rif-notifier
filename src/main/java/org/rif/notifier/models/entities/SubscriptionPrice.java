@@ -78,4 +78,14 @@ public class SubscriptionPrice {
                 .append(currency)
                 .toHashCode();
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"id\":" + id+
+                ",\"price\":" + price+
+                ",\"currency\":" + "\""+currency+"\""+
+                ",\"subscriptionPlan\":" + subscriptionPlan+
+                '}';
+    }
 }

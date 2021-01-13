@@ -74,7 +74,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("type", String.valueOf(subType.getId()))
+                        .param("planId", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isOk())
@@ -105,7 +105,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/removeNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("type", String.valueOf(subType.getId()))
+                        .param("planId", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isOk())
@@ -137,7 +137,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("type", String.valueOf(subType.getId()))
+                        .param("planId", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isConflict())
@@ -168,7 +168,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("type", String.valueOf(subType.getId()))
+                        .param("planId", String.valueOf(subType.getId()))
                         .content(mapper.writeValueAsString(pref).replace("EMAIL", "INVALID"))
         )
                 .andExpect(status().isConflict())

@@ -1,6 +1,7 @@
 package org.rif.notifier.services;
 
 import org.rif.notifier.constants.TopicParamTypes;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
@@ -281,5 +282,17 @@ public class SubscribeServices  {
             ret = true;
 
         return ret;
+    }
+
+    /**
+     * Verifies if a given price is valid for the given subsriptionplan
+     * @param plan
+     * @param price
+     */
+    public void validateSubscriptionPrice(SubscriptionPrice price, SubscriptionPlan plan) {
+        List<SubscriptionPrice> planPriceList = plan.getSubscriptionPriceList();
+        boolean match = planPriceList.stream().anyMatch(p->p.getCurrency().equals(price.getCurrency()) &&
+                p.getPrice().equals(price.getPrice()));
+        if (!match) throw new ValidationException("Subscription price or currency not valid for this plan");
     }
 }

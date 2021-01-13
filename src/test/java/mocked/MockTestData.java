@@ -283,6 +283,13 @@ public class MockTestData {
     public SubscriptionPlan mockSubscriptionPlan(){
         return new SubscriptionPlan(1000);
     }
+    public SubscriptionPrice mockSubscriptionPrice()   {
+        SubscriptionPrice p = new SubscriptionPrice();
+        p.setPrice(new BigInteger("20"));
+        p.setCurrency("RSK");
+        p.setSubscriptionPlan(mockSubscriptionPlan());
+        return p;
+    }
     public List<Subscription> mockListActiveSubs() throws IOException {
         List<Subscription> lstSubs = new ArrayList<>();
         Set<Topic> lstTopics = new HashSet<>();

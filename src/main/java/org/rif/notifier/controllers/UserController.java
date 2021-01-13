@@ -25,25 +25,16 @@ public class UserController {
     @RequestMapping(value = "/users", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> register(
-            @RequestParam(name = "address") String address,
-            @RequestBody String signedAddress
+            @RequestParam(name = "address") String address
             ) {
         DTOResponse resp = new DTOResponse();
         if(address != null && !address.isEmpty()){
-            if(signedAddress != null && !signedAddress.isEmpty()) {
-                if (Utils.canRecoverAddress(address, signedAddress)) {
-                    User user = userServices.userExists(address);
-                    if (user == null) {
-                        resp.setContent(userServices.saveUser(address));
-                    } else {
-                        //User already have an apikey
-                        resp.setContent(user);
-                    }
-                } else {
-                    throw new ValidationException(ResponseConstants.INCORRECT_SIGNED_ADDRESS);
-                }
-            }else{
-                throw new ValidationException(ResponseConstants.SIGNED_ADDRESS_NOT_PROVIDED);
+            User user = userServices.userExists(address);
+            if (user == null) {
+                resp.setContent(userServices.saveUser(address));
+            } else {
+                //User already have an apikey
+                resp.setContent(user);
             }
         }else{
             throw new ValidationException(ResponseConstants.ADDRESS_NOT_PROVIDED);
