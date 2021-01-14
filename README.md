@@ -21,6 +21,7 @@
 	5. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
 	6. [Get chain addresses events](#get-rns-events)
 13. [Verify blockchain events are processed](#verify-blockchain-events)
+14. [Create Subscription Plans](#create-subscription-plans)
 
 
 ## Quick Start
@@ -506,3 +507,49 @@ Return example:
 ```
 7. Check results: Now under raw_data and notification tables there should be data.
 8. Check notifications are being sent by verifying sent=1 in notification table, for the notification preference set. In case not sent check the notification_log table.
+
+##### Create Subscription Plans
+1. Modify subscription-plan.json under resources folder with your own plan details.
+2. All the fields are required. The notificationPreferences should contact only enabled preferences in application.properties
+3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.properties 
+3. Run bin/subscriptionplans.sh from the home directory of this project
+3. If the json is correct, the plans will be created in the database.
+A sample json structure below
+```
+[
+  {
+    "name": "RIF-10k",
+    "notificationQuantity": 10000,
+    "validity": 100,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "10",
+        "currency": "RBTC"
+      },
+      {
+        "price": "20",
+        "currency": "RIF"
+      }
+    ]
+  },
+  {
+    "name": "RIF-20k",
+    "notificationQuantity": 20000,
+    "validity": 100,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "20",
+        "currency": "RBTC"
+      },
+      {
+        "price": "40",
+        "currency": "RIF"
+      }
+    ]
+  }
+]
+```

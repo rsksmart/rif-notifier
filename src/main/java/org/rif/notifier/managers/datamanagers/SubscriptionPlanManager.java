@@ -5,6 +5,8 @@ import org.rif.notifier.repositories.SubscriptionPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class SubscriptionPlanManager {
 
@@ -13,5 +15,17 @@ public class SubscriptionPlanManager {
 
     public SubscriptionPlan getSubscriptionPlanById(int id){
         return subscriptionPlanRepository.findById(id);
+    }
+
+    public List<SubscriptionPlan> getSubscriptionPlans()    {
+        return subscriptionPlanRepository.findAll();
+    }
+
+    public void save(SubscriptionPlan plan)   {
+        subscriptionPlanRepository.save(plan);
+    }
+
+    public void saveAll(List<SubscriptionPlan> plan)   {
+        subscriptionPlanRepository.saveAll(plan);
     }
 }

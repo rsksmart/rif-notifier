@@ -1,0 +1,36 @@
+[
+  {
+    "name": "RIF-10k",
+    "notificationQuantity": 10000,
+    "validity": 100,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "10",
+        "currency": "RBTC"
+      },
+      {
+        "price": "20",
+        "currency": "RIF"
+      }
+    ]
+  },
+  {
+    "name": "RIF-20k",
+    "notificationQuantity": 20000,
+    "validity": 100,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "20",
+        "currency": "RBTC"
+      },
+      {
+        "price": "40",
+        "currency": "RIF"
+      }
+    ]
+  }
+]

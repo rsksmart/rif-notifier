@@ -141,7 +141,7 @@ public class IntegrationTestData {
     }
 
     private void setupSubscriptionPlan()       {
-        subscriptionPlan  = subTypeRepo.findByNotificationAmount(10000);
+        subscriptionPlan  = subTypeRepo.findByNotificationQuantity(10000);
         if (subscriptionPlan == null) {
             subscriptionPlan = new SubscriptionPlan(10000);
             subscriptionPrice = new SubscriptionPrice();

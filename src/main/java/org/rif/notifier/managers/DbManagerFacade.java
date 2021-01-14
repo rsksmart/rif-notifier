@@ -289,4 +289,16 @@ public class DbManagerFacade {
                 p->enabledServices.stream().anyMatch(p2-> p2 == p.getNotificationService())).collect(Collectors.toList());
         return enabledPreferences;
     }
+
+    public void saveSubscriptionPlan(SubscriptionPlan plan) {
+        subscriptionPlanManager.save(plan);
+    }
+
+    public void saveSubscriptionPlans(List<SubscriptionPlan> plan) {
+        subscriptionPlanManager.saveAll(plan);
+    }
+
+    public List<SubscriptionPlan> getSubscriptionPlans()    {
+        return subscriptionPlanManager.getSubscriptionPlans();
+    }
 }
