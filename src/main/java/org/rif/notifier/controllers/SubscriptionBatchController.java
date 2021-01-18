@@ -1,0 +1,184 @@
+package org.rif.notifier.controllers;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.rif.notifier.constants.ControllerConstants;
+import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.exception.SubscriptionException;
+import org.rif.notifier.exception.ValidationException;
+import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
+import org.rif.notifier.models.DTO.DTOResponse;
+import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
+import org.rif.notifier.models.DTO.SubscriptionResponse;
+import org.rif.notifier.models.DTO.TopicDTO;
+import org.rif.notifier.models.entities.*;
+import org.rif.notifier.services.LuminoEventServices;
+import org.rif.notifier.services.SubscribeServices;
+import org.rif.notifier.services.UserServices;
+import org.rif.notifier.validation.NotificationPreferenceValidator;
+import org.rif.notifier.validation.SubscribeValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Optional;
+
+@Api(tags = {"Onboarding Resource"})
+@Validated
+@RestController
+public class SubscriptionBatchController {
+    private static final Logger logger = LoggerFactory.getLogger(SubscriptionBatchController.class);
+
+    private SubscribeServices subscribeServices;
+    private UserServices userServices;
+    private NotificationPreferenceManager notificationPreferenceManager;
+    private NotificationPreferenceValidator notificationPreferenceValidator;
+    private SubscribeValidator subscribeValidator;
+    //@Autowired
+    //@Qualifier("providerAddress")
+    //private String providerAddress;
+
+
+    @Autowired
+    public SubscriptionBatchController(@Autowired SubscribeServices subscribeServices, @Autowired UserServices userServices,
+                                       @Autowired NotificationPreferenceManager notificationPreferenceManager,
+                                       @Autowired NotificationPreferenceValidator notificationPreferenceValidator,
+                                       @Autowired SubscribeValidator subscribeValidator) {
+        this.subscribeServices = subscribeServices;
+        this.userServices = userServices;
+        this.notificationPreferenceManager = notificationPreferenceManager;
+        this.notificationPreferenceValidator = notificationPreferenceValidator;
+        this.subscribeValidator = subscribeValidator;
+    }
+
+    /**
+     * @param subscriptionBatchDTO the structure of subscriptionPrice as below
+     *   "userAddress": "0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9",
+     *     "price": 20,
+     *     "currency": "RIF",
+     *     "subscriptionPlanId": 1,
+     *   "topics": [
+     *     {
+     * 		"type": "NEW_TRANSACTIONS",
+     * 		"notificationPreferences":[
+     *                        {
+     * 				"notificationService":"API",
+     * 				"destination":"https://postman-echo.com/post",
+     *                 "destinationParams":{
+     *                     "username":"test"
+     *                 }
+     *            },
+     *
+     *            {
+     * 				"notificationService":"EMAIL",
+     * 				"destination":"123456@test.com"
+     *            }
+     * 		]
+     * 	},
+     * 	{
+     * 		"type": "NEW_BLOCK",
+     * 		"notificationPreferences":[
+     *
+     *            {
+     * 				"notificationService":"EMAIL",
+     * 				"destination":"123456@abc.com;123@abc.com"
+     *            }
+     * 		]
+     * 	}
+     *
+     *   ]
+     * }
+     * @return
+     */
+    @ApiOperation(value = "create a subscription with all the provided details",
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @RequestMapping(value = "/subscribeToPlan", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
+    @ResponseBody
+    public ResponseEntity<DTOResponse> subscribeToPlan(
+            @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
+        DTOResponse resp = new DTOResponse();
+        User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
+        //first validate if the topic and preferences are in correct format
+        List<TopicDTO> topicDTOs = subscriptionBatchDTO.getTopics();
+        validate(topicDTOs);
+        //proceed to create subscription
+        SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), subscriptionBatchDTO.getCurrency());
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId());
+        subscribeToTopic(subscription, topicDTOs);
+        return new ResponseEntity<>(resp, resp.getStatus());
+
+    }
+
+    /*
+     * throws ValidationException in case of validation failure
+     */
+    private void validate(List<TopicDTO> topicDTOs) {
+        if (topicDTOs.size() > topicDTOs.stream().distinct().count())   {
+            throw new ValidationException("Duplicate topics found, please correct your json.");
+        }
+        //validate each topic
+        topicDTOs.forEach(topicDTO->{
+            Topic topic = new Topic(topicDTO.getType(), topicDTO.getTopicParams());
+            if(!subscribeValidator.validateTopic(topic)){
+                //Return an error when the user sends a wrong structure of topic
+                throw new ValidationException(ResponseConstants.TOPIC_VALIDATION_FAILED);
+            }
+            //validate all the notification preferences for the given topic
+            notificationPreferenceValidator.validate(topicDTO.getNotificationPreferences());
+        });
+    }
+
+    private void subscribeToTopic(Subscription subscription, List<TopicDTO> topicDTOs) {
+        topicDTOs.forEach(topicDTO->{
+            Topic topic = new Topic(topicDTO.getType(), topicDTO.getTopicParams());
+            //Return an error if the user sent topic is already subscribed
+            Optional.ofNullable(subscribeServices.getTopicByHashCodeAndIdSubscription(topic, subscription.getId()))
+                    .ifPresent(t->new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC,
+                                new SubscriptionResponse(t.getId()), null));
+            topic = subscribeServices.subscribeAndGetTopic(topic, subscription);
+            saveNotificationPreferences(subscription, topic, topicDTO.getNotificationPreferences());
+        });
+    }
+
+    private void saveNotificationPreferences(Subscription subscription, Topic topic, @Valid List<NotificationPreference> preferences)  {
+        preferences.forEach(preference->{
+            preference.setSubscription(subscription);
+            //the topic id sent as part of request. This is an integer topic id for ex. 10.
+            // When the topic id is set to 0, this preference will be used as default preference for those
+            // notifications with topic that don't have notification preference speicied.
+            preference.setIdTopic(topic.getId());
+        });
+        notificationPreferenceManager.saveNotificationPreferences(preferences);
+
+    }
+
+    private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, int subscriptionPlanId)   {
+        //validate if this subscription plan actually exists in the database
+        SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(subscriptionPlanId);
+        Optional.ofNullable(subscriptionPlan).orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        //validate if the provided price exists for this plan
+        subscribeValidator.validateSubscriptionPrice(subscriptionPrice, subscriptionPlan);
+        //throw exception if subscription already added
+        Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(user.getAddress(), subscriptionPlan)).ifPresent(p -> {
+            throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
+        });
+        //if no active subscription for given user and subscription type found, then create a new subscriiption
+        return subscribeServices.createPendingSubscription(user, subscriptionPlan, subscriptionPrice);
+    }
+
+    private User getNewOrExistingUser(String address) {
+        Optional<User> user = Optional.ofNullable(userServices.userExists(address));
+        if (!user.isPresent()) {
+            return userServices.saveUser(address);
+        } else {
+            //User already have an apikey
+            return user.get();
+        }
+    }
+}

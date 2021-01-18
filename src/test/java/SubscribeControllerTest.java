@@ -12,6 +12,7 @@ import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.rif.notifier.util.Utils;
+import org.rif.notifier.validation.SubscribeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -44,6 +45,9 @@ public class SubscribeControllerTest {
 
     @MockBean
     private SubscribeServices subscribeServices;
+
+    @MockBean
+    private SubscribeValidator subscribeValidator;
 
     @MockBean
     private LuminoEventServices luminoEventServices;
@@ -91,6 +95,7 @@ public class SubscribeControllerTest {
         when(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         //Need to mock with any, cause it was always returning false, maybe cause the Topic that we bring in here was not the same as in the controller
         when(subscribeServices.validateTopic(any(Topic.class))).thenReturn(true);
+        when(subscribeValidator.validateTopic(any(Topic.class))).thenReturn(true);
         //when(subscribeServices.validateTopic(tp)).thenCallRealMethod();
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")

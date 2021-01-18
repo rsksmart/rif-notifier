@@ -3,13 +3,12 @@ package org.rif.notifier.models.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
-import java.util.Set;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "notification_preference")
@@ -22,6 +21,7 @@ public class NotificationPreference {
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
     private int id;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "notification_service")
     private NotificationServiceType notificationService;
@@ -32,6 +32,7 @@ public class NotificationPreference {
     @JoinColumn(name="id_subscription")
     private Subscription subscription;
 
+    @NotBlank
     @Column
     private String destination;
 

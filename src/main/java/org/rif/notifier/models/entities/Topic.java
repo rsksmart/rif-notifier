@@ -37,6 +37,11 @@ public class Topic {
 
     public Topic(){}
 
+    public Topic(TopicTypes type, List<TopicParams> topicParams) {
+        this.type = type;
+        this.topicParams = topicParams;
+    }
+
     public Topic(TopicTypes type, String hash, Subscription sub){
         this.type = type;
         this.hash = hash;

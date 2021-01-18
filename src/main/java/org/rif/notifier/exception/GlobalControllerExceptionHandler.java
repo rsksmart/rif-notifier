@@ -4,6 +4,8 @@ import org.rif.notifier.models.DTO.DTOResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.persistence.PersistenceException;
+import java.util.List;
 import java.util.Optional;
 
 @RestControllerAdvice
@@ -21,6 +24,19 @@ public class GlobalControllerExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public DTOResponse internalServerError(Exception e)  {
         return newErrorResponse(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public DTOResponse validationFailed(MethodArgumentNotValidException e)  {
+        Optional<List<FieldError>> errors = Optional.ofNullable(e.getBindingResult().getFieldErrors());
+        StringBuffer message = new StringBuffer();
+        errors.ifPresent(fieldErrors->{
+            fieldErrors.forEach(f->{
+               message.append(f.getField()).append(" ").append(f.getDefaultMessage()).append(", ") ;
+            });
+        });
+        return newErrorResponse(message.length() > 0 ? message.toString() : e.getMessage(), null, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({MissingRequestHeaderException.class,MissingServletRequestParameterException.class,HttpMessageNotReadableException.class})

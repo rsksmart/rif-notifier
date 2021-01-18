@@ -23,6 +23,13 @@ public class SubscriptionPrice {
     @JoinColumn(name="subscription_plan_id")
     private SubscriptionPlan subscriptionPlan;
 
+    public SubscriptionPrice() {}
+
+    public SubscriptionPrice(BigInteger price, String currency) {
+        this.price = price;
+        this.currency = currency;
+    }
+
     public int getId() {
         return id;
     }
