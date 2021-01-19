@@ -89,6 +89,10 @@ public class NotifierConfig implements SchedulingConfigurer {
     @Value("${rif.notifier.provider.address:#{null}}")
     Optional<String> providerAddress;
 
+    //comma separated rif,rbtc - list of accepted currencies
+    @Value("${rif.notifier.subscription.currencies}")
+    private List<String> acceptedCurrencies;
+
     /**
      * Returns from PhoneNumber to use with twilio if sms service is enabled
      * @throws ValidationException
@@ -192,6 +196,10 @@ public class NotifierConfig implements SchedulingConfigurer {
      */
     public List<NotificationServiceType> getEnabledServices()    {
         return enabledServices.stream().map(e->NotificationServiceType.valueOf(e)).collect(Collectors.toList());
+    }
+
+    public List<String> getAcceptedCurrencies() {
+        return acceptedCurrencies;
     }
 
     private void isPropertySet(Optional<?> propVal, String propName)   {

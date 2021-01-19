@@ -80,7 +80,7 @@ public class SubscribeServices  {
         String retVal = "";
         if(subscription != null && type != null) {
             subscription.setStatus(SubscriptionStatus.PENDING);
-            subscription.setNotificationBalance(subscription.getNotificationBalance() + type.getNotificationAmount());
+            subscription.setNotificationBalance(subscription.getNotificationBalance() + type.getNotificationQuantity());
             retVal = LuminoInvoice.generateInvoice(subscription.getUserAddress());
             if(!retVal.isEmpty()) {
                 Subscription sub = dbManagerFacade.updateSubscription(subscription);

@@ -68,7 +68,7 @@ public class Subscription implements Serializable {
         this.activeSince = activeSince;
         this.userAddress = userAddress;
         this.status = status;
-        this.notificationBalance = subscriptionPlan.getNotificationAmount();
+        this.notificationBalance = subscriptionPlan.getNotificationQuantity();
         this.subscriptionPlan = subscriptionPlan;
     }
 

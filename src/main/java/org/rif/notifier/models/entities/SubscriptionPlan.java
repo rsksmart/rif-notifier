@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
-import javax.validation.constraints.Min;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +23,8 @@ public class SubscriptionPlan {
     @Column(name="notification_preferences")
     private String notificationPreferences;
 
-    @Column(name="notification_amount")
-    private int notificationAmount;
+    @Column(name="notification_quantity")
+    private int notificationQuantity;
 
     @Column(name="status")
     private boolean status;
@@ -37,17 +36,17 @@ public class SubscriptionPlan {
 
     }
 
-    public SubscriptionPlan(String name, int validity, String notificationPreferences, int notificationAmount, boolean status, List<SubscriptionPrice> subscriptionPriceList) {
+    public SubscriptionPlan(String name, int validity, String notificationPreferences, int notificationQuantity, boolean status, List<SubscriptionPrice> subscriptionPriceList) {
         this.name = name;
         this.validity = validity;
         this.notificationPreferences = notificationPreferences;
-        this.notificationAmount = notificationAmount;
+        this.notificationQuantity = notificationQuantity;
         this.status = status;
         this.subscriptionPriceList = subscriptionPriceList;
     }
 
-    public SubscriptionPlan(int notificationAmount) {
-        this.notificationAmount = notificationAmount;
+    public SubscriptionPlan(int notificationQuantity) {
+        this.notificationQuantity = notificationQuantity;
     }
 
     public int getId() {
@@ -90,12 +89,16 @@ public class SubscriptionPlan {
         this.notificationPreferences = String.join(",", preferences);
     }
 
-    public int getNotificationAmount() {
-        return notificationAmount;
+    public void setNotificationPreferences(String notificationPreferences)  {
+        this.notificationPreferences = notificationPreferences;
     }
 
-    public void setNotificationAmount(int notificationAmount) {
-        this.notificationAmount = notificationAmount;
+    public int getNotificationQuantity() {
+        return notificationQuantity;
+    }
+
+    public void setNotificationQuantity(int notificationQuantity) {
+        this.notificationQuantity = notificationQuantity;
     }
 
     public boolean isStatus() {
@@ -125,7 +128,7 @@ public class SubscriptionPlan {
         return new EqualsBuilder()
                 .append(id, that.id)
                 .append(validity, that.validity)
-                .append(notificationAmount, that.notificationAmount)
+                .append(notificationQuantity, that.notificationQuantity)
                 .append(status, that.status)
                 .append(name, that.name)
                 .append(notificationPreferences, that.notificationPreferences)
@@ -139,7 +142,7 @@ public class SubscriptionPlan {
                 .append(name)
                 .append(validity)
                 .append(notificationPreferences)
-                .append(notificationAmount)
+                .append(notificationQuantity)
                 .append(status)
                 .toHashCode();
     }
@@ -150,7 +153,7 @@ public class SubscriptionPlan {
                 "\"id\":" + id+
                 ",\"name\":" + "\""+name+"\""+
                 ",\"validity\":" + validity+
-                ",\"notificationAmount\":\"" + notificationAmount+ "\"" +
+                ",\"notificationQuantity\":\"" + notificationQuantity + "\"" +
                 ",\"status\":\"" + status+ "\"" +
                 '}';
     }

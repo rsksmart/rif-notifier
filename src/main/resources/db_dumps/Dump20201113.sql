@@ -324,7 +324,7 @@ CREATE TABLE `subscription_plan` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(128) DEFAULT NULL,
   `validity` int NOT NULL,
-  `notification_amount` int NOT NULL,
+  `notification_quantity` int NOT NULL,
   `notification_preferences` set('SMS','EMAIL','API') NOT NULL,
   `status` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -365,52 +365,6 @@ LOCK TABLES `subscription_price` WRITE;
 /*!40000 ALTER TABLE `subscription_price` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `subscription_type`
---
-
-DROP TABLE IF EXISTS `subscription_type`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `subscription_type` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `notifications` int NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `subscription_type`
---
-
-LOCK TABLES `subscription_type` WRITE;
-/*!40000 ALTER TABLE `subscription_type` DISABLE KEYS */;
-INSERT INTO `subscription_type` VALUES (0,2147483647);
-/*!40000 ALTER TABLE `subscription_type` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `test`
---
-
-DROP TABLE IF EXISTS `test`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `test` (
-  `id` varchar(255) NOT NULL,
-  `testcol` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `test`
---
-
-LOCK TABLES `test` WRITE;
-/*!40000 ALTER TABLE `test` DISABLE KEYS */;
-/*!40000 ALTER TABLE `test` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `topic`
