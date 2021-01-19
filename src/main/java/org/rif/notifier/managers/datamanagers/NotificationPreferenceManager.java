@@ -18,6 +18,10 @@ public class NotificationPreferenceManager {
         return notificationPreferenceRepository.save(preference);
     }
 
+    public List<NotificationPreference> saveNotificationPreferences(List<NotificationPreference> preferences)   {
+        return notificationPreferenceRepository.saveAll(preferences);
+    }
+
 
     public void removeNotificationPreference(NotificationPreference preference)   {
         notificationPreferenceRepository.delete(preference);

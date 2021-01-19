@@ -5,6 +5,8 @@ import org.mockito.Mockito;
 import org.rif.notifier.constants.SubscriptionConstants;
 import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.constants.TopicTypes;
+import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
+import org.rif.notifier.models.DTO.TopicDTO;
 import org.rif.notifier.models.datafetching.FetchedBlock;
 import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.datafetching.FetchedTransaction;
@@ -284,9 +286,7 @@ public class MockTestData {
         return new SubscriptionPlan(1000);
     }
     public SubscriptionPrice mockSubscriptionPrice()   {
-        SubscriptionPrice p = new SubscriptionPrice();
-        p.setPrice(new BigInteger("20"));
-        p.setCurrency("RSK");
+        SubscriptionPrice p = new SubscriptionPrice(new BigInteger("20"), "RSK");
         p.setSubscriptionPlan(mockSubscriptionPlan());
         return p;
     }
@@ -429,5 +429,25 @@ public class MockTestData {
             notificationPreferences.add(pref);
         });
         return notificationPreferences;
+    }
+
+    public List<TopicDTO> mockTopics()  throws IOException {
+        NotificationPreference pref = mockAPINotificationPreference(mockSubscription());
+        pref.setDestination("http://test");
+        TopicDTO dto = new TopicDTO();
+        dto.setType(TopicTypes.NEW_BLOCK);
+        dto.setNotificationPreferences(Arrays.asList(pref));
+        return Arrays.asList(dto);
+    }
+
+    public SubscriptionBatchDTO mockSubscriptionBatch() throws IOException  {
+        SubscriptionBatchDTO mock = new SubscriptionBatchDTO();
+        mock.setPrice(BigInteger.TEN);
+        mock.setCurrency("RIF");
+        mock.setTopics(mockTopics());
+        mock.setUserAddress("0x0");
+        mock.setSubscriptionPlanId(1);
+        mock.setCurrency("RIF");
+        return mock;
     }
 }

@@ -144,10 +144,8 @@ public class IntegrationTestData {
         subscriptionPlan  = subTypeRepo.findByNotificationQuantity(10000);
         if (subscriptionPlan == null) {
             subscriptionPlan = new SubscriptionPlan(10000);
-            subscriptionPrice = new SubscriptionPrice();
+            subscriptionPrice = new SubscriptionPrice(new BigInteger("100"), "RSK");
             subscriptionPlan.setName("test");
-            subscriptionPrice.setCurrency("RSK");
-            subscriptionPrice.setPrice(new BigInteger("100"));
             subscriptionPrice.setSubscriptionPlan(subscriptionPlan);
             subscriptionPlan.setSubscriptionPriceList(Collections.singletonList(subscriptionPrice));
             subscriptionPlan.setNotificationPreferences(Collections.singleton(NotificationServiceType.SMS));

@@ -1,0 +1,38 @@
+{
+  "userAddress": "0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9",
+  "price": 20,
+  "currency": "RIF",
+  "subscriptionPlanId": 1,
+
+
+  "topics": [
+    {
+      "type": "NEW_TRANSACTIONS",
+      "notificationPreferences":[
+        {
+          "notificationService":"API",
+          "destination":"https://postman-echo.com/post",
+          "destinationParams":{
+            "username":"test"
+          }
+        },
+
+        {
+          "notificationService":"EMAIL",
+          "destination":"123456@test.com"
+        }
+      ]
+    },
+    {
+      "type": "NEW_BLOCK",
+      "notificationPreferences":[
+
+        {
+          "notificationService":"EMAIL",
+          "destination":"123456@abc.com;123@abc.com"
+        }
+      ]
+    }
+
+  ]
+}

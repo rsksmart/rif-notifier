@@ -9,6 +9,7 @@ import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.blockchain.lumino.LuminoInvoice;
+import org.rif.notifier.validation.SubscribeValidator;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -24,6 +25,9 @@ import static org.mockito.Mockito.*;
 public class SubscribeServiceTest {
     @InjectMocks
     private SubscribeServices subscribeServices;
+
+    @Mock
+    private SubscribeValidator subscribeValidator;
 
     @Mock
     private DbManagerFacade dbManagerFacade;
@@ -152,8 +156,8 @@ public class SubscribeServiceTest {
     @Test
     public void canValidateTopic() throws IOException {
         Topic topic = mockTestData.mockTopic();
-
-        boolean retVal = subscribeServices.validateTopic(topic);
+        when(subscribeValidator.validateTopic(any(Topic.class))).thenCallRealMethod();
+        boolean retVal = subscribeValidator.validateTopic(topic);
 
         assertTrue(retVal);
     }

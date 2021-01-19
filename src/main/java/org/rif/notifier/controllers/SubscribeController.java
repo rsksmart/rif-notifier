@@ -13,6 +13,7 @@ import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
+import org.rif.notifier.validation.SubscribeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +32,15 @@ public class SubscribeController {
     private SubscribeServices subscribeServices;
     private UserServices userServices;
     private LuminoEventServices luminoEventServices;
+    private SubscribeValidator subscribeValidator;
     @Autowired @Qualifier("providerAddress") private String providerAddress;
 
     @Autowired
-    public SubscribeController(SubscribeServices subscribeServices, UserServices userServices, LuminoEventServices luminoEventServices) {
+    public SubscribeController(SubscribeServices subscribeServices, UserServices userServices, LuminoEventServices luminoEventServices, @Autowired SubscribeValidator subscribeValidator) {
         this.subscribeServices = subscribeServices;
         this.userServices = userServices;
         this.luminoEventServices = luminoEventServices;
+        this.subscribeValidator = subscribeValidator;
     }
 
     /**
@@ -67,7 +70,7 @@ public class SubscribeController {
         subscriptionPlan = subscribeServices.getSubscriptionPlanById(subscriptionPlan.getId());
         Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //validate if the provided price exists for this plan
-        subscribeServices.validateSubscriptionPrice(subscriptionPrice, subscriptionPlan);
+        subscribeValidator.validateSubscriptionPrice(subscriptionPrice, subscriptionPlan);
         //throw exception if subscription already added
         Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(), subscriptionPlan)).ifPresent(p-> {
            throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED) ;
@@ -98,7 +101,7 @@ public class SubscribeController {
             //if no active subscription is found for type and user address then throw exception
             Subscription sub = Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(), subscriptionPlan)).orElseThrow(()->new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION));
             //validate the user sent topic
-            if(subscribeServices.validateTopic(userSentTopic)){
+            if(subscribeValidator.validateTopic(userSentTopic)){
                 //Return an error if the user sent topic is already subscribed
                 Optional.ofNullable(subscribeServices.getTopicByHashCodeAndIdSubscription(userSentTopic, sub.getId())).ifPresent(t->new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(t.getId()), null));
                 resp.setContent(subscribeServices.subscribeToTopic(userSentTopic, sub));

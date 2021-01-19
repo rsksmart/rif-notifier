@@ -5,12 +5,14 @@ import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
 import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.controllers.NotificationPreferenceController;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.rif.notifier.util.Utils;
+import org.rif.notifier.validation.NotificationPreferenceValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,8 +27,7 @@ import java.util.Arrays;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -52,6 +53,9 @@ public class NotificationPreferenceControllerTest {
     @MockBean
     private NotifierConfig notifierConfig;
 
+    @MockBean
+    private NotificationPreferenceValidator validator;
+
     private MockTestData mockTestData = new MockTestData();
 
     @Test
@@ -64,9 +68,10 @@ public class NotificationPreferenceControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         doReturn(Arrays.asList(NotificationServiceType.SMS, NotificationServiceType.EMAIL, NotificationServiceType.API)).when(notifierConfig).getEnabledServices();
@@ -96,9 +101,10 @@ public class NotificationPreferenceControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         //save notification
         when(notificationPreferenceManager.getNotificationPreference(any(Subscription.class), any(Integer.class), any(NotificationServiceType.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
@@ -128,9 +134,11 @@ public class NotificationPreferenceControllerTest {
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         pref.setDestination("test.com");
         dto.setContent(pref);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
+        doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
@@ -159,9 +167,12 @@ public class NotificationPreferenceControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
+        doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref);
+        //when(validator.validateRequestNotificationPreference(any(NotificationPreference.class))).thenTh
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();

@@ -24,7 +24,7 @@ public interface ResponseConstants {
 
     String SUBSCRIPTION_ALREADY_ADDED = "This address is already subscribed";
 
-    String SUBSCRIPTION_INCORRECT_TYPE = "The type you select is not a valid one";
+    String SUBSCRIPTION_INCORRECT_TYPE = "The plan you select is not a valid one";
 
     String TOPIC_VALIDATION_FAILED = "Topic structure failed, please review your json";
 
@@ -48,7 +48,7 @@ public interface ResponseConstants {
 
     String SAVE_NOTIFICATION_PREFERENCE_FAILED = "There was an error while saving notification preference.";
 
-    String PREFERENCE_NOT_FOUND = "Notification Preference not found for the given subscription, topic and type combination";
+    String PREFERENCE_NOT_FOUND = "Notification Preference not found for the given subscription, topic and plan combination";
 
     String PREFERENCE_REMOVED = "The requested notification preference has been removed successfully";
 
