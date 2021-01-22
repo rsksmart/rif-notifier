@@ -3,6 +3,7 @@ package org.rif.notifier.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
+import org.rif.notifier.models.DTO.SubscriptionBatchResponse;
 import org.rif.notifier.models.DTO.SubscriptionDTO;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
@@ -212,12 +213,18 @@ public class SubscribeServices  {
         return dbManagerFacade.getTopicById(idTopic);
     }
 
-    public Map<String, Object> buildSubscriptionResponseMap(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
+    /*public Map<String, Object> buildSubscriptionResponseMap(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
         Map<String,Object> resp = new TreeMap<>();
         resp.put("hash", hash);
         resp.put("signature", signHash(hash, privateKey));
         resp.put("subscription", subscriptionDTO);
         return resp;
+    }*/
+
+    public SubscriptionBatchResponse createSubscriptionBatchResponse(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
+        String signature = signHash(hash, privateKey);
+        SubscriptionBatchResponse response = new SubscriptionBatchResponse(hash, signature, subscriptionDTO);
+        return response;
     }
 
 

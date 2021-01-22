@@ -1,8 +1,6 @@
 package org.rif.notifier.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.exception.SubscriptionException;
@@ -47,7 +45,7 @@ public class SubscriptionBatchController {
                                        @Autowired NotificationPreferenceValidator notificationPreferenceValidator,
                                        @Autowired SubscribeValidator subscribeValidator,
                                         @Autowired @Qualifier("providerAddress") String providerAddress,
-                                       @Autowired @Qualifier("providerAddress") String providerPrivateKey) {
+                                       @Autowired @Qualifier("providerPrivateKey") String providerPrivateKey) {
         this.subscribeServices = subscribeServices;
         this.userServices = userServices;
         this.notificationPreferenceManager = notificationPreferenceManager;
@@ -96,12 +94,16 @@ public class SubscriptionBatchController {
      * }
      * @return
      */
-    @ApiOperation(value = "Subscribe to Rif Notifier with plan id, topics, notification preferences", notes="${SubscriptionBatchController.subscribeToPlan}",
-            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @ApiOperation(value = "Subscribe to Rif Notifier with plan id, topics, notification preferences", notes="Returns http 409 in case of error",
+            tags="{onboarding}", response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @ApiResponses(value={
+            @ApiResponse(code=200, message="Subscription created successfully.", response=SubscriptionBatchResponse.class),
+            @ApiResponse(code= 409, message="Error creating subsription.", response=DTOResponse.class)
+    })
     @RequestMapping(value = "/subscribeToPlan", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> subscribeToPlan(
-            @ApiParam(required=true, name="provide the subscription details to create the subscription") @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
+            @ApiParam(required=true, name="Subscription details required to create the subscription. See SubscriptionBatchDTO") @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
         DTOResponse resp = new DTOResponse();
         User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
         //first validate if the topic and preferences are in correct format
@@ -117,7 +119,7 @@ public class SubscriptionBatchController {
         //update the database with the generated hash
         subscribeServices.updateSubscription(subscription);
         //generate the subscription contract son
-        resp.setContent(subscribeServices.buildSubscriptionResponseMap(subscriptionDTO, hash, providerPrivateKey));
+        resp.setContent(subscribeServices.createSubscriptionBatchResponse(subscriptionDTO, hash, providerPrivateKey));
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 

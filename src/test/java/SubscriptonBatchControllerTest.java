@@ -8,10 +8,7 @@ import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.controllers.SubscriptionBatchController;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
-import org.rif.notifier.models.DTO.DTOResponse;
-import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
-import org.rif.notifier.models.DTO.SubscriptionDTO;
-import org.rif.notifier.models.DTO.TopicDTO;
+import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
@@ -142,10 +139,11 @@ public class SubscriptonBatchControllerTest {
         resultMap.put("subscription", subscriptionDTO);
         resultMap.put("hash", "test");
         resultMap.put("signature", "testsignature");
+        SubscriptionBatchResponse response = new SubscriptionBatchResponse("test", "testsignature", subscriptionDTO);
         DTOResponse dto = new DTOResponse();
         when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), anyString(), any(User.class))).thenReturn(subscriptionDTO);
         when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
-        when(subscribeServices.buildSubscriptionResponseMap(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(resultMap);
+        when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(response);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToPlan")
                         .contentType(APPLICATION_JSON_UTF8)

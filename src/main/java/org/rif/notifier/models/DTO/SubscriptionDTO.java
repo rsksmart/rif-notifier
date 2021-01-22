@@ -1,6 +1,7 @@
 package org.rif.notifier.models.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
 import org.rif.notifier.models.entities.SubscriptionStatus;
 
 import java.math.BigInteger;
@@ -13,6 +14,7 @@ import java.util.List;
  * This object is stored inside SubscriptionContractDTO while generating the
  * contract
  */
+@ApiModel(description="Json response to the subscribeToPlan operation")
 public class SubscriptionDTO {
     private BigInteger price;
     private String currency;
