@@ -22,6 +22,7 @@ public class SubscriptionDTO {
     private List<TopicDTO> topics;
     private String providerAddress;
     private String userAddress;
+    private String apiKey;
 
     public BigInteger getPrice() {
         return price;
@@ -85,5 +86,13 @@ public class SubscriptionDTO {
 
     public void setUserAddress(String userAddress) {
         this.userAddress = userAddress;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 }

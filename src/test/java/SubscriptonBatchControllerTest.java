@@ -18,7 +18,6 @@ import org.rif.notifier.services.UserServices;
 import org.rif.notifier.validation.NotificationPreferenceValidator;
 import org.rif.notifier.validation.SubscribeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -27,7 +26,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +143,7 @@ public class SubscriptonBatchControllerTest {
         resultMap.put("hash", "test");
         resultMap.put("signature", "testsignature");
         DTOResponse dto = new DTOResponse();
-        when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), anyString())).thenReturn(subscriptionDTO);
+        when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), anyString(), any(User.class))).thenReturn(subscriptionDTO);
         when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
         when(subscribeServices.buildSubscriptionResponseMap(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(resultMap);
         MvcResult result = mockMvc.perform(

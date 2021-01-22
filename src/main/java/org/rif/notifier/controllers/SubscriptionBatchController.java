@@ -2,6 +2,7 @@ package org.rif.notifier.controllers;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.exception.SubscriptionException;
@@ -25,7 +26,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
-@Api(tags = {"Onboarding Resource"})
+@Api(tags = {"Batch Onboarding Resource"})
 @Validated
 @RestController
 public class SubscriptionBatchController {
@@ -95,12 +96,12 @@ public class SubscriptionBatchController {
      * }
      * @return
      */
-    @ApiOperation(value = "create a subscription with all the provided details",
+    @ApiOperation(value = "Subscribe to Rif Notifier with plan id, topics, notification preferences", notes="${SubscriptionBatchController.subscribeToPlan}",
             response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
     @RequestMapping(value = "/subscribeToPlan", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> subscribeToPlan(
-            @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
+            @ApiParam(required=true, name="provide the subscription details to create the subscription") @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
         DTOResponse resp = new DTOResponse();
         User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
         //first validate if the topic and preferences are in correct format
@@ -110,7 +111,7 @@ public class SubscriptionBatchController {
         SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), subscriptionBatchDTO.getCurrency());
         Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId());
         subscribeToTopic(subscription, topicDTOs);
-        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress);
+        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress, user);
         String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
         subscription.setHash(hash);
         //update the database with the generated hash

@@ -222,7 +222,7 @@ public class SubscribeServices  {
 
 
     public SubscriptionDTO createSubscriptionDTO(SubscriptionBatchDTO subscriptionBatchDTO,
-                                                 Subscription subscription, String providerAddress)   {
+                                                 Subscription subscription, String providerAddress, User user)   {
         SubscriptionDTO subscriptionDTO = new SubscriptionDTO();
         subscriptionDTO.setUserAddress(subscriptionBatchDTO.getUserAddress());
         subscriptionDTO.setProviderAddress(providerAddress);
@@ -232,6 +232,7 @@ public class SubscribeServices  {
         subscriptionDTO.setStatus(subscription.getStatus());
         subscriptionDTO.setCurrency(subscription.getCurrency());
         subscriptionDTO.setTopics(subscriptionBatchDTO.getTopics());
+        subscriptionDTO.setApiKey(user.getApiKey());
         return subscriptionDTO;
     }
 
