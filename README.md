@@ -3,7 +3,7 @@
 ## Indexes
 
 1. [Quick start](#quick-start) 
-2. [Installation](#installation-guide) 
+2. [Installation](#installation) 
 3. [Register user to notifier](#first-you-need-to-register-a-user)
 4. [Generate suscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
 5. [Suscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
@@ -31,9 +31,6 @@
 -You have the DB schema in src/main/resources/db_dumps/, look for the latest Dump.sql, create a DB with this schema, and in application.properties set the connection to your DB
 
 -Get started with the following steps
-
-# RIF Notifier
-###### Ubuntu instructions
 
 ## Installation
 ### Requirements
@@ -132,7 +129,7 @@ GRANT ALL PRIVILEGES ON notifier_db.* TO 'notifier_db_user'@'localhost';
 
 and then exit the `mysql` terminal by entering `exit`.
 
-Restartthe MySQL service by executing:
+Restart the MySQL service by executing:
 
 ```shell
 sudo /etc/init.d/mysql restart
@@ -179,7 +176,7 @@ To update an already installed RIF Notifier follow these steps:
 
 
 
-###### Now you need to generate a subscription to the service
+## Now you need to generate a subscription to the service
 
 
 ```
@@ -196,7 +193,7 @@ Header param:
 *When consuming this endpoint, the notifier will be creating a subscription and giving a lumino-invoice, that the user will need to pay. For development purposes, right now it's creating a subscription with MAX_INT*
 
 
-###### Now just rest to send the topics with params to be listened
+## Now just rest to send the topics with params to be listened
 
 
 ```
@@ -287,7 +284,7 @@ Return example:
 ```
 You can store that topicId for later get the notifications for that particular event
 
-###### Getting notifications
+## Getting notifications
 
 When you're subscribed to topics, and a event is triggered the notifier will be processing the data, and saving it so you can access to that.
 
@@ -303,7 +300,7 @@ Query params:
 ```
 
 
-###### Unsubscribing from a Topic
+## Unsubscribing from a Topic
 
 ```
 POST Request: http://localhost:8080/unsubscribeFromTopic?idTopic=ID_TOPIC
@@ -312,7 +309,7 @@ Header param:
 	value: API_KEY 
 ```
 
-###### Other available endpoints
+## Other available endpoints
 
 ----------------
 ###### Get Subscription info
