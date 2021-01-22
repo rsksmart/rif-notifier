@@ -3,7 +3,7 @@
 ## Indexes
 
 1. [Quick start](#quick-start) 
-2. [Installation](#installation-guide) 
+2. [Installation](#installation) 
 3. [Register user to notifier](#first-you-need-to-register-a-user)
 4. [Generate suscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
 5. [Suscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
@@ -32,53 +32,151 @@
 
 -Get started with the following steps
 
-## Installation guide
+## Installation
+### Requirements
+#### 1. RSK Blockchain (Mainnet)
+The first requirement is an RSK node which can be run using the **JAR file** method. Use the latest RSKj version avaiable and have it sync with mainnet.
 
-1. First of all clone this repo
-2. Create a Mysql database, and import the schema from: src/main/resources/db_dumps/Dump20000.sql (The number indicates last date of updating the schema). To dump to a database you can use the following command mysql -u root -p DB_NAME < src/main/resources/db_dumps/Dump200000.sql
-3. Now we need to configure the notifier: Go to src/main/resources/application.properties and set the following data:
-	1. Conn to DB:
-		1. spring.datasource.url=jdbc:mysql://localhost:3306/notifierone 
-		2. spring.datasource.username=notifier1
-		3. spring.datasource.password=123456
-	2. RSK Node endpoint
-		1. rsk.blockchain.tokennetworkregistry=0x088AF4986f3DBD66b4d97bE5f6742BC4853D8BA8
-	3. Multichain contract address, to obtain the chainaddresses event
-		1. rsk.blockchain.multichaincontract=0x7557fcE0BbFAe81a9508FF469D481f2c72a8B5f3
-4. Now just rests to init the notifier, for that, you need to run the following command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=${PORT}" 
+This node should be accessible through `localhost:4444`. For more information on how to achieve this, please consult the [_Setup node on Java_ section on the Developer Portal](https://developers.rsk.co/rsk/node/install/java/).
 
-(As a note, you can ignore the -Dspring-boot arguments, and just run the notifier with mvn spring-boot:run)
+#### 2. git
+The latest version of the `git` client can be installed through:
 
-
-###### First you need to register a user
-
-
-```
-POST Request: http://localhost:8080/users?address=YOUR_ADDRESS
-Body (Text/plain): Here you need to put your address signed with your private key
+```shell
+sudo apt update
+sudo apt install git
 ```
 
-The notifier will validate the body of that request, and making sure you own this address.
+#### 3. MySQL
+The latest version of the `mysql-server` database can be installed through:
 
-This endpoint will give you an ApiKey, please keep track of this Api Key cause you will need it for future calls
-
-Newest implementations, if you re-send this, it will return the ApiKey, same as you register for the first time.
-
-Return example:
-
-```json
-{
-    "message": "OK",
-    "data": {
-        "address": "0x7bDB21b2d21EE4b30FB4Bb791781F7D17f465309",
-        "apiKey": "t9lkxFcjIsJL5rnwfPsAayPYBFdjxB74"
-    },
-    "status": "OK"
-}
+```shell
+sudo apt update
+sudo apt install mysql-server
 ```
 
+Then, run the installer by executing:
 
-###### Now you need to generate a subscription to the service
+```shell
+sudo mysql_secure_installation
+```
+
+This will take you through a series of prompts where you can configure your MySQL installation.
+
+##### 3.1 Verification
+You can verify the MySQL service is running by executing:
+
+```shell
+sudo service mysql status
+```
+
+You can verify the port used by the MySQL is of the expected value `3306` by executing:
+
+```shell
+sudo netstat -tlnp | grep mysql
+```
+
+`netstat` can be installed through `sudo apt install net-tools`.
+
+#### 4. Maven
+The latest version of maven can be installed through:
+
+```shell
+sudo apt install maven
+```
+
+---
+
+### Installation steps
+1. Pick a directory for all the RIF Notifier code to reside in. From now on this will be called `notifier-dir`, but replace it with your own.
+2. Clone the RIF Notifier git project into its directory doing:
+
+```shell
+git clone https://github.com/rsksmart/rif-notifier notifier-dir
+```
+
+Stay on the `master` branch.
+
+3. Create the RIF Notifier database and configure its access. This is done by first opening the MySQL prompt by executing:
+
+```shell
+sudo mysql
+```
+
+Then, pick a name for the RIF Notifier database to be used. From now on this will be called `notifier_db`, but replace it with your own.
+
+Create the schema by entering: 
+
+```mysql
+CREATE DATABASE notifier_db;
+```
+
+in the `mysql` prompt.
+
+Now pick a username and password for the database to be accessed with. From now on these will be called `notifier_db_user` and `notifier_db_password`, but replace them with your own.
+
+To have these set up in the MySQL database first do:
+
+```mysql
+CREATE USER 'notifier_db_user'@'localhost' IDENTIFIED BY 'notifier_db_password';
+```
+
+in the `mysql` prompt. Then grant this user all permissions on the schema by doing:
+
+```mysql
+GRANT ALL PRIVILEGES ON notifier_db.* TO 'notifier_db_user'@'localhost';
+```
+
+and then exit the `mysql` terminal by entering `exit`.
+
+Restart the MySQL service by executing:
+
+```shell
+sudo /etc/init.d/mysql restart
+```
+
+4. Populate the RIF Notifier database by first moving to the `notifier-dir/src/main/resources/db_dumps` directory and then executing:
+   
+```shell
+mysql -u notifier_db_user -p notifier_db < Dump20200714.sql 
+```
+
+and then entering the `notifier_db_password` when prompted immediately after.
+
+5. Configure the RIF Notifier parameters by navigating to `notifier-dir/src/main/resources/` and opening the file `application.properties` for edting.
+
+Then, replace the values in the first section (`##Dev`) as follow, using your own MySQL parameters:
+
+```
+spring.datasource.url=jdbc:mysql://localhost:3306/notifier_db
+spring.datasource.username=notifier_db_user
+rsk.blockchain.endpoint=http://localhost:4444
+spring.datasource.password=notifier_db_password
+rsk.blockchain.tokennetworkregistry=0x060B81E90894E1F38A625C186CB1F4f9dD86A2B5
+rsk.blockchain.multichaincontract=0x99a12be4C89CbF6CFD11d1F2c029904a7B644368
+```
+
+---
+
+## Execution
+To run the RIF Notifier start a terminal in `notifier-dir` and run:
+
+```shell
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=8080"
+```
+
+---
+
+## Update
+To update an already installed RIF Notifier follow these steps:
+1. Stop the RIF Notifier process.
+2. Navigate to the `notifier-dir` and pull the latest code by executing `git pull`. The `master` branch should still be used.
+3. Re-initialize the RIF Notifier database by following **step 4** in the [Installation steps section](#installation-steps).
+4. Start the RIF Notifier as indicated in the [Execution section](#execution).
+
+
+
+## Now you need to generate a subscription to the service
 
 
 ```
@@ -95,7 +193,7 @@ Header param:
 *When consuming this endpoint, the notifier will be creating a subscription and giving a lumino-invoice, that the user will need to pay. For development purposes, right now it's creating a subscription with MAX_INT*
 
 
-###### Now just rest to send the topics with params to be listened
+## Now just rest to send the topics with params to be listened
 
 
 ```
@@ -186,7 +284,7 @@ Return example:
 ```
 You can store that topicId for later get the notifications for that particular event
 
-###### Getting notifications
+## Getting notifications
 
 When you're subscribed to topics, and a event is triggered the notifier will be processing the data, and saving it so you can access to that.
 
@@ -202,7 +300,7 @@ Query params:
 ```
 
 
-###### Unsubscribing from a Topic
+## Unsubscribing from a Topic
 
 ```
 POST Request: http://localhost:8080/unsubscribeFromTopic?idTopic=ID_TOPIC
@@ -211,7 +309,7 @@ Header param:
 	value: API_KEY 
 ```
 
-###### Other available endpoints
+## Other available endpoints
 
 ----------------
 ###### Get Subscription info
