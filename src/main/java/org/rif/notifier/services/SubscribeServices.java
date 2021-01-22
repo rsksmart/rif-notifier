@@ -1,9 +1,9 @@
 package org.rif.notifier.services;
 
-import com.google.common.eventbus.Subscribe;
-import org.rif.notifier.constants.TopicParamTypes;
-import org.rif.notifier.exception.ValidationException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.rif.notifier.managers.DbManagerFacade;
+import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
+import org.rif.notifier.models.DTO.SubscriptionDTO;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.blockchain.lumino.LuminoInvoice;
@@ -14,11 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static org.rif.notifier.constants.TopicParamTypes.*;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 public class SubscribeServices  {
@@ -215,6 +212,44 @@ public class SubscribeServices  {
         return dbManagerFacade.getTopicById(idTopic);
     }
 
+    public Map<String, Object> buildSubscriptionResponseMap(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
+        Map<String,Object> resp = new TreeMap<>();
+        resp.put("hash", hash);
+        resp.put("signature", signHash(hash, privateKey));
+        resp.put("subscription", subscriptionDTO);
+        return resp;
+    }
 
+
+    public SubscriptionDTO createSubscriptionDTO(SubscriptionBatchDTO subscriptionBatchDTO,
+                                                 Subscription subscription, String providerAddress)   {
+        SubscriptionDTO subscriptionDTO = new SubscriptionDTO();
+        subscriptionDTO.setUserAddress(subscriptionBatchDTO.getUserAddress());
+        subscriptionDTO.setProviderAddress(providerAddress);
+        subscriptionDTO.setPrice(subscription.getPrice());
+        subscriptionDTO.setExpirationDate(subscription.getExpirationDate());
+        subscriptionDTO.setNotificationBalance(subscription.getNotificationBalance());
+        subscriptionDTO.setStatus(subscription.getStatus());
+        subscriptionDTO.setCurrency(subscription.getCurrency());
+        subscriptionDTO.setTopics(subscriptionBatchDTO.getTopics());
+        return subscriptionDTO;
+    }
+
+    public String getSubscriptionHash(SubscriptionDTO subscriptionDTO) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return Utils.generateHash(mapper.writeValueAsString(subscriptionDTO));
+        } catch(IOException e)    {
+           throw new RuntimeException(e);
+        }
+    }
+
+    public void updateSubscription(Subscription subscription)   {
+        dbManagerFacade.updateSubscription(subscription);
+    }
+
+    public String signHash(String hash, String privateKey) {
+        return Utils.signAsString(hash, privateKey);
+    }
 
 }

@@ -1,5 +1,8 @@
 package org.rif.notifier.models.DTO;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.rif.notifier.models.entities.Subscription;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -8,6 +11,10 @@ import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.List;
 
+/**
+ * This class is used to store the data to create a subscription with all the details
+ * including topics, preferences, user in one single batch process
+ */
 public class SubscriptionBatchDTO {
     @NotEmpty @Valid
     private List<TopicDTO> topics;

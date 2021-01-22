@@ -7,6 +7,7 @@ import org.rif.notifier.exception.ScheduledErrorHandler;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.entities.NotificationServiceType;
 import org.rif.notifier.scheduled.NotificationProcessorJob;
+import org.rif.notifier.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -93,6 +94,9 @@ public class NotifierConfig implements SchedulingConfigurer {
     @Value("${rif.notifier.subscription.currencies}")
     private List<String> acceptedCurrencies;
 
+    @Value("${rif.notifier.provider.privatekey:#{null}}")
+    Optional<String> providerPrivateKey;
+
     /**
      * Returns from PhoneNumber to use with twilio if sms service is enabled
      * @throws ValidationException
@@ -131,6 +135,20 @@ public class NotifierConfig implements SchedulingConfigurer {
        } catch(RuntimeException e)  {
            throw new ValidationException("Invalid provider address format specified in rif.notifier.provider.address property. Please provide a valid address", e);
        }
+    }
+
+    /**
+     * validate the provider provider privatekey and make the property available for other classes
+     */
+    @Bean(name="providerPrivateKey")
+    public String providerPrivateKey() {
+        String privateKey = providerPrivateKey.orElseThrow(()->new ValidationException("rif.notifier.provider.privatekey property is mandatory. Please provide a valid privatekey"));
+        try {
+            Utils.verify(privateKey);
+            return privateKey;
+        } catch(RuntimeException e)  {
+            throw new ValidationException("Invalid private key specified. " + e.getMessage(), e);
+        }
     }
 
     /**

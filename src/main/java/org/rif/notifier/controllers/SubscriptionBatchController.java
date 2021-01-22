@@ -7,12 +7,8 @@ import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.exception.SubscriptionException;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
-import org.rif.notifier.models.DTO.DTOResponse;
-import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
-import org.rif.notifier.models.DTO.SubscriptionResponse;
-import org.rif.notifier.models.DTO.TopicDTO;
+import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
-import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.rif.notifier.validation.NotificationPreferenceValidator;
@@ -40,21 +36,24 @@ public class SubscriptionBatchController {
     private NotificationPreferenceManager notificationPreferenceManager;
     private NotificationPreferenceValidator notificationPreferenceValidator;
     private SubscribeValidator subscribeValidator;
-    //@Autowired
-    //@Qualifier("providerAddress")
-    //private String providerAddress;
+    private String providerAddress;
+    private String providerPrivateKey;
 
 
     @Autowired
     public SubscriptionBatchController(@Autowired SubscribeServices subscribeServices, @Autowired UserServices userServices,
                                        @Autowired NotificationPreferenceManager notificationPreferenceManager,
                                        @Autowired NotificationPreferenceValidator notificationPreferenceValidator,
-                                       @Autowired SubscribeValidator subscribeValidator) {
+                                       @Autowired SubscribeValidator subscribeValidator,
+                                        @Autowired @Qualifier("providerAddress") String providerAddress,
+                                       @Autowired @Qualifier("providerAddress") String providerPrivateKey) {
         this.subscribeServices = subscribeServices;
         this.userServices = userServices;
         this.notificationPreferenceManager = notificationPreferenceManager;
         this.notificationPreferenceValidator = notificationPreferenceValidator;
         this.subscribeValidator = subscribeValidator;
+        this.providerAddress = providerAddress;
+        this.providerPrivateKey = providerPrivateKey;
     }
 
     /**
@@ -111,9 +110,16 @@ public class SubscriptionBatchController {
         SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), subscriptionBatchDTO.getCurrency());
         Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId());
         subscribeToTopic(subscription, topicDTOs);
+        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress);
+        String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
+        subscription.setHash(hash);
+        //update the database with the generated hash
+        subscribeServices.updateSubscription(subscription);
+        //generate the subscription contract son
+        resp.setContent(subscribeServices.buildSubscriptionResponseMap(subscriptionDTO, hash, providerPrivateKey));
         return new ResponseEntity<>(resp, resp.getStatus());
-
     }
+
 
     /*
      * throws ValidationException in case of validation failure

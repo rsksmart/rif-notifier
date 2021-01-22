@@ -11,6 +11,10 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+/**
+ * Stroes information about topic, topic params and the notification preferences for
+ * the given topic as part of subscriptionbatchcontroller
+ */
 public class TopicDTO {
     @NotEmpty @Valid
     private List<NotificationPreference> notificationPreferences;
