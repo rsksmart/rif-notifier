@@ -103,7 +103,7 @@ public class Utils {
         byte [] signatureBytes = Numeric.hexStringToByteArray(signature);
         byte v = signatureBytes[64];
         if (v < 27) {
-            v += 27;
+            v += (byte)27;
         }
 
         Sign.SignatureData sd = new Sign.SignatureData(
@@ -131,7 +131,7 @@ public class Utils {
             byte[] signatureBytes = Numeric.hexStringToByteArray(signature);
             byte v = signatureBytes[64];
             if (v < 27) {
-                v += 27;
+                v += (byte)27;
             }
 
             Sign.SignatureData sd = new Sign.SignatureData(

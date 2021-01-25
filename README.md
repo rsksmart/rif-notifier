@@ -22,6 +22,7 @@
 	6. [Get chain addresses events](#get-rns-events)
 13. [Verify blockchain events are processed](#verify-blockchain-events)
 14. [Create Subscription Plans](#create-subscription-plans)
+15. [Health Check](#health-check)
 
 
 ## Quick Start
@@ -552,4 +553,53 @@ A sample json structure below
     ]
   }
 ]
+```
+
+##### Health Check
+Health check provides a way to ensure that the rif-notifier service is
+fully functional. The following url is used for health check
+``` 
+http://localhost:8080/actuator/health
+```
+A sample response is given below. status property in json is either UP or DOWN. The response json 
+also provides more details on individual services. The status for each individual
+service is UP, DOWN or disabled. When a notification service is not provided by the provider 
+thru ```notifier.services.enabled``` configuration property, the status of the 
+service is shown as disabled.
+```
+{
+    "status": "UP",
+    "details": {
+        "mail": {
+            "status": "disabled",
+            "details": {
+                "service": "service is not enabled in configuration"
+            }
+        },
+        "RSK": {
+            "status": "UP"
+        },
+        "SMS": {
+            "status": "disabled",
+            "details": {
+                "service": "service is not enabled in configuration"
+            }
+        },
+        "db": {
+            "status": "UP",
+            "details": {
+                "database": "MySQL",
+                "hello": 1
+            }
+        },
+        "diskSpace": {
+            "status": "UP",
+            "details": {
+                "total": 119824367616,
+                "free": 21785624576,
+                "threshold": 10485760
+            }
+        }
+    }
+}
 ```
