@@ -4,33 +4,8 @@
 
 1. [Quick start](#quick-start) 
 2. [Installation](#installation) 
-3. [Register user to notifier](#first-you-need-to-register-a-user)
-4. [Generate suscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
-5. [Suscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
-6. [Retrieve notifications](#getting-notifications)
-7. [Unsubscribe from topic](#unsubscribing-from-a-topic)
-8. [Other available endpoints](#other-available-endpoints)
-	1. [Get subscription info](#get-subscription-info)
-	2. [Get Lumino tokens](#get-lumino-tokens)
-	3. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
-	4. [Subscribe to close channel](#subscribe-to-close-channel)
-	5. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
-	6. [Get chain addresses events](#get-rns-events)
+3. [First steps](#first-steps)
 
-
-## Quick Start
-
-(This steps you can follow if you're already familiar with the notifier, otherwise jump to the installation guide first)
-
--First of all you need to set the blockchain endpoint in the application.properties of this project
-
--To subscribe to Events like Open Channel or Close Channel, there's a property that needs the Token Network Registry Address to be setted in the application.properties
-
--We use mysql for DB, please put your DB settings in the application.properties too
-
--You have the DB schema in src/main/resources/db_dumps/, look for the latest Dump.sql, create a DB with this schema, and in application.properties set the connection to your DB
-
--Get started with the following steps
 
 ## Installation
 ### Requirements
@@ -159,7 +134,24 @@ rsk.blockchain.multichaincontract=0x99a12be4C89CbF6CFD11d1F2c029904a7B644368
 ---
 
 ## Execution
+
+### Preconditions
+
+RIF Notifier uses `eth_getLogs` rpc to get the information about events, therefore the RSK node must respond in a reasonable 
+timeframe (< 30s)
+
+Since the `eth_getLogs` result is cached, it will take a long time for this call to finish the first time it is executed after the RSK node is started. This will happen each time the RSK node boots.
+After this, each call should be finished in a reasonable time.
+
+Use this curl to test the `eth_getLogs` response:
+```
+curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"eth_getLogs","params":[{"address":"0xde2D53e8d0E673A4b1D9054cE83091777F2fd8Ce","fromBlock":"0x0","toBlock":"latest"}],"id":74}'
+```
+
+### Start the application
+
 To run the RIF Notifier start a terminal in `notifier-dir` and run:
+
 
 ```shell
 mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=8080"
@@ -174,8 +166,10 @@ To update an already installed RIF Notifier follow these steps:
 3. Re-initialize the RIF Notifier database by following **step 4** in the [Installation steps section](#installation-steps).
 4. Start the RIF Notifier as indicated in the [Execution section](#execution).
 
-###### First you need to register a user
+## Firsts steps
 
+
+### Generate a user
 
 ```
 POST Request: http://localhost:8080/users?address=YOUR_ADDRESS
@@ -201,24 +195,7 @@ Return example:
 }
 ```
 
-
-## Now you need to generate a subscription to the service
-
-
-```
-POST Request: http://localhost:8080/subscribe?type=SUBSCRIPTION_TYPE
-Header param: 
-	key: apiKey #Remember that you get this apiKey from previous step
-	value: API_KEY 
-```
-
-*Not implemented yet*
-
-*SUBSCRIPTION_TYPE will indicate how many notifications you can recieve. So when selecting one, will be giving you a notification balance.*
-
-*When consuming this endpoint, the notifier will be creating a subscription and giving a lumino-invoice, that the user will need to pay. For development purposes, right now it's creating a subscription with MAX_INT*
-
-## Now you need to generate a subscription to the service
+### Now you need to generate a subscription to the service
 
 
 ```
@@ -235,7 +212,7 @@ Header param:
 *When consuming this endpoint, the notifier will be creating a subscription and giving a lumino-invoice, that the user will need to pay. For development purposes, right now it's creating a subscription with MAX_INT*
 
 
-## Now just rest to send the topics with params to be listened
+### Now just rest to send the topics with params to be listened
 
 
 ```
@@ -326,7 +303,7 @@ Return example:
 ```
 You can store that topicId for later get the notifications for that particular event
 
-## Getting notifications
+### Getting notifications
 
 When you're subscribed to topics, and a event is triggered the notifier will be processing the data, and saving it so you can access to that.
 
@@ -342,7 +319,7 @@ Query params:
 ```
 
 
-## Unsubscribing from a Topic
+### Unsubscribing from a Topic
 
 ```
 POST Request: http://localhost:8080/unsubscribeFromTopic?idTopic=ID_TOPIC
@@ -351,7 +328,7 @@ Header param:
 	value: API_KEY 
 ```
 
-## Other available endpoints
+### Other available endpoints
 
 ----------------
 ###### Get Subscription info
