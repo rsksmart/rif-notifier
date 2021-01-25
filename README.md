@@ -174,7 +174,49 @@ To update an already installed RIF Notifier follow these steps:
 3. Re-initialize the RIF Notifier database by following **step 4** in the [Installation steps section](#installation-steps).
 4. Start the RIF Notifier as indicated in the [Execution section](#execution).
 
+###### First you need to register a user
 
+
+```
+POST Request: http://localhost:8080/users?address=YOUR_ADDRESS
+Body (Text/plain): Here you need to put your address signed with your private key
+```
+
+The notifier will validate the body of that request, and making sure you own this address.
+
+This endpoint will give you an ApiKey, please keep track of this Api Key cause you will need it for future calls
+
+Newest implementations, if you re-send this, it will return the ApiKey, same as you register for the first time.
+
+Return example:
+
+```json
+{
+    "message": "OK",
+    "data": {
+        "address": "0x7bDB21b2d21EE4b30FB4Bb791781F7D17f465309",
+        "apiKey": "t9lkxFcjIsJL5rnwfPsAayPYBFdjxB74"
+    },
+    "status": "OK"
+}
+```
+
+
+## Now you need to generate a subscription to the service
+
+
+```
+POST Request: http://localhost:8080/subscribe?type=SUBSCRIPTION_TYPE
+Header param: 
+	key: apiKey #Remember that you get this apiKey from previous step
+	value: API_KEY 
+```
+
+*Not implemented yet*
+
+*SUBSCRIPTION_TYPE will indicate how many notifications you can recieve. So when selecting one, will be giving you a notification balance.*
+
+*When consuming this endpoint, the notifier will be creating a subscription and giving a lumino-invoice, that the user will need to pay. For development purposes, right now it's creating a subscription with MAX_INT*
 
 ## Now you need to generate a subscription to the service
 
