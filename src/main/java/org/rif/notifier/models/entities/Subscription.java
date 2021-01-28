@@ -62,6 +62,10 @@ public class Subscription implements Serializable {
     @Column(name = "notification_balance")
     private int notificationBalance;
 
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy="subscription", cascade = CascadeType.ALL)
+    private List<SubscriptionPayment> subscriptionPayments;
+
     public Subscription() {}
 
     public Subscription(Date activeSince, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus status) {
@@ -190,6 +194,14 @@ public class Subscription implements Serializable {
 
     public boolean isActive()  {
         return this.status == SubscriptionStatus.ACTIVE;
+    }
+
+    public List<SubscriptionPayment> getSubscriptionPayments() {
+        return subscriptionPayments;
+    }
+
+    public void setSubscriptionPayments(List<SubscriptionPayment> subscriptionPayments) {
+        this.subscriptionPayments = subscriptionPayments;
     }
 
     @Override

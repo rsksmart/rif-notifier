@@ -109,6 +109,10 @@ public class SubscribeServices  {
         return dbManagerFacade.getSubscriptionByAddressAndType(user_address, subscriptionPlan);
     }
 
+    public Subscription getSubscriptionByHash(String hash){
+        return dbManagerFacade.getSubscriptionByHash(hash);
+    }
+
     /**
      * Makes the relation between subscription and topic.
      * First checks if the Topic is already created, so if it is, it creates only the relation, in other case it applies logic to the topic sent

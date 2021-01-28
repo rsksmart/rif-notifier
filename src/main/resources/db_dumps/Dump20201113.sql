@@ -452,3 +452,6 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2021-01-12 16:32:24
+
+alter table subscription_payment add status enum('RECEIVED', 'WITHDRAWN', 'REFUNDED');
+alter table datafetcher modify block_type enum('RSK_BLOCK', 'RSK_CHAINADDR_BLOCK', 'RSK_BLOCK_PAYMENT');

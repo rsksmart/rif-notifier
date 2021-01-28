@@ -23,6 +23,16 @@ public class SubscriptionPayment {
     @JoinColumn(name="subscription_id")
     private Subscription subscription;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name="status")
+    private SubscriptionPaymentStatus status;
+
+    public SubscriptionPayment(BigInteger amount, Subscription subscription, SubscriptionPaymentStatus status) {
+        this.amount = amount;
+        this.subscription = subscription;
+        this.status = status;
+    }
+
     public int getId() {
         return id;
     }
@@ -61,5 +71,13 @@ public class SubscriptionPayment {
 
     public void setSubscription(Subscription subscription) {
         this.subscription = subscription;
+    }
+
+    public SubscriptionPaymentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SubscriptionPaymentStatus status) {
+        this.status = status;
     }
 }

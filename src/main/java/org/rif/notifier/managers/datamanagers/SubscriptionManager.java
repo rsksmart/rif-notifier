@@ -71,6 +71,11 @@ public class SubscriptionManager {
         return subscriptionRepository.findByUserAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 
+    public Subscription getSubscriptionByHash(String hash){
+        return subscriptionRepository.findByHash(hash);
+    }
+
+
     public Subscription insert(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus status, SubscriptionPrice subscriptionPrice) {
         Subscription sub = new Subscription(activeUntil, userAddress, subscriptionPlan, status);
         sub.setCurrency(subscriptionPrice.getCurrency());

@@ -23,6 +23,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
 
     List<Subscription> findByStatus(SubscriptionStatus subscriptionStatus);
 
+    Subscription findByHash(String hash);
+
     @Query(value = "SELECT * FROM subscription A WHERE A.status = 'ACTIVE' AND A.notification_balance > 0", nativeQuery = true)
     List<Subscription> findByActiveWithBalance();
 
@@ -34,4 +36,5 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
 
     @Query(value = "SELECT * FROM subscription A JOIN user_topic B ON A.id=B.id_subscription AND A.status = 'ACTIVE' AND A.notification_balance > 0 AND B.id_topic = ?1", nativeQuery = true)
     List<Subscription> findByIdTopicAndSubscriptionActiveAndPositiveBalance(int id);
+
 }

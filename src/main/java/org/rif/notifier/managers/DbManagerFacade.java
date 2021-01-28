@@ -133,6 +133,11 @@ public class DbManagerFacade {
         return subscriptionManager.getSubscriptionByAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 
+    public Subscription getSubscriptionByHash(String hash){
+        return subscriptionManager.getSubscriptionByHash(hash);
+    }
+
+
     @Transactional
     public Subscription createSubscription(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus subscriptionStatus, SubscriptionPrice subscriptionPrice) {
         return subscriptionManager.insert(activeUntil, userAddress, subscriptionPlan, subscriptionStatus, subscriptionPrice);
@@ -239,12 +244,20 @@ public class DbManagerFacade {
         return dataFetcherManager.saveOrUpdateBlockChainAddress(lastBlock);
     }
 
+    public DataFetcherEntity saveLastBlockPayment(BigInteger lastBlock){
+        return dataFetcherManager.saveOrUpdateBlockPayment(lastBlock);
+    }
+
     public BigInteger getLastBlock(){
         return dataFetcherManager.getLastRSKBlock();
     }
 
     public BigInteger getLastBlockForChainAddresses(){
         return dataFetcherManager.getLastRSKChainAddrBlock();
+    }
+
+    public BigInteger getLastBlockForPayment(){
+        return dataFetcherManager.getLastPaymentBlock();
     }
 
     @Transactional

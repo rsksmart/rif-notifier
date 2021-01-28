@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static org.rif.notifier.constants.TopicParamTypes.*;
@@ -466,5 +467,29 @@ public class MockTestData {
        subscriptionDTO.setStatus(SubscriptionStatus.PENDING);
        subscriptionDTO.setTopics(mockTopics());
        return subscriptionDTO;
+    }
+
+    public FetchedEvent mockPaymentEvent(String eventName){
+        List<Type > values = new ArrayList<>();
+        Address provider= new Address("0x0");
+        Utf8String hash = new Utf8String("testhash");
+        Utf8String currency = new Utf8String("RIF");
+        Uint256 price = new Uint256(100000);
+        values.add(hash);
+        values.add(provider);
+        values.add(price);
+        values.add(currency);
+        FetchedEvent fetchedEvent = new FetchedEvent
+                (eventName, values, new BigInteger("55"), "0x0", 0);
+
+        return  fetchedEvent;
+    }
+
+    public List<CompletableFuture<List<FetchedEvent>>> mockFutureEvent(FetchedEvent event)   {
+        List<FetchedEvent> list = Arrays.asList(new FetchedEvent[]{event});
+        CompletableFuture<List<FetchedEvent>> futureEvent = CompletableFuture.completedFuture(list);
+        List<CompletableFuture<List<FetchedEvent>>> futures = new ArrayList<>();
+        futures.add(futureEvent);
+        return futures;
     }
 }
