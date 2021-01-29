@@ -70,7 +70,7 @@ public class PaymentProcessingJobTest {
     public void canRefundSubscription() throws Exception   {
         Subscription sub = mockTestData.mockSubscription();
         paymentTest("Refund", 1, sub);
-        assertEquals(SubscriptionStatus.COMPLETED, sub.getStatus());
+        assertEquals(SubscriptionStatus.EXPIRED, sub.getStatus());
     }
 
     @Test

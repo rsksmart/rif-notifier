@@ -27,6 +27,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.time.LocalDate.now;
 import static org.rif.notifier.models.entities.SubscriptionPaymentStatus.*;
 
 /**
@@ -108,19 +109,9 @@ public class RskPaymentService {
                 } else {
                     logger.info(Thread.currentThread().getId() + " - End fetching payments = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching payments, size: " + fetchedEvents.size());
-                    processPaymentEvents(fetchedEvents);
+                    fetchedEvents.forEach(this::savePayment);
                 }
             });
-        });
-    }
-
-
-    private void processPaymentEvents(List<FetchedEvent> fetchedEvents){
-        ObjectMapper mapper = new ObjectMapper();
-        List<RawData> rawEvts = new ArrayList<>();
-        fetchedEvents.forEach(fetchedEvent -> {
-            List<Type> vals = fetchedEvent.getValues();
-            savePayment(fetchedEvent);
         });
     }
 
@@ -151,6 +142,8 @@ public class RskPaymentService {
                                 subscription.getCurrency().equals(paymentModel.getCurrency());
            //activate the subscription if price and currency match the subscription;
            if(priceMatch) {
+               subscription.setActiveSince(new Date());
+               subscription.setExpirationDate(java.sql.Date.valueOf(now().plusDays(subscription.getSubscriptionPlan().getValidity())));
                subscription.setStatus(SubscriptionStatus.ACTIVE);
                dbManagerFacade.updateSubscription(subscription);
            }
@@ -161,7 +154,8 @@ public class RskPaymentService {
 
     private void saveRefund(SubscriptionPaymentModel paymentModel, Subscription subscription) {
             //deactivate the subscription if price and currency match the subscription;
-            subscription.setStatus(SubscriptionStatus.COMPLETED);
+            subscription.setStatus(SubscriptionStatus.EXPIRED);
+            subscription.setExpirationDate(new Date());
             dbManagerFacade.updateSubscription(subscription);
     }
 
