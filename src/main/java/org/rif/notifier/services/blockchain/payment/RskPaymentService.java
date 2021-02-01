@@ -1,6 +1,8 @@
 package org.rif.notifier.services.blockchain.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.rif.notifier.exception.SubscriptionException;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.SubscriptionPaymentModel;
 import org.rif.notifier.models.datafetching.FetchedEvent;
@@ -27,6 +29,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.time.LocalDate.now;
 import static org.rif.notifier.models.entities.SubscriptionPaymentStatus.*;
 
 /**
@@ -106,23 +109,17 @@ public class RskPaymentService {
                     //set the database block to the original starting block for failure
                     dbManagerFacade.saveLastBlockPayment(lastBlock);
                 } else {
-                    logger.info(Thread.currentThread().getId() + " - End fetching payments = " + (end - start));
                     logger.info(Thread.currentThread().getId() + " - Completed fetching payments, size: " + fetchedEvents.size());
-                    processPaymentEvents(fetchedEvents);
+                    try {
+                        fetchedEvents.forEach(this::savePayment);
+                    } catch(Exception e) {
+                        logger.warn(e.getMessage(), e);
+                    }
                 }
             });
         });
     }
 
-
-    private void processPaymentEvents(List<FetchedEvent> fetchedEvents){
-        ObjectMapper mapper = new ObjectMapper();
-        List<RawData> rawEvts = new ArrayList<>();
-        fetchedEvents.forEach(fetchedEvent -> {
-            List<Type> vals = fetchedEvent.getValues();
-            savePayment(fetchedEvent);
-        });
-    }
 
     /*
     * Save a given payment
@@ -133,7 +130,8 @@ public class RskPaymentService {
         //only process payment if provider address matches
         if (paymentModel.getProvider().equals(new Address(providerAddress)))    {
             //find the subscription based on the hash received as part of the payment event
-            Subscription subscription = dbManagerFacade.getSubscriptionByHash(paymentModel.getHash());
+            Subscription subscription = Optional.ofNullable(dbManagerFacade.getSubscriptionByHash(paymentModel.getHash())).orElseThrow(
+                    ()->new SubscriptionException("Subscription not found for the given hash"));
             SubscriptionPayment subPayment = new SubscriptionPayment(paymentModel.getAmount(),
                     subscription, type);
             Optional<List<SubscriptionPayment>> subPayments = Optional.ofNullable(subscription.getSubscriptionPayments());
@@ -143,6 +141,9 @@ public class RskPaymentService {
             //call the corresponding payment method - saveSubscriptionPayment or saveRefund or saveWithdrawal
             payments.get(type).accept(paymentModel, subscription);
         }
+        else    {
+            throw new ValidationException("Invalid provider address received as part of payment event");
+        }
     }
 
     private void saveSubscriptionPayment(SubscriptionPaymentModel paymentModel, Subscription subscription) {
@@ -151,6 +152,8 @@ public class RskPaymentService {
                                 subscription.getCurrency().equals(paymentModel.getCurrency());
            //activate the subscription if price and currency match the subscription;
            if(priceMatch) {
+               subscription.setActiveSince(new Date());
+               subscription.setExpirationDate(java.sql.Date.valueOf(now().plusDays(subscription.getSubscriptionPlan().getValidity())));
                subscription.setStatus(SubscriptionStatus.ACTIVE);
                dbManagerFacade.updateSubscription(subscription);
            }
@@ -161,7 +164,8 @@ public class RskPaymentService {
 
     private void saveRefund(SubscriptionPaymentModel paymentModel, Subscription subscription) {
             //deactivate the subscription if price and currency match the subscription;
-            subscription.setStatus(SubscriptionStatus.COMPLETED);
+            subscription.setStatus(SubscriptionStatus.EXPIRED);
+            subscription.setExpirationDate(new Date());
             dbManagerFacade.updateSubscription(subscription);
     }
 

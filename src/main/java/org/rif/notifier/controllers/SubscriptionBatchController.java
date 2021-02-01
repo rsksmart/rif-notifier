@@ -95,7 +95,7 @@ public class SubscriptionBatchController {
      * @return
      */
     @ApiOperation(value = "Subscribe to Rif Notifier with plan id, topics, notification preferences", notes="Returns http 409 in case of error",
-            tags="{onboarding}", response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
     @ApiResponses(value={
             @ApiResponse(code=200, message="Subscription created successfully.", response=SubscriptionBatchResponse.class),
             @ApiResponse(code= 409, message="Error creating subsription.", response=DTOResponse.class)

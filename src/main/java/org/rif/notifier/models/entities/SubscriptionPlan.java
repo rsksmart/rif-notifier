@@ -1,5 +1,7 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -9,6 +11,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "SUBSCRIPTION_PLAN")
+@JsonPropertyOrder({"id", "name", "validity", "planStatus", "notificationPreferences", "notificationQuantity", "subscirptionPriceList"})
 public class SubscriptionPlan {
     @Id
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
@@ -26,6 +29,7 @@ public class SubscriptionPlan {
     @Column(name="notification_quantity")
     private int notificationQuantity;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name="status")
     private boolean status;
 
@@ -73,6 +77,11 @@ public class SubscriptionPlan {
         this.validity = validity;
     }
 
+    @JsonProperty
+    public String getPlanStatus()   {
+        return isStatus() ? "ACTIVE" : "INACTIVE";
+    }
+
     public Set getNotificationPreferences() {
         Set preferences  = new HashSet();
         Optional.ofNullable(this.notificationPreferences).ifPresent( p-> {
@@ -116,6 +125,8 @@ public class SubscriptionPlan {
     public void setSubscriptionPriceList(List<SubscriptionPrice> subscriptionPriceList) {
         this.subscriptionPriceList = subscriptionPriceList;
     }
+
+
 
     @Override
     public boolean equals(Object o) {
