@@ -104,7 +104,6 @@ public class PaymentProcessingJobTest {
     public void errorCurrencyNotMatching() throws Exception {
         Subscription sub = mockTestData.mockSubscription();
         paymentTest("SubscriptionCreated", "100000", "RIF2", 1, sub, "0x0", atLeastOnce());
-        verify(dbManagerFacade, never()).updateSubscription(any(Subscription.class));
         assertNotEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
     }
 
@@ -112,7 +111,6 @@ public class PaymentProcessingJobTest {
     public void errorAmountNotMatching() throws Exception {
         Subscription sub = mockTestData.mockSubscription();
         paymentTest("SubscriptionCreated", "1000", "RIF", 1, sub, "0x0", atLeastOnce());
-        verify(dbManagerFacade, never()).updateSubscription(any(Subscription.class));
         assertNotEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
     }
 
