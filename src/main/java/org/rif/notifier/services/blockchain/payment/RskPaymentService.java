@@ -141,9 +141,6 @@ public class RskPaymentService {
             //call the corresponding payment method - saveSubscriptionPayment or saveRefund or saveWithdrawal
             payments.get(type).accept(paymentModel, subscription);
         }
-        else    {
-            throw new ValidationException("Invalid provider address received as part of payment event");
-        }
     }
 
     private void saveSubscriptionPayment(SubscriptionPaymentModel paymentModel, Subscription subscription) {
@@ -158,7 +155,8 @@ public class RskPaymentService {
                dbManagerFacade.updateSubscription(subscription);
            }
            else {
-               logger.warn("Incorrect payment data received. price or currency not the same as in subscription");
+               dbManagerFacade.updateSubscription(subscription);
+               //logger.warn("Incorrect payment data received. price or currency not the same as in subscription");
            }
     }
 

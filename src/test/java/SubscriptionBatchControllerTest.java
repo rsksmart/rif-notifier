@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = SubscriptionBatchController.class)
 @ContextConfiguration(classes={Application.class, NotifierConfig.class})
-public class SubscriptonBatchControllerTest {
+public class SubscriptionBatchControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -76,6 +77,22 @@ public class SubscriptonBatchControllerTest {
         when(subscribeServices.createPendingSubscription(any(User.class), any(SubscriptionPlan.class), any(SubscriptionPrice.class))).thenReturn(subscription);
         when(subscribeServices.subscribeAndGetTopic(any(Topic.class), any(Subscription.class))).thenReturn(mockTestData.mockTopic());
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(null);
+    }
+
+    private SubscriptionBatchDTO prepareBatchTest() throws Exception{
+        return prepareBatchTest(mockTestData.mockSubscription());
+    }
+
+    private SubscriptionBatchDTO prepareBatchTest(Subscription prev)  throws Exception {
+        SubscriptionBatchDTO subscriptionBatch = mockTestData.mockSubscriptionBatch();
+        prev.setHash("test");
+        SubscriptionDTO subscriptionDTO = mockTestData.mockSubscriptionDTO();
+        SubscriptionBatchResponse response = new SubscriptionBatchResponse("test", "testsignature", subscriptionDTO);
+        when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(prev);
+        when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), anyString(), any(User.class))).thenReturn(subscriptionDTO);
+        when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
+        when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(response);
+        return subscriptionBatch;
     }
 
     @Test
@@ -133,21 +150,10 @@ public class SubscriptonBatchControllerTest {
 
     @Test
     public void canGetSignedResponse()  throws Exception    {
-        SubscriptionBatchDTO subscriptionBatch = mockTestData.mockSubscriptionBatch();
-        SubscriptionDTO subscriptionDTO = mockTestData.mockSubscriptionDTO();
-        Map resultMap = new HashMap();
-        resultMap.put("subscription", subscriptionDTO);
-        resultMap.put("hash", "test");
-        resultMap.put("signature", "testsignature");
-        SubscriptionBatchResponse response = new SubscriptionBatchResponse("test", "testsignature", subscriptionDTO);
-        DTOResponse dto = new DTOResponse();
-        when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), anyString(), any(User.class))).thenReturn(subscriptionDTO);
-        when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
-        when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(response);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToPlan")
                         .contentType(APPLICATION_JSON_UTF8)
-                        .content(mapper.writeValueAsString(subscriptionBatch))
+                        .content(mapper.writeValueAsString(prepareBatchTest()))
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -158,5 +164,55 @@ public class SubscriptonBatchControllerTest {
         assertEquals("testsignature", content.get("signature"));
         assertEquals("test", content.get("hash"));
     }
-}
 
+    @Test
+    public void canRenewBatch() throws Exception {
+        DTOResponse dto = new DTOResponse();
+        Subscription prev = mockTestData.mockSubscription();
+        SubscriptionBatchDTO batchDTO = prepareBatchTest(prev);
+        Subscription newSubscription = mockTestData.mockSubscription();
+        assertNotEquals(prev, newSubscription.getPreviousSubscription());
+        when(subscribeServices.createPendingSubscription(any(User.class), any(SubscriptionPlan.class), any(SubscriptionPrice.class))).thenReturn(newSubscription);
+        MvcResult result = mockMvc.perform(
+                post("/renewSubscription")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("previousSubscriptionHash", "test")
+                        .content(mapper.writeValueAsString(batchDTO))
+        )
+                .andExpect(status().isOk())
+                .andReturn();
+        DTOResponse dtResponse = new ObjectMapper().readValue(
+                result.getResponse().getContentAsByteArray(),
+                DTOResponse.class);
+        Map content = (Map)dtResponse.getContent();
+        assertEquals("test", content.get("hash"));
+        assertEquals(prev, newSubscription.getPreviousSubscription());
+    }
+
+    @Test
+    public void errorRenewBatchMissingRequestParam()   throws Exception    {
+        DTOResponse dto = new DTOResponse();
+        MvcResult result = mockMvc.perform(
+                post("/renewSubscription")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .content(mapper.writeValueAsString(prepareBatchTest()))
+        )
+                .andExpect(status().is4xxClientError())
+                .andReturn();
+    }
+
+    @Test
+    public void errorRenewBatchHashNotFound() throws Exception {
+        DTOResponse dto = new DTOResponse();
+        SubscriptionBatchDTO batchDTO = prepareBatchTest();
+        when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(null);
+        MvcResult result = mockMvc.perform(
+                post("/renewSubscription")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("previousSubscriptionHash", "invalidhash")
+                        .content(mapper.writeValueAsString(batchDTO))
+        )
+                .andExpect(status().isConflict())
+                .andReturn();
+    }
+}

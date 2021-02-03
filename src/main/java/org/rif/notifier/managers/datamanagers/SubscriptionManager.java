@@ -81,7 +81,7 @@ public class SubscriptionManager {
         sub.setCurrency(subscriptionPrice.getCurrency());
         sub.setPrice(subscriptionPrice.getPrice());
         sub.setHash(String.valueOf(sub.hashCode()));
-        sub.setExpirationDate(java.sql.Date.valueOf(now().plusDays(subscriptionPlan.getValidity())));
+        sub.setExpirationDate(java.sql.Date.valueOf(now()));
         Subscription result = subscriptionRepository.save(sub);
         return result;
     }

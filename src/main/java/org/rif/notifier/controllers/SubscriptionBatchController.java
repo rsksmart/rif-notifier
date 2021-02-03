@@ -21,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,7 +112,7 @@ public class SubscriptionBatchController {
         validate(topicDTOs);
         //proceed to create subscription
         SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), subscriptionBatchDTO.getCurrency());
-        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId());
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId(), false);
         subscribeToTopic(subscription, topicDTOs);
         SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress, user);
         String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
@@ -123,6 +124,50 @@ public class SubscriptionBatchController {
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 
+
+    @ApiOperation(value = "Renew Rif Notifier subscription with plan id, topics, notification preferences", notes="Returns http 409 in case of error",
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @ApiResponses(value={
+            @ApiResponse(code=200, message="Subscription created successfully.", response=SubscriptionBatchResponse.class),
+            @ApiResponse(code= 409, message="Error creating subsription.", response=DTOResponse.class)
+    })
+    @RequestMapping(value = "/renewSubscription", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
+    @ResponseBody
+    public ResponseEntity<DTOResponse> renewSubscription(
+            @ApiParam(required=true, name="Subscription hash of the previous subscription.")
+            @NotBlank @RequestParam String previousSubscriptionHash,
+            @ApiParam(required=true, name="Subscription details required to create the subscription. See SubscriptionBatchDTO")
+            @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
+        DTOResponse resp = new DTOResponse();
+        User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
+        //first validate if the topic and preferences are in correct format
+        List<TopicDTO> topicDTOs = subscriptionBatchDTO.getTopics();
+        validate(topicDTOs);
+        Subscription previousSubscription = validate(previousSubscriptionHash);
+        //proceed to create subscription
+        SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), subscriptionBatchDTO.getCurrency());
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId(), true);
+        subscription.setPreviousSubscription(previousSubscription);
+        subscribeToTopic(subscription, topicDTOs);
+        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress, user);
+        String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
+        subscription.setHash(hash);
+        //update the database with the generated hash
+        subscribeServices.updateSubscription(subscription);
+        //generate the subscription contract son
+        resp.setContent(subscribeServices.createSubscriptionBatchResponse(subscriptionDTO, hash, providerPrivateKey));
+        return new ResponseEntity<>(resp, resp.getStatus());
+    }
+
+
+    /*
+     * Validate that the given subscription exists
+     * @param previousSubscriptionHash
+     */
+    private Subscription validate(String previousSubscriptionHash)  {
+        return Optional.ofNullable(subscribeServices.getSubscriptionByHash(previousSubscriptionHash))
+                .orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_NOT_FOUND_HASH));
+    }
 
     /*
      * throws ValidationException in case of validation failure
@@ -142,6 +187,7 @@ public class SubscriptionBatchController {
             notificationPreferenceValidator.validate(topicDTO.getNotificationPreferences());
         });
     }
+
 
     private void subscribeToTopic(Subscription subscription, List<TopicDTO> topicDTOs) {
         topicDTOs.forEach(topicDTO->{
@@ -164,19 +210,20 @@ public class SubscriptionBatchController {
             preference.setIdTopic(topic.getId());
         });
         notificationPreferenceManager.saveNotificationPreferences(preferences);
-
     }
 
-    private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, int subscriptionPlanId)   {
+    private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, int subscriptionPlanId, boolean renewal)   {
         //validate if this subscription plan actually exists in the database
         SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(subscriptionPlanId);
         Optional.ofNullable(subscriptionPlan).orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //validate if the provided price exists for this plan
         subscribeValidator.validateSubscriptionPrice(subscriptionPrice, subscriptionPlan);
         //throw exception if subscription already added
-        Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(user.getAddress(), subscriptionPlan)).ifPresent(p -> {
-            throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
-        });
+        if (!renewal) {
+            Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(user.getAddress(), subscriptionPlan)).ifPresent(p -> {
+                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
+            });
+        }
         //if no active subscription for given user and subscription type found, then create a new subscriiption
         return subscribeServices.createPendingSubscription(user, subscriptionPlan, subscriptionPrice);
     }

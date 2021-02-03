@@ -53,7 +53,7 @@ public class SubscribeServices  {
     }
 
     public Subscription createPendingSubscription(User user, SubscriptionPlan plan, SubscriptionPrice subscriptionPrice)  {
-        return dbManagerFacade.createSubscription(new Date(),user.getAddress(), plan, SubscriptionStatus.PENDING, subscriptionPrice);
+        return dbManagerFacade.createSubscription(null,user.getAddress(), plan, SubscriptionStatus.PENDING, subscriptionPrice);
     }
 
     /**
