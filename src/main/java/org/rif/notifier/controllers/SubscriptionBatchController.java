@@ -45,7 +45,7 @@ public class SubscriptionBatchController {
                                        @Autowired NotificationPreferenceManager notificationPreferenceManager,
                                        @Autowired NotificationPreferenceValidator notificationPreferenceValidator,
                                        @Autowired SubscribeValidator subscribeValidator,
-                                        @Autowired @Qualifier("providerAddress") String providerAddress,
+                                       @Autowired @Qualifier("providerAddress") String providerAddress,
                                        @Autowired @Qualifier("providerPrivateKey") String providerPrivateKey) {
         this.subscribeServices = subscribeServices;
         this.userServices = userServices;

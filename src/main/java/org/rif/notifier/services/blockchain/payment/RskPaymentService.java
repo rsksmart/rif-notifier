@@ -56,9 +56,7 @@ public class RskPaymentService {
     }};
 
 
-    private String paymentSmartContractAddress;
-    private String withdrawalSmartContractAddress;
-    private String refundSmartContractAddress;
+    private String notifierSmartContractAddress;
     private String providerAddress;
 
 
@@ -95,7 +93,7 @@ public class RskPaymentService {
     }
 
     private EthereumBasedListenable getContractListenable(String eventName, TypeReference<?>... params)  {
-       return new EthereumBasedListenable(paymentSmartContractAddress,
+       return new EthereumBasedListenable(notifierSmartContractAddress,
                 EthereumBasedListenableTypes.CONTRACT_EVENT, Arrays.asList(params), eventName);
     }
 
@@ -173,15 +171,7 @@ public class RskPaymentService {
             dbManagerFacade.updateSubscription(subscription);
     }
 
-    public void setPaymentSmartContractAddress(String paymentSmartContractAddress) {
-        this.paymentSmartContractAddress = paymentSmartContractAddress;
-    }
-
-    public void setWithdrawalSmartContractAddress(String withdrawalSmartContractAddress) {
-        this.withdrawalSmartContractAddress = withdrawalSmartContractAddress;
-    }
-
-    public void setRefundSmartContractAddress(String refundSmartContractAddress) {
-        this.refundSmartContractAddress = refundSmartContractAddress;
+    public void setNotifierSmartContractAddress(String notifierSmartContractAddress) {
+        this.notifierSmartContractAddress = notifierSmartContractAddress;
     }
 }

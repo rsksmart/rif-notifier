@@ -22,13 +22,13 @@ public class SubscriptionBatchDTO {
     @ApiModelProperty(notes="List of topics and their preferences", required=true)
     @NotEmpty @Valid
     private List<TopicDTO> topics;
-    @ApiModelProperty(notes="user wallet address.", required = true)
+    @ApiModelProperty(notes="User wallet address.", required = true)
     @NotBlank
     private String userAddress;
     @ApiModelProperty(notes="Price of the subscription.")
     @NotNull @Min(1)
     private BigInteger price;
-    @ApiModelProperty(notes="Chosen currency for payment of subscription.", required=true, example = "RIF")
+    @ApiModelProperty(notes="Currency of the subscription.", required=true, example = "RIF")
     @NotBlank
     private String currency;
     @ApiModelProperty(notes="Plan id of the chosen subscription plan.", required=true, example="1")
