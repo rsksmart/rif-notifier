@@ -13,17 +13,23 @@ import org.rif.notifier.validation.SubscribeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
 
+import static java.time.LocalDate.now;
+
 @Service
 public class SubscribeServices  {
     private DbManagerFacade dbManagerFacade;
     private SubscribeValidator subscribeValidator;
+    @Value("${notificationservice.maxretries}")
+    private int maxRetries;
 
-    public SubscribeServices(@Autowired DbManagerFacade dbManagerFacade, @Autowired SubscribeValidator subscribeValidator){
+
+    public SubscribeServices(DbManagerFacade dbManagerFacade, SubscribeValidator subscribeValidator)    {
         this.dbManagerFacade = dbManagerFacade;
         this.subscribeValidator = subscribeValidator;
     }
@@ -42,12 +48,9 @@ public class SubscribeServices  {
     public String createSubscription(User user, SubscriptionPlan plan, SubscriptionPrice subscriptionPrice){
         String retVal = "";
         if(user != null && plan!= null) {
-//            if(isSubscriptionTypeValid(type.getId())) {
-            //Subscription sub = dbManagerFacade.createSubscription(new Date(), user.getAddress(), type, SubscriptionConstants.PENDING_PAYMENT);
             Subscription sub = dbManagerFacade.createSubscription(new Date(), user.getAddress(), plan, SubscriptionStatus.ACTIVE, subscriptionPrice);
             //Pending to generate a lumino-invoice
             retVal = LuminoInvoice.generateInvoice(user.getAddress());
-//            }
         }
         return retVal;
     }
@@ -58,20 +61,19 @@ public class SubscribeServices  {
 
     /**
      * This is use to activate a given subscription
+     * Sets expiration date to currentdate + validity
      * @param subscription Subscription that will be activated
      * @return true in success case, false otherwise
      */
     public boolean activateSubscription(Subscription subscription){
-        boolean retVal = false;
-        if(subscription != null) {
-            if(!subscription.isActive()) {
-                subscription.setStatus(SubscriptionStatus.ACTIVE);
-                subscription.setActiveSince(new Date());
-                Subscription sub = dbManagerFacade.updateSubscription(subscription);
-                retVal = sub != null;
-            }
+        if(subscription != null && !subscription.isActive()) {
+            Date expirationDate = java.sql.Date.valueOf(now().plusDays(subscription.getSubscriptionPlan().getValidity()));
+            subscription.setExpirationDate(expirationDate);
+            subscription.setActiveSince(new Date());
+            subscription.setStatus(SubscriptionStatus.ACTIVE);
+            return dbManagerFacade.updateSubscription(subscription) != null;
         }
-        return retVal;
+        return false;
     }
 
     /**
@@ -217,6 +219,26 @@ public class SubscribeServices  {
         return dbManagerFacade.getTopicById(idTopic);
     }
 
+    public List<Subscription> getZeroBalanceSubscriptions() {
+        return dbManagerFacade.getZeroBalanceSubscriptions();
+    }
+
+    public int getExpiredSubscriptionsCount()   {
+        return dbManagerFacade.getExpiredSubscriptionsCount();
+    }
+
+    public int getZeroBalanceSubscriptionsCount()   {
+        return dbManagerFacade.getZeroBalanceSubscriptionsCount();
+    }
+
+    public int updateExpiredSubscriptions() {
+        return dbManagerFacade.updateExpiredSubscriptions();
+    }
+
+    public int completeZeroBalanceSubscriptions() {
+        return dbManagerFacade.completeZeroBalanceSubscriptions();
+    }
+
     /*public Map<String, Object> buildSubscriptionResponseMap(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
         Map<String,Object> resp = new TreeMap<>();
         resp.put("hash", hash);
@@ -264,4 +286,38 @@ public class SubscribeServices  {
         return Utils.signAsString(hash, privateKey);
     }
 
+    /*
+    * Find a renewal candidate if the notification balance is zero and if exists a renewal subscription linked to the
+    * given subscription. This method ensures that there are no unsent notifications in the previous subscription before
+    * providing a renewal subscription.
+     */
+    private Optional<Subscription> getRenewalSubscription(Subscription prev)  {
+        boolean renewalCandidate = prev.getNotificationBalance() <= 0;
+        if(renewalCandidate)    {
+            // If there are any unsent notifications in the previous subscription, then skip processing renewal
+            renewalCandidate = dbManagerFacade.getUnsentNotificationsCount(prev.getId(), maxRetries) == 0;
+        }
+        return Optional.ofNullable(renewalCandidate ? dbManagerFacade.getSubscriptionByPreviousSubscription(prev) : null);
+    }
+
+    /**
+     * This method tries to renew to the given subscription if the notification balance is zero,
+     * and if a new renewal subscription linked to the subscription to be renewed exists.
+     * Returns true if renewal is successful. If no renewal exists, this method simply returns false
+     * @param prev the subscription for which a renewal has to be attempted
+     * @return true if the subscription has renewal and successfully renewed.
+     */
+    public boolean renewWhenZeroBalance(Subscription prev)    {
+        Optional<Subscription> renewalSubscription = getRenewalSubscription(prev);
+        //if the renewal subscription linked to prev subscription exists, then process renewal, and also
+        Optional<Boolean> renewed = renewalSubscription.map(renewal-> {
+           //change status of previous subscription from active to complete as there is no remaining balance in subscription
+           if (prev.getStatus() == SubscriptionStatus.ACTIVE) {
+               prev.setStatus(SubscriptionStatus.COMPLETED);
+               dbManagerFacade.updateSubscription(prev);
+           }
+           return activateSubscription(renewal);
+        });
+        return renewed.isPresent() && renewed.get();
+    }
 }

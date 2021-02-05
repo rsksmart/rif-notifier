@@ -1,12 +1,10 @@
 package org.rif.notifier.services;
 
-import org.rif.notifier.exception.NotificationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.managers.services.NotificationService;
 import org.rif.notifier.models.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +19,15 @@ public class NotificationServices {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationServices.class);
 
-    @Autowired
-    ApplicationContext applicationContext;
-
-    @Autowired
+    private ApplicationContext applicationContext;
     private DbManagerFacade dbManagerFacade;
+    private SubscribeServices subscribeServices;
+
+    public NotificationServices(ApplicationContext applicationContext, DbManagerFacade dbManagerFacade, SubscribeServices subscribeServices)    {
+        this.applicationContext = applicationContext;
+        this.dbManagerFacade = dbManagerFacade;
+        this.subscribeServices = subscribeServices;
+    }
 
     /**
      * Given an Address gets all the notifications
@@ -42,20 +44,6 @@ public class NotificationServices {
             });
         return lst;
     }
-
-    /**
-     * First implementation of notifyUsers method, that will be called to send all notification by preferences indicated previously by the end-user
-     //TODO Remove this method
-    public void notifyUsers() {
-        List<Subscription> activeSubs = dbManagerFacade.getAllActiveSubscriptions();
-        for (Subscription sub : activeSubs) {
-            List<Notification> notifications = dbManagerFacade.getNotificationsBySubscription(sub, null, null, null);
-            for (NotificationPreference preference : sub.getNotificationPreferences()) {
-                //TODO: write notification code
-            }
-        }
-    }
-     */
 
     /**
      * Sends a given notification for each preference (sms, api, email etc.) and saves the result of
@@ -76,6 +64,11 @@ public class NotificationServices {
                 logger.warn("Error sending notification for " + log.getNotificationPreference().getNotificationService() + " " + notification.getId(), e);
             }
         });
+        //renew the subscription if there is no remaining notification balance and all retries are exhausted or all notifications are sent
+        logs = notification.getNotificationLogs().stream().filter(log->!log.isSent() && log.getRetryCount()<maxRetries).collect(Collectors.toList());
+        if(logs.isEmpty()) {
+            subscribeServices.renewWhenZeroBalance(notification.getSubscription());
+        }
         return notification;
     }
 

@@ -10,6 +10,7 @@ import org.rif.notifier.models.entities.*;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
 import org.rif.notifier.models.listenable.EthereumBasedListenableTypes;
 import org.rif.notifier.models.web3Extensions.RSKTypeReference;
+import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.blockchain.generic.rootstock.RskBlockchainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +64,16 @@ public class RskPaymentService {
 
     RskBlockchainService rskBlockChainService;
     DbManagerFacade dbManagerFacade;
+    SubscribeServices subscribeServices;
     Map<SubscriptionPaymentStatus, BiConsumer<SubscriptionPaymentModel, Subscription>> payments = new HashMap<>();
 
 
-    public RskPaymentService(RskBlockchainService rskBlockChainService, DbManagerFacade dbManagerFacade, @Qualifier("providerAddress")String providerAddress) {
+    public RskPaymentService(RskBlockchainService rskBlockChainService, DbManagerFacade dbManagerFacade,
+                             SubscribeServices subscribeServices, @Qualifier("providerAddress")String providerAddress) {
         this.rskBlockChainService = rskBlockChainService;
         this.dbManagerFacade = dbManagerFacade;
         this.providerAddress = providerAddress;
+        this.subscribeServices = subscribeServices;
         payments.put(RECEIVED, this::saveSubscriptionPayment);
         payments.put(REFUNDED, this::saveRefund);
         payments.put(WITHDRAWN, this::saveWithdrawal);
@@ -149,14 +153,12 @@ public class RskPaymentService {
                                 subscription.getCurrency().equals(paymentModel.getCurrency());
            //activate the subscription if price and currency match the subscription;
            if(priceMatch) {
-               subscription.setActiveSince(new Date());
-               subscription.setExpirationDate(java.sql.Date.valueOf(now().plusDays(subscription.getSubscriptionPlan().getValidity())));
-               subscription.setStatus(SubscriptionStatus.ACTIVE);
-               dbManagerFacade.updateSubscription(subscription);
+              subscribeServices.activateSubscription(subscription);
            }
            else {
+               //save the subscription payment when incorrect without activating
                dbManagerFacade.updateSubscription(subscription);
-               //logger.warn("Incorrect payment data received. price or currency not the same as in subscription");
+               logger.warn("Incorrect payment data received. price or currency not the same as in subscription");
            }
     }
 
@@ -168,7 +170,6 @@ public class RskPaymentService {
     }
 
     private void saveWithdrawal(SubscriptionPaymentModel paymentModel, Subscription subscription) {
-            //subscription.setStatus(SubscriptionStatus.COMPLETED);
             dbManagerFacade.updateSubscription(subscription);
     }
 

@@ -4,6 +4,7 @@ import org.rif.notifier.models.entities.Subscription;
 import org.rif.notifier.models.entities.SubscriptionPlan;
 import org.rif.notifier.models.entities.SubscriptionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +26,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
 
     Subscription findByHash(String hash);
 
+    Subscription findByPreviousSubscription(Subscription sub);
+
     @Query(value = "SELECT * FROM subscription A WHERE A.status = 'ACTIVE' AND A.notification_balance > 0", nativeQuery = true)
     List<Subscription> findByActiveWithBalance();
 
@@ -37,4 +40,20 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
     @Query(value = "SELECT * FROM subscription A JOIN user_topic B ON A.id=B.id_subscription AND A.status = 'ACTIVE' AND A.notification_balance > 0 AND B.id_topic = ?1", nativeQuery = true)
     List<Subscription> findByIdTopicAndSubscriptionActiveAndPositiveBalance(int id);
 
+    @Query(value = "SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' AND s.notificationBalance=0 AND s.expirationDate >= CURRENT_DATE")
+    List<Subscription> findZeroBalanceSubscriptions();
+
+    @Query(value="SELECT COUNT(1) FROM Subscription s WHERE s.status <> 'EXPIRED' AND s.expirationDate < CURRENT_DATE")
+    int countExpiredSubscriptions();
+
+    @Query(value = "SELECT COUNT(1) FROM Subscription s WHERE s.status = 'ACTIVE' AND s.notificationBalance=0 AND s.expirationDate >= CURRENT_DATE")
+    int countZeroBalanceSubscriptions();
+
+    @Modifying
+    @Query(value = "UPDATE Subscription s SET s.status='EXPIRED' WHERE s.status <> 'EXPIRED' AND s.expirationDate < CURRENT_DATE")
+    int updateExpiredSubscriptions();
+
+    @Modifying
+    @Query(value = "UPDATE Subscription s SET s.status='COMPLETED' WHERE s.status = 'ACTIVE' AND s.notificationBalance=0 AND s.expirationDate >= CURRENT_DATE")
+    int completeZeroBalanceSubscriptions();
 }

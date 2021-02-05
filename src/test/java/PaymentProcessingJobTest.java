@@ -13,6 +13,7 @@ import org.rif.notifier.models.entities.Subscription;
 import org.rif.notifier.models.entities.SubscriptionStatus;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
 import org.rif.notifier.scheduled.PaymentProcessingJob;
+import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.blockchain.generic.rootstock.RskBlockchainService;
 import org.rif.notifier.services.blockchain.payment.RskPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ public class PaymentProcessingJobTest {
     @Mock private DbManagerFacade dbManagerFacade;
     @Mock private RskPaymentService rskPaymentService;
     @Mock private RskBlockchainService rskBlockchainService;
+    @Mock private SubscribeServices subscribeServices;
 
     @InjectMocks @Autowired private PaymentProcessingJob paymentJob;
     @InjectMocks @Autowired private RskPaymentService rskPaymentServiceInject;
@@ -117,6 +119,7 @@ public class PaymentProcessingJobTest {
     @Test
     public void canActivateSubscription() throws Exception   {
         Subscription sub = mockTestData.mockSubscription();
+        doCallRealMethod().when(subscribeServices).activateSubscription(any(Subscription.class));
         paymentTest("SubscriptionCreated", 1, sub);
         assertEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
     }

@@ -1,4 +1,5 @@
 import mocked.MockTestData;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -13,8 +14,10 @@ import org.rif.notifier.managers.services.impl.SMSService;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.scheduled.NotificationProcessorJob;
 import org.rif.notifier.services.NotificationServices;
+import org.rif.notifier.services.SubscribeServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.validation.constraints.Email;
 import java.io.IOException;
@@ -29,11 +32,11 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NotificationServicesTest {
-    @Mock
-    private DbManagerFacade dbManagerFacade;
+    @Mock private DbManagerFacade dbManagerFacade;
+    @Mock ApplicationContext applicationContext;
+    @Mock SubscribeServices subscribeServices;
 
-    @Mock
-    ApplicationContext applicationContext;
+    private static Date tomorrow = new Date(System.currentTimeMillis() + 86400000);
 
     @Autowired @InjectMocks
     private NotificationServices notificationServices;
@@ -45,6 +48,11 @@ public class NotificationServicesTest {
     SMSService smsService;
 
     private MockTestData mockTestData = new MockTestData();
+
+    @Before
+    public void setup() {
+        ReflectionTestUtils.setField(subscribeServices, "dbManagerFacade", dbManagerFacade);
+    }
 
     private Notification getNotification()  throws Exception  {
         Set<Notification> notifications = mockTestData.mockNotifications().stream().collect(Collectors.toSet());
@@ -119,6 +127,50 @@ public class NotificationServicesTest {
         doReturn(new ArrayList()).when(dbManagerFacade).getNotificationsBySubscription(sub, 0, 0, topics);
         List<Notification> notifResult = notificationServices.getNotificationsForSubscription(sub, 0, 0, topics);
         assertTrue(notifResult.size() == 0);
+    }
+
+    @Test
+    public void canRenewZeroBalanceSubscription()  throws Exception {
+        Notification notif = getNotification();
+        Subscription prev = mockTestData.mockSubscription();
+        prev.setNotificationBalance(0);
+        prev.setExpirationDate(tomorrow);
+        Subscription renewed = mockTestData.mockSubscription();
+        renewed.setNotificationBalance(100);
+        renewed.setStatus(SubscriptionStatus.PENDING);
+        renewed.setNotificationBalance(100);
+        notif.setSubscription(prev);
+        doCallRealMethod().when(subscribeServices).renewWhenZeroBalance(any(Subscription.class));
+        doCallRealMethod().when(subscribeServices).activateSubscription(any(Subscription.class));
+        when(dbManagerFacade.getSubscriptionByPreviousSubscription(any(Subscription.class))).thenReturn(renewed);
+        doReturn(new SuccessService()).when(applicationContext).getBean(anyString());
+        IntStream.range(0,10).forEach(i-> notificationServices.sendNotification(notif,10));
+        assertNotNull(renewed.getExpirationDate());
+        assertTrue(renewed.getExpirationDate().getTime() > System.currentTimeMillis());
+        //current subscription should be completed as balance is finished.
+        assertEquals(SubscriptionStatus.ACTIVE, renewed.getStatus());
+        assertEquals(SubscriptionStatus.COMPLETED, prev.getStatus());
+    }
+
+    @Test
+    public void failRenewZeroBalanceSubscriptionWithUnsentNotifications()  throws Exception {
+        Notification notif = getNotification();
+        Subscription prev = mockTestData.mockSubscription();
+        prev.setNotificationBalance(0);
+        prev.setExpirationDate(tomorrow);
+        Subscription renewed = mockTestData.mockSubscription();
+        renewed.setNotificationBalance(100);
+        renewed.setStatus(SubscriptionStatus.PENDING);
+        renewed.setNotificationBalance(100);
+        notif.setSubscription(prev);
+        doCallRealMethod().when(subscribeServices).renewWhenZeroBalance(any(Subscription.class));
+        when(dbManagerFacade.getUnsentNotificationsCount(anyInt(), anyInt())).thenReturn(1);
+        doReturn(new SuccessService()).when(applicationContext).getBean(anyString());
+        IntStream.range(0,10).forEach(i-> notificationServices.sendNotification(notif,10));
+        assertNull(renewed.getExpirationDate());
+        //current subscription should be active as there are unsent notifications even though balance is zero.
+        assertEquals(SubscriptionStatus.PENDING, renewed.getStatus());
+        assertEquals(SubscriptionStatus.ACTIVE, prev.getStatus());
     }
 
     private class SuccessService implements NotificationService   {

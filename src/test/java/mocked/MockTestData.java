@@ -2,7 +2,6 @@ package mocked;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mockito.Mockito;
-import org.rif.notifier.constants.SubscriptionConstants;
 import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
@@ -289,6 +288,7 @@ public class MockTestData {
     public SubscriptionPlan mockSubscriptionPlan(){
         SubscriptionPlan plan = new SubscriptionPlan(1000);
         plan.setId(1);
+        plan.setValidity(1);
         return plan;
     }
     public SubscriptionPrice mockSubscriptionPrice()   {
