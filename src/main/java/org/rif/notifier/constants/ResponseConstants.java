@@ -61,4 +61,6 @@ public interface ResponseConstants {
     String SUBSCRIPTION_PLAN_ID_INVALID = "Invalid subscription plan id. Please provide a valid subscription plan id.";
 
     String SUBSCRIPTION_NOT_FOUND_HASH = "Subscription not found for the provided hash.";
+
+    String PREVIOUS_SUBSCRIPTION_INVALID_STATE = "Renewal error. Previous Subscription is not activated yet.";
 }

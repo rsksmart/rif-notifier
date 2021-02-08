@@ -29,6 +29,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.rif.notifier.constants.TopicParamTypes.*;
 
@@ -245,6 +246,29 @@ public class MockTestData {
         sub.setTopics(topics);
         return sub;
     }
+    public SubscriptionPayment mockPayment(Subscription sub)    {
+        return mockPayment(sub, BigInteger.TEN);
+    }
+    public SubscriptionPayment mockPayment(Subscription sub, BigInteger paymentAmount)    {
+        SubscriptionPayment payment = new SubscriptionPayment(paymentAmount, sub, SubscriptionPaymentStatus.RECEIVED);
+        return payment;
+    }
+    public SubscriptionPayment mockRefund(Subscription sub, BigInteger refundAmount)    {
+        SubscriptionPayment payment = new SubscriptionPayment(refundAmount, sub, SubscriptionPaymentStatus.REFUNDED);
+        return payment;
+    }
+    public Subscription mockPaidSubscription() throws IOException {
+        SubscriptionPlan type = this.mockSubscriptionPlan();
+        User user = this.mockUser();
+        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.PENDING);
+        sub.setPrice(BigInteger.TEN);
+        sub.setSubscriptionPayments(Stream.of(mockPayment(sub)).collect(Collectors.toList()));
+        Topic topic = this.mockTopic();
+        Set<Topic> topics = new HashSet<>();
+        topics.add(topic);
+        sub.setTopics(topics);
+        return sub;
+    }
     public Subscription mockSubscriptionWithInvalidTopic() throws IOException {
         SubscriptionPlan type = this.mockSubscriptionPlan();
         User user = this.mockUser();
@@ -280,6 +304,8 @@ public class MockTestData {
         User user = this.mockUser();
         Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.PENDING);
         sub.setStatus(SubscriptionStatus.PENDING);
+        sub.setPrice(BigInteger.TEN);
+        sub.setSubscriptionPayments(Arrays.asList(mockPayment(sub)));
         return sub;
     }
     public User mockUser(){

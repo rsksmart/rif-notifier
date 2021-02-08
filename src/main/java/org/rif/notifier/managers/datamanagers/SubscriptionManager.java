@@ -79,26 +79,17 @@ public class SubscriptionManager {
         return subscriptionRepository.findByPreviousSubscription(prev);
     }
 
-    public List<Subscription> getZeroBalanceSubscriptions() {
-        return subscriptionRepository.findZeroBalanceSubscriptions();
+    public List<Subscription> getPendingSubscriptions() {
+        return subscriptionRepository.findPendingSubscriptions();
     }
 
     public int getExpiredSubscriptionsCount(){
         return subscriptionRepository.countExpiredSubscriptions();
     }
 
-    public int getZeroBalanceSubscriptionsCount(){
-        return subscriptionRepository.countZeroBalanceSubscriptions();
-    }
-
     public int updateExpiredSubscriptions() {
         return subscriptionRepository.updateExpiredSubscriptions();
     }
-
-    public int completeZeroBalanceSubscriptions() {
-        return subscriptionRepository.completeZeroBalanceSubscriptions();
-    }
-
 
     public Subscription insert(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus status, SubscriptionPrice subscriptionPrice) {
         Subscription sub = new Subscription(activeUntil, userAddress, subscriptionPlan, status);

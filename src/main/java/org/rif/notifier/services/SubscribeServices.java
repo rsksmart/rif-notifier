@@ -12,7 +12,6 @@ import org.rif.notifier.util.Utils;
 import org.rif.notifier.validation.SubscribeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -61,12 +60,13 @@ public class SubscribeServices  {
 
     /**
      * This is use to activate a given subscription
+     * only paid and pending subscriptions are activated.
      * Sets expiration date to currentdate + validity
      * @param subscription Subscription that will be activated
      * @return true in success case, false otherwise
      */
-    public boolean activateSubscription(Subscription subscription){
-        if(subscription != null && !subscription.isActive()) {
+    public boolean activateSubscription(Subscription subscription)  {
+        if(subscription != null && subscription.isPending() && subscription.isPaid()) {
             Date expirationDate = java.sql.Date.valueOf(now().plusDays(subscription.getSubscriptionPlan().getValidity()));
             subscription.setExpirationDate(expirationDate);
             subscription.setActiveSince(new Date());
@@ -219,33 +219,17 @@ public class SubscribeServices  {
         return dbManagerFacade.getTopicById(idTopic);
     }
 
-    public List<Subscription> getZeroBalanceSubscriptions() {
-        return dbManagerFacade.getZeroBalanceSubscriptions();
+    public List<Subscription> getPendingSubscriptions() {
+        return dbManagerFacade.getPendingSubscriptions();
     }
 
     public int getExpiredSubscriptionsCount()   {
         return dbManagerFacade.getExpiredSubscriptionsCount();
     }
 
-    public int getZeroBalanceSubscriptionsCount()   {
-        return dbManagerFacade.getZeroBalanceSubscriptionsCount();
-    }
-
     public int updateExpiredSubscriptions() {
         return dbManagerFacade.updateExpiredSubscriptions();
     }
-
-    public int completeZeroBalanceSubscriptions() {
-        return dbManagerFacade.completeZeroBalanceSubscriptions();
-    }
-
-    /*public Map<String, Object> buildSubscriptionResponseMap(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
-        Map<String,Object> resp = new TreeMap<>();
-        resp.put("hash", hash);
-        resp.put("signature", signHash(hash, privateKey));
-        resp.put("subscription", subscriptionDTO);
-        return resp;
-    }*/
 
     public SubscriptionBatchResponse createSubscriptionBatchResponse(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
         String signature = signHash(hash, privateKey);

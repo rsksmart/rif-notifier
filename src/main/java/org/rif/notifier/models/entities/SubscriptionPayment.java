@@ -80,4 +80,12 @@ public class SubscriptionPayment {
     public void setStatus(SubscriptionPaymentStatus status) {
         this.status = status;
     }
+
+    public boolean isRefunded() {
+        return status == SubscriptionPaymentStatus.REFUNDED;
+    }
+
+    public boolean isReceived() {
+        return status == SubscriptionPaymentStatus.RECEIVED;
+    }
 }

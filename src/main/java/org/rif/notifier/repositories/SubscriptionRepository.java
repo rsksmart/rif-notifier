@@ -40,20 +40,19 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
     @Query(value = "SELECT * FROM subscription A JOIN user_topic B ON A.id=B.id_subscription AND A.status = 'ACTIVE' AND A.notification_balance > 0 AND B.id_topic = ?1", nativeQuery = true)
     List<Subscription> findByIdTopicAndSubscriptionActiveAndPositiveBalance(int id);
 
-    @Query(value = "SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' AND s.notificationBalance=0 AND s.expirationDate >= CURRENT_DATE")
-    List<Subscription> findZeroBalanceSubscriptions();
+    /**
+     * Get all pending subscriptions that have been paid and don't have a pending or active previous subscription
+     * @return
+     */
+    @Query(value = "SELECT DISTINCT cur.* FROM subscription cur JOIN subscription_payment p ON cur.id=p.subscription_id " +
+                    "AND p.amount>=cur.price LEFT JOIN subscription prev ON prev.id=cur.previous_subscription_id WHERE " +
+                    "(pr.id IS NULL OR pr.status NOT IN  ('ACTIVE')) AND cur.status='PENDING'",nativeQuery = true)
+    List<Subscription> findPendingSubscriptions();
 
     @Query(value="SELECT COUNT(1) FROM Subscription s WHERE s.status <> 'EXPIRED' AND s.expirationDate < CURRENT_DATE")
     int countExpiredSubscriptions();
 
-    @Query(value = "SELECT COUNT(1) FROM Subscription s WHERE s.status = 'ACTIVE' AND s.notificationBalance=0 AND s.expirationDate >= CURRENT_DATE")
-    int countZeroBalanceSubscriptions();
-
     @Modifying
     @Query(value = "UPDATE Subscription s SET s.status='EXPIRED' WHERE s.status <> 'EXPIRED' AND s.expirationDate < CURRENT_DATE")
     int updateExpiredSubscriptions();
-
-    @Modifying
-    @Query(value = "UPDATE Subscription s SET s.status='COMPLETED' WHERE s.status = 'ACTIVE' AND s.notificationBalance=0 AND s.expirationDate >= CURRENT_DATE")
-    int completeZeroBalanceSubscriptions();
 }

@@ -141,28 +141,18 @@ public class DbManagerFacade {
         return subscriptionManager.getSubscriptionByPreviousSubscription(prev);
     }
 
-    public List<Subscription> getZeroBalanceSubscriptions() {
-        return subscriptionManager.getZeroBalanceSubscriptions();
+    public List<Subscription> getPendingSubscriptions() {
+        return subscriptionManager.getPendingSubscriptions();
     }
 
     public int getExpiredSubscriptionsCount()   {
         return subscriptionManager.getExpiredSubscriptionsCount();
     }
 
-    public int getZeroBalanceSubscriptionsCount()   {
-        return subscriptionManager.getZeroBalanceSubscriptionsCount();
-    }
-
     @Transactional
     public int updateExpiredSubscriptions() {
         return subscriptionManager.updateExpiredSubscriptions();
     }
-
-    @Transactional
-    public int completeZeroBalanceSubscriptions() {
-        return subscriptionManager.completeZeroBalanceSubscriptions();
-    }
-
 
     @Transactional
     public Subscription createSubscription(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus subscriptionStatus, SubscriptionPrice subscriptionPrice) {

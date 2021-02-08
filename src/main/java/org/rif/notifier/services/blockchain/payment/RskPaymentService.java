@@ -147,17 +147,19 @@ public class RskPaymentService {
 
     private void saveSubscriptionPayment(SubscriptionPaymentModel paymentModel, Subscription subscription) {
 
-           boolean priceMatch = subscription.getPrice().equals(paymentModel.getAmount()) &&
+        boolean priceMatch = subscription.getPrice().equals(paymentModel.getAmount()) &&
                                 subscription.getCurrency().equals(paymentModel.getCurrency());
-           //activate the subscription if price and currency match the subscription;
-           if(priceMatch) {
-              subscribeServices.activateSubscription(subscription);
-           }
-           else {
-               //save the subscription payment when incorrect without activating
-               dbManagerFacade.updateSubscription(subscription);
-               logger.warn("Incorrect payment data received. price or currency not the same as in subscription");
-           }
+        //save the subscription payment when correct or incorrect without activating
+        Subscription sub = dbManagerFacade.updateSubscription(subscription);
+        //try activate the subscription if price and currency match the subscription
+        // and when there is no active or pending previous subscription
+        if(priceMatch && sub.canActivate()) {
+            subscribeServices.activateSubscription(sub);
+        }
+        else {
+            logger.warn("Incorrect payment data received. price or currency not the same as in subscription, " +
+                    "or the previous subscription is still active or pending.");
+        }
     }
 
     private void saveRefund(SubscriptionPaymentModel paymentModel, Subscription subscription) {

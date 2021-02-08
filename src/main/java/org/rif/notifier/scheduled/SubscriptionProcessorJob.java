@@ -34,14 +34,14 @@ public class SubscriptionProcessorJob {
             int numExpired = subscribeServices.updateExpiredSubscriptions();
             logger.info(numExpired + " subscriptions were automatically expired.");
         }
-        //renew those subscriptions with zero balance and have a linked new subscription
-        List<Subscription> zeroBalanceSubscriptions = subscribeServices.getZeroBalanceSubscriptions();
-        MutableInt renewedCount = new MutableInt();
-        zeroBalanceSubscriptions.forEach(sub->{
-            if(subscribeServices.renewWhenZeroBalance(sub)) {
-                renewedCount.increment();
+        //activate/renew pending subscriptions that have been paid and have no active or pending previous subscription
+        List<Subscription> pendingSubscriptions = subscribeServices.getPendingSubscriptions();
+        MutableInt activatedCount = new MutableInt();
+        pendingSubscriptions.forEach(sub->{
+            if(subscribeServices.activateSubscription(sub)) {
+                activatedCount.increment();
             }
         });
-        logger.info(renewedCount.intValue() + " subscriptions were automatically renewed.");
+        logger.info(activatedCount.intValue() + " subscriptions were automatically activated/renewed.");
     }
 }

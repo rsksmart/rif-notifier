@@ -2,15 +2,10 @@ package org.rif.notifier.boot.configuration;
 
 import com.twilio.Twilio;
 import com.twilio.type.PhoneNumber;
-import org.apache.commons.lang3.StringUtils;
 import org.rif.notifier.exception.ScheduledErrorHandler;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.entities.NotificationServiceType;
-import org.rif.notifier.scheduled.NotificationProcessorJob;
 import org.rif.notifier.util.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +16,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.web3j.abi.datatypes.Address;
 
-import javax.validation.constraints.Pattern;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;

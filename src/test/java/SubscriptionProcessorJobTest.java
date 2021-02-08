@@ -13,11 +13,10 @@ import org.rif.notifier.services.SubscribeServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,43 +42,75 @@ public class SubscriptionProcessorJobTest {
 
     private static Date tomorrow = new Date(System.currentTimeMillis() + 86400000);
 
-    private void prepareTest(Subscription prev, Subscription renewed)  throws Exception {
-        prev.setExpirationDate(tomorrow);
-        renewed.setStatus(SubscriptionStatus.PENDING);
-        renewed.setNotificationBalance(100);
-        //renewed.setExpirationDate(tomorrow);
-        doCallRealMethod().when(subscribeServices).renewWhenZeroBalance(any(Subscription.class));
+    private void prepareTest(Subscription sub)  throws Exception {
+        sub.setStatus(SubscriptionStatus.PENDING);
         doCallRealMethod().when(subscribeServices).activateSubscription(any(Subscription.class));
-        when(dbManagerFacade.getSubscriptionByPreviousSubscription(any(Subscription.class))).thenReturn(renewed);
+        when(dbManagerFacade.updateSubscription(any(Subscription.class))).thenReturn(sub);
         when(subscribeServices.getExpiredSubscriptionsCount()).thenReturn(1);
-        when(subscribeServices.getZeroBalanceSubscriptions()).thenReturn(Arrays.asList(prev));
-        subscriptionProcessorJob.run();
+        when(subscribeServices.getPendingSubscriptions()).thenReturn(Arrays.asList(sub));
     }
 
     @Test
-    public void canActivatePreviousubscription()    throws Exception {
-        Subscription prev = mockTestData.mockSubscription();
-        Subscription renewed = mockTestData.mockSubscription();
-        prepareTest(prev, renewed);
-        prev.setNotificationBalance(0);
+    public void canActivatePendingPaidSubscription()    throws Exception {
+        Subscription sub = mockTestData.mockPaidSubscription();
+        prepareTest(sub);
         subscriptionProcessorJob.run();
-        assertNotNull(renewed.getExpirationDate());
-        assertTrue(renewed.getExpirationDate().getTime() > System.currentTimeMillis());
-        //current subscription should be active as balance is finished.
-        assertEquals(SubscriptionStatus.ACTIVE, renewed.getStatus());
-        assertEquals(SubscriptionStatus.COMPLETED, prev.getStatus());
+        assertNotNull(sub.getExpirationDate());
+        assertTrue(sub.getExpirationDate().getTime() > System.currentTimeMillis());
+        //subscription should be active as payment is made.
+        assertEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
     }
 
     @Test
-    public void failActivatePreviousubscription()    throws Exception {
-        Subscription prev = mockTestData.mockSubscription();
-        Subscription renewed = mockTestData.mockSubscription();
-        prepareTest(prev, renewed);
-        prev.setNotificationBalance(1);
+    public void failActivateUnpaid()    throws Exception {
+        Subscription sub= mockTestData.mockSubscription();
+        prepareTest(sub);
         subscriptionProcessorJob.run();
-        assertNull(renewed.getExpirationDate());
-        //prev subscription should still be active as balance not finished.
-        assertEquals(SubscriptionStatus.ACTIVE, prev.getStatus());
-        assertEquals(SubscriptionStatus.PENDING, renewed.getStatus());
+        assertNull(sub.getExpirationDate());
+        //subscription should still be pending as payment not made.
+        assertEquals(SubscriptionStatus.PENDING, sub.getStatus());
+    }
+
+    @Test
+    public void failActivateRefunded()    throws Exception {
+        Subscription sub= mockTestData.mockPaidSubscription();
+        sub.getSubscriptionPayments().add(mockTestData.mockRefund(sub,BigInteger.TEN));
+        prepareTest(sub);
+        subscriptionProcessorJob.run();
+        assertNull(sub.getExpirationDate());
+        //subscription should still be pending as payment was refunded.
+        assertEquals(SubscriptionStatus.PENDING, sub.getStatus());
+    }
+
+    /**
+     * Verify activation of subscription when payment amount minus refund amount is >= price subscription
+     * @throws Exception
+     */
+    @Test
+    public void canActivateHigherPaid()    throws Exception {
+        Subscription sub= mockTestData.mockPaidSubscription();
+        sub.getSubscriptionPayments().add(mockTestData.mockRefund(sub,BigInteger.TEN));
+        sub.getSubscriptionPayments().add(mockTestData.mockPayment(sub,BigInteger.TEN));
+        prepareTest(sub);
+        subscriptionProcessorJob.run();
+        assertNotNull(sub.getExpirationDate());
+        //subscription should be active as difference of subscription payment and refund exceeds or equals to the subscription price
+        assertEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
+    }
+
+    /**
+     * only pending subscriptions can be activated
+     * @throws Exception
+     */
+    @Test
+    public void failActivateNonPending()    throws Exception {
+        Subscription sub = mockTestData.mockPaidSubscription();
+        prepareTest(sub);
+        Stream.of(SubscriptionStatus.COMPLETED, SubscriptionStatus.ACTIVE, SubscriptionStatus.EXPIRED).forEach(status->{
+            sub.setStatus(status);
+            subscriptionProcessorJob.run();
+            //subscription should still be expired as only pending subscriptions can be activated
+            assertEquals(status, sub.getStatus());
+        });
     }
 }

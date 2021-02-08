@@ -161,12 +161,17 @@ public class SubscriptionBatchController {
 
 
     /*
-     * Validate that the given subscription exists
+     * Validate that the previous subscription exists and is not in pending state
+     * Only active, completed or expired subscriptions can be renewed.
      * @param previousSubscriptionHash
      */
     private Subscription validate(String previousSubscriptionHash)  {
-        return Optional.ofNullable(subscribeServices.getSubscriptionByHash(previousSubscriptionHash))
+        Subscription subscription = Optional.ofNullable(subscribeServices.getSubscriptionByHash(previousSubscriptionHash))
                 .orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_NOT_FOUND_HASH));
+        if(subscription.isPending())    {
+            throw new ValidationException(ResponseConstants.PREVIOUS_SUBSCRIPTION_INVALID_STATE);
+        }
+        return subscription;
     }
 
     /*

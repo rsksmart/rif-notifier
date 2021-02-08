@@ -1,4 +1,7 @@
 import mocked.MockTestData;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -10,6 +13,7 @@ import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.entities.Subscription;
+import org.rif.notifier.models.entities.SubscriptionPaymentStatus;
 import org.rif.notifier.models.entities.SubscriptionStatus;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
 import org.rif.notifier.scheduled.PaymentProcessingJob;
@@ -21,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -38,6 +43,11 @@ public class PaymentProcessingJobTest {
     @InjectMocks @Autowired private RskPaymentService rskPaymentServiceInject;
 
     private MockTestData mockTestData = new MockTestData();
+
+    @Before
+    public void setup() {
+       ReflectionTestUtils.setField(subscribeServices, "dbManagerFacade", dbManagerFacade);
+    }
 
     public void prepareDataFetcherTest(String dbLastBlock, String rskLastBlock) throws Exception    {
         doReturn(new BigInteger(dbLastBlock)).when(dbManagerFacade).getLastBlockForPayment();
@@ -120,6 +130,7 @@ public class PaymentProcessingJobTest {
     public void canActivateSubscription() throws Exception   {
         Subscription sub = mockTestData.mockSubscription();
         doCallRealMethod().when(subscribeServices).activateSubscription(any(Subscription.class));
+        when(dbManagerFacade.updateSubscription(any(Subscription.class))).thenReturn(sub);
         paymentTest("SubscriptionCreated", 1, sub);
         assertEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
     }
@@ -146,5 +157,63 @@ public class PaymentProcessingJobTest {
         paymentTest("Withdrawal",1, sub);
         paymentTest("Refund",2, sub);
         paymentTest("SubscriptionCreated",3, sub);
+    }
+
+    /*
+    * Verify activation not successful when
+     */
+    @Test
+    public void failActivateNewWhenCurrentlyActive() throws Exception   {
+        Subscription sub = mockTestData.mockPaidSubscription();
+        Subscription prev = mockTestData.mockPaidSubscription();
+        when(dbManagerFacade.updateSubscription(any(Subscription.class))).thenReturn(sub);
+        prev.setStatus(SubscriptionStatus.ACTIVE);
+        sub.setPreviousSubscription(prev);
+        paymentTest("SubscriptionCreated", 2, sub);
+        //the subscription should not be active as there is a previously active subscription
+        assertEquals(SubscriptionStatus.PENDING, sub.getStatus());
+    }
+
+    /*
+     * Verify activation when previous is not active
+     */
+    @Test
+    public void canActivateNewWhenPreviousNotActive() throws Exception   {
+        Subscription sub = mockTestData.mockPaidSubscription();
+        Subscription prev = mockTestData.mockPaidSubscription();
+        doCallRealMethod().when(subscribeServices).activateSubscription(any(Subscription.class));
+        when(dbManagerFacade.updateSubscription(any(Subscription.class))).thenReturn(sub);
+        MutableInt expected = new MutableInt(1);
+        //if the previous subscription sttus is not pending or active, then activate the new subscription
+        Stream.of(SubscriptionStatus.EXPIRED, SubscriptionStatus.COMPLETED).forEach(status->{
+            prev.setStatus(status);
+            sub.setPreviousSubscription(prev);
+            try {
+                paymentTest("SubscriptionCreated", expected.incrementAndGet(), sub);
+            } catch(Exception e)    {
+                throw new RuntimeException(e);
+            }
+            //the subscription should be active as there is no previously active  or pending subscription
+            assertEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
+            sub.setStatus(SubscriptionStatus.PENDING);
+        });
+
+    }
+
+    /*
+     * Verify activation when previous is not active
+     */
+    @Test
+    public void errorActivateNewWhenPreviousPending() throws Exception   {
+        Subscription sub = mockTestData.mockPaidSubscription();
+        Subscription prev = mockTestData.mockPaidSubscription();
+        MutableInt expected = new MutableInt(1);
+        //if the previous subscription sttus is still pending, then don't activate the new subscription
+        prev.setStatus(SubscriptionStatus.PENDING);
+        sub.setPreviousSubscription(prev);
+        paymentTest("SubscriptionCreated", expected.incrementAndGet(), sub);
+        //the subscription should not be active as there is a previously active subscription
+        assertEquals(SubscriptionStatus.PENDING, sub.getStatus());
+
     }
 }
