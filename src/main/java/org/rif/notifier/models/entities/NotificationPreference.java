@@ -1,6 +1,8 @@
 package org.rif.notifier.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.Type;
@@ -10,17 +12,20 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+
 @Entity
 @Table(name = "notification_preference")
 @TypeDef(
         name = "json",
         typeClass = com.vladmihalcea.hibernate.type.json.JsonStringType.class
 )
+@ApiModel(description="Defines a notification preference for a given subscription and topic")
 public class NotificationPreference {
     @Id
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
     private int id;
 
+    @ApiModelProperty(notes="Type of notification preference",  allowableValues = "SMS,EMAIL,API", required=true, example="SMS")
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "notification_service")
@@ -32,10 +37,12 @@ public class NotificationPreference {
     @JoinColumn(name="id_subscription")
     private Subscription subscription;
 
+    @ApiModelProperty(notes="Destination for ex. +13477777777 or test@test.com or http://apiurl",  required=true, example="test@test.com")
     @NotBlank
     @Column
     private String destination;
 
+    @ApiModelProperty(notes="Destination parameters for API preference type",  required=false)
     @Type(type="json")
     @Column(columnDefinition = "json")
     private DestinationParams destinationParams;

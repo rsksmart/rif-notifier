@@ -2,10 +2,10 @@ package mocked;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mockito.Mockito;
-import org.rif.notifier.constants.SubscriptionConstants;
 import org.rif.notifier.constants.TopicParamTypes;
 import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
+import org.rif.notifier.models.DTO.SubscriptionDTO;
 import org.rif.notifier.models.DTO.TopicDTO;
 import org.rif.notifier.models.datafetching.FetchedBlock;
 import org.rif.notifier.models.datafetching.FetchedEvent;
@@ -27,13 +27,17 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.rif.notifier.constants.TopicParamTypes.*;
 
 public class MockTestData {
 
     private static final String PATH_TO_TYPES = "org.web3j.abi.datatypes.";
+
+    public static final String PRIVATE_KEY = "a392604efc2fad9c0b3da43b5f698a2e3f270f170d859912be0d54742275c5f6";
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -242,6 +246,29 @@ public class MockTestData {
         sub.setTopics(topics);
         return sub;
     }
+    public SubscriptionPayment mockPayment(Subscription sub)    {
+        return mockPayment(sub, BigInteger.TEN);
+    }
+    public SubscriptionPayment mockPayment(Subscription sub, BigInteger paymentAmount)    {
+        SubscriptionPayment payment = new SubscriptionPayment(paymentAmount, sub, SubscriptionPaymentStatus.RECEIVED);
+        return payment;
+    }
+    public SubscriptionPayment mockRefund(Subscription sub, BigInteger refundAmount)    {
+        SubscriptionPayment payment = new SubscriptionPayment(refundAmount, sub, SubscriptionPaymentStatus.REFUNDED);
+        return payment;
+    }
+    public Subscription mockPaidSubscription() throws IOException {
+        SubscriptionPlan type = this.mockSubscriptionPlan();
+        User user = this.mockUser();
+        Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.PENDING);
+        sub.setPrice(BigInteger.TEN);
+        sub.setSubscriptionPayments(Stream.of(mockPayment(sub)).collect(Collectors.toList()));
+        Topic topic = this.mockTopic();
+        Set<Topic> topics = new HashSet<>();
+        topics.add(topic);
+        sub.setTopics(topics);
+        return sub;
+    }
     public Subscription mockSubscriptionWithInvalidTopic() throws IOException {
         SubscriptionPlan type = this.mockSubscriptionPlan();
         User user = this.mockUser();
@@ -277,13 +304,18 @@ public class MockTestData {
         User user = this.mockUser();
         Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.PENDING);
         sub.setStatus(SubscriptionStatus.PENDING);
+        sub.setPrice(BigInteger.TEN);
+        sub.setSubscriptionPayments(Arrays.asList(mockPayment(sub)));
         return sub;
     }
     public User mockUser(){
         return new User("0x7bDB21b2d21EE4b30FB4Bb791781F7D17f465309", "123456789");
     }
     public SubscriptionPlan mockSubscriptionPlan(){
-        return new SubscriptionPlan(1000);
+        SubscriptionPlan plan = new SubscriptionPlan(1000);
+        plan.setId(1);
+        plan.setValidity(1);
+        return plan;
     }
     public SubscriptionPrice mockSubscriptionPrice()   {
         SubscriptionPrice p = new SubscriptionPrice(new BigInteger("20"), "RSK");
@@ -449,5 +481,41 @@ public class MockTestData {
         mock.setSubscriptionPlanId(1);
         mock.setCurrency("RIF");
         return mock;
+    }
+
+    public SubscriptionDTO mockSubscriptionDTO()    throws IOException {
+       SubscriptionDTO subscriptionDTO = new SubscriptionDTO();
+       subscriptionDTO.setPrice(BigInteger.TEN);
+       subscriptionDTO.setCurrency("RIF");
+       subscriptionDTO.setUserAddress("0x0");
+       subscriptionDTO.setProviderAddress("0x0");
+       subscriptionDTO.setNotificationBalance(10000);
+       subscriptionDTO.setStatus(SubscriptionStatus.PENDING);
+       subscriptionDTO.setTopics(mockTopics());
+       return subscriptionDTO;
+    }
+
+    public FetchedEvent mockPaymentEvent(String eventName){
+        List<Type > values = new ArrayList<>();
+        Address provider= new Address("0x0");
+        Utf8String hash = new Utf8String("testhash");
+        Utf8String currency = new Utf8String("RIF");
+        Uint256 price = new Uint256(100000);
+        values.add(hash);
+        values.add(provider);
+        values.add(price);
+        values.add(currency);
+        FetchedEvent fetchedEvent = new FetchedEvent
+                (eventName, values, new BigInteger("55"), "0x0", 0);
+
+        return  fetchedEvent;
+    }
+
+    public List<CompletableFuture<List<FetchedEvent>>> mockFutureEvent(FetchedEvent event)   {
+        List<FetchedEvent> list = Arrays.asList(new FetchedEvent[]{event});
+        CompletableFuture<List<FetchedEvent>> futureEvent = CompletableFuture.completedFuture(list);
+        List<CompletableFuture<List<FetchedEvent>>> futures = new ArrayList<>();
+        futures.add(futureEvent);
+        return futures;
     }
 }

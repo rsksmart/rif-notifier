@@ -5,13 +5,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.rif.notifier.managers.DbManagerFacade;
+import org.rif.notifier.models.DTO.SubscriptionDTO;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.blockchain.lumino.LuminoInvoice;
+import org.rif.notifier.util.Utils;
 import org.rif.notifier.validation.SubscribeValidator;
+import org.web3j.crypto.Sign;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -325,4 +330,76 @@ public class SubscribeServiceTest {
         doReturn(null).when(dbManagerFacade).getTopicByHashCodeAndIdSubscription(topic.hashCode(), 0);
         assertNull(subscribeServices.getTopicByHashCodeAndIdSubscription(topic, 0));
     }
+
+    @Test
+    public void canGetSubscriptionHash()    throws IOException {
+       SubscriptionDTO dto = mockTestData.mockSubscriptionDTO();
+       //doCallRealMethod().when(subscribeServices).getSubscriptionHash(any(SubscriptionDTO.class));
+        subscribeServices.getSubscriptionHash(dto);
+       String hash = subscribeServices.getSubscriptionHash(dto);
+       assertNotNull(hash);
+       assertEquals(64, Numeric.cleanHexPrefix(hash).length());
+    }
+
+    @Test
+    public void canGetUniqueHash()  throws Exception{
+        SubscriptionDTO sub1 = mockTestData.mockSubscriptionDTO();
+        //chane plan id for the other hash
+        SubscriptionDTO sub2 = mockTestData.mockSubscriptionDTO();
+        sub2.setStatus(SubscriptionStatus.ACTIVE);
+        String hash1 = subscribeServices.getSubscriptionHash(sub1);
+        String hash2 = subscribeServices.getSubscriptionHash(sub2);
+        assertNotEquals(hash1, hash2);
+    }
+
+    @Test
+    public void canGetSameHash()  throws Exception{
+        SubscriptionDTO sub1 = mockTestData.mockSubscriptionDTO();
+        SubscriptionDTO sub2 = mockTestData.mockSubscriptionDTO();
+        String hash1 = subscribeServices.getSubscriptionHash(sub1);
+        String hash2 = subscribeServices.getSubscriptionHash(sub2);
+        assertEquals(hash1, hash2);
+    }
+
+    @Test
+    public void canSignHash()   throws Exception {
+        String hash = subscribeServices.getSubscriptionHash(mockTestData.mockSubscriptionDTO());
+        subscribeServices.signHash(hash, MockTestData.PRIVATE_KEY);
+    }
+
+    @Test
+    public void canGetSameSignature()   throws Exception {
+        String hash = subscribeServices.getSubscriptionHash(mockTestData.mockSubscriptionDTO());
+        String sign = subscribeServices.signHash(hash, MockTestData.PRIVATE_KEY);
+        String hash2 = subscribeServices.getSubscriptionHash(mockTestData.mockSubscriptionDTO());
+        String sign2 = subscribeServices.signHash(hash, MockTestData.PRIVATE_KEY);
+        assertEquals(sign, sign2);
+    }
+
+    @Test
+    public void canGetUniqueSignature()   throws Exception {
+        String hash = subscribeServices.getSubscriptionHash(mockTestData.mockSubscriptionDTO());
+        SubscriptionDTO dto = mockTestData.mockSubscriptionDTO();
+        dto.setPrice(BigInteger.ONE);
+        String hash2 = subscribeServices.getSubscriptionHash(dto);
+        String sign = subscribeServices.signHash(hash, MockTestData.PRIVATE_KEY);
+        String sign2 = subscribeServices.signHash(hash2, MockTestData.PRIVATE_KEY);
+        assertNotEquals(sign, sign2);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void errorEmptyPrivateKey()   throws Exception {
+        String hash = subscribeServices.getSubscriptionHash(mockTestData.mockSubscriptionDTO());
+        String sign = subscribeServices.signHash(hash, "");
+    }
+
+    @Test
+    public void canRecoverSignature()   throws Exception {
+        String hash = subscribeServices.getSubscriptionHash(mockTestData.mockSubscriptionDTO());
+        String signature = subscribeServices.signHash(hash, MockTestData.PRIVATE_KEY);
+        Sign.SignatureData sd  = Utils.signAsSignatureData(hash, MockTestData.PRIVATE_KEY);
+        Sign.SignatureData recovered = Utils.getSignatureData(signature);
+        assertEquals(sd, recovered);
+    }
+
 }

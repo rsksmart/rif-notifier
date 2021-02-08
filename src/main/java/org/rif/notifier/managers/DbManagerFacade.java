@@ -133,6 +133,27 @@ public class DbManagerFacade {
         return subscriptionManager.getSubscriptionByAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 
+    public Subscription getSubscriptionByHash(String hash){
+        return subscriptionManager.getSubscriptionByHash(hash);
+    }
+
+    public Subscription getSubscriptionByPreviousSubscription(Subscription prev){
+        return subscriptionManager.getSubscriptionByPreviousSubscription(prev);
+    }
+
+    public List<Subscription> getPendingSubscriptions() {
+        return subscriptionManager.getPendingSubscriptions();
+    }
+
+    public int getExpiredSubscriptionsCount()   {
+        return subscriptionManager.getExpiredSubscriptionsCount();
+    }
+
+    @Transactional
+    public int updateExpiredSubscriptions() {
+        return subscriptionManager.updateExpiredSubscriptions();
+    }
+
     @Transactional
     public Subscription createSubscription(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus subscriptionStatus, SubscriptionPrice subscriptionPrice) {
         return subscriptionManager.insert(activeUntil, userAddress, subscriptionPlan, subscriptionStatus, subscriptionPrice);
@@ -239,12 +260,20 @@ public class DbManagerFacade {
         return dataFetcherManager.saveOrUpdateBlockChainAddress(lastBlock);
     }
 
+    public DataFetcherEntity saveLastBlockPayment(BigInteger lastBlock){
+        return dataFetcherManager.saveOrUpdateBlockPayment(lastBlock);
+    }
+
     public BigInteger getLastBlock(){
         return dataFetcherManager.getLastRSKBlock();
     }
 
     public BigInteger getLastBlockForChainAddresses(){
         return dataFetcherManager.getLastRSKChainAddrBlock();
+    }
+
+    public BigInteger getLastBlockForPayment(){
+        return dataFetcherManager.getLastPaymentBlock();
     }
 
     @Transactional
@@ -261,6 +290,10 @@ public class DbManagerFacade {
 
     public Set<Notification> getUnsentNotificationsWithActiveSubscription(int maxRetries) {
         return notificationManager.getUnsentNotificationsWithActiveSubscription(maxRetries);
+    }
+
+    public int getUnsentNotificationsCount(int subscriptionId, int maxRetries) {
+        return notificationManager.getUnsentNotificationsCount(subscriptionId, maxRetries);
     }
 
     public void logSuccessfulNotification(Notification notificationId, NotificationPreference notificationPreferenceId, String resultText) {

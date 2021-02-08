@@ -1,9 +1,6 @@
 package org.rif.notifier.util;
 
-import org.web3j.crypto.ECDSASignature;
-import org.web3j.crypto.Hash;
-import org.web3j.crypto.Keys;
-import org.web3j.crypto.Sign;
+import org.web3j.crypto.*;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
@@ -44,6 +41,83 @@ public class Utils {
     }
 
     /**
+     * generates a 64 byte sha3 hash
+     * @param content
+     * @return
+     */
+    public static String generateHash(String content)   {
+        return Hash.sha3String(content);
+    }
+
+    /**
+     * Signs the given message with the private key signature
+     * @param hash
+     * @param privateKey
+     * @return
+     */
+    public static String sign(String hash, String privateKey) {
+        byte [] msg = Numeric.hexStringToByteArray(hash);
+        ECKeyPair keyPair = ECKeyPair.create(Numeric.toBigInt(privateKey));
+        Sign.SignatureData data = Sign.signPrefixedMessage(msg, keyPair);
+        byte [] sigbytes = new byte[65];
+        System.arraycopy(data.getR(), 0, sigbytes, 0, 32);
+        System.arraycopy(data.getS(), 0, sigbytes, 32, 32);
+        sigbytes[64] = data.getV();
+        String result = Numeric.toHexString(sigbytes);
+        return result;
+    }
+
+    /**
+     * Signs the given hash with privatekey and returns a string representation of the signature
+     * @param hash
+     * @param privateKey
+     * @return
+     */
+    public static String signAsString(String hash, String privateKey)   {
+        Sign.SignatureData signatureData = signAsSignatureData(hash, privateKey);
+        String sig = Numeric.toHexString(getSignatureBytes(signatureData));
+        return sig;
+    }
+
+    public static Sign.SignatureData signAsSignatureData(String hash, String privateKey)    {
+        ECKeyPair ecKeyPair = ECKeyPair.create(Numeric.toBigInt(privateKey));
+        Sign.SignatureData signatureData =
+                Sign.signPrefixedMessage(hash.getBytes(), ecKeyPair);
+        return signatureData;
+    }
+
+    /**
+     * Returns the r s v bytes of the signature
+     * @param signatureData
+     * @return
+     */
+    public static byte[] getSignatureBytes(Sign.SignatureData signatureData) {
+        byte[] sig = new byte[65];
+        System.arraycopy(signatureData.getR(), 0, sig, 0, 32);
+        System.arraycopy(signatureData.getS(), 0, sig, 32, 32);
+        sig[64] = (byte) ((signatureData.getV() & 0xFF) - 27);
+        return sig;
+    }
+
+    public static Sign.SignatureData getSignatureData(String signature) {
+        byte [] signatureBytes = Numeric.hexStringToByteArray(signature);
+        byte v = signatureBytes[64];
+        if (v < 27) {
+            v += (byte)27;
+        }
+
+        Sign.SignatureData sd = new Sign.SignatureData(
+                v,
+                (byte[]) Arrays.copyOfRange(signatureBytes, 0, 32),
+                (byte[]) Arrays.copyOfRange(signatureBytes, 32, 64));
+        return sd;
+    }
+
+    public static void verify(String privateKey)   {
+        ECKeyPair keyPair = ECKeyPair.create(Numeric.toBigInt(privateKey));
+    }
+
+    /**
      * Unsings a signature and compares with the given address, if everything goes well, it returns true, otherwise returns false.
      * @param address Address to be compared with the unsigned signature
      * @param signature Address signed
@@ -57,7 +131,7 @@ public class Utils {
             byte[] signatureBytes = Numeric.hexStringToByteArray(signature);
             byte v = signatureBytes[64];
             if (v < 27) {
-                v += 27;
+                v += (byte)27;
             }
 
             Sign.SignatureData sd = new Sign.SignatureData(

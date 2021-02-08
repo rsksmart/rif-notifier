@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,12 +70,33 @@ public class SubscriptionManager {
         return subscriptionRepository.findByUserAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 
+    public Subscription getSubscriptionByHash(String hash){
+        return subscriptionRepository.findByHash(hash);
+    }
+
+
+    public Subscription getSubscriptionByPreviousSubscription(Subscription prev){
+        return subscriptionRepository.findByPreviousSubscription(prev);
+    }
+
+    public List<Subscription> getPendingSubscriptions() {
+        return subscriptionRepository.findPendingSubscriptions();
+    }
+
+    public int getExpiredSubscriptionsCount(){
+        return subscriptionRepository.countExpiredSubscriptions();
+    }
+
+    public int updateExpiredSubscriptions() {
+        return subscriptionRepository.updateExpiredSubscriptions();
+    }
+
     public Subscription insert(Date activeUntil, String userAddress, SubscriptionPlan subscriptionPlan, SubscriptionStatus status, SubscriptionPrice subscriptionPrice) {
         Subscription sub = new Subscription(activeUntil, userAddress, subscriptionPlan, status);
         sub.setCurrency(subscriptionPrice.getCurrency());
         sub.setPrice(subscriptionPrice.getPrice());
         sub.setHash(String.valueOf(sub.hashCode()));
-        sub.setExpirationDate(java.sql.Date.valueOf(now().plusDays(subscriptionPlan.getValidity())));
+        sub.setExpirationDate(java.sql.Date.valueOf(now().plusDays(sub.getSubscriptionPlan().getValidity())));
         Subscription result = subscriptionRepository.save(sub);
         return result;
     }

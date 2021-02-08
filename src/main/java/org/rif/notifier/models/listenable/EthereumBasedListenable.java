@@ -14,6 +14,10 @@ public class EthereumBasedListenable extends Listenable {
     private EthereumBasedListenableTypes kind;
     private int topicId;
 
+    public EthereumBasedListenable(String address, EthereumBasedListenableTypes kind, List<TypeReference<?>> eventFields, String eventName) {
+       this(address, kind, eventFields, eventName, 0);
+    }
+
     public EthereumBasedListenable(String address, EthereumBasedListenableTypes kind, List<TypeReference<?>> eventFields, String eventName, int topicId) {
         super(address);
         this.kind = kind;

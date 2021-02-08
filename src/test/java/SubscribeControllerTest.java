@@ -65,7 +65,7 @@ public class SubscribeControllerTest {
         SubscriptionPlan subType = new SubscriptionPlan(1000);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getActiveSubscriptionByAddress(us.getAddress())).thenReturn(null);
-        when(subscribeServices.getSubscriptionPlanById(0)).thenReturn(subType);
+        when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         SubscriptionPrice price = mockTestData.mockSubscriptionPrice();
         MvcResult result = mockMvc.perform(
                 post("/subscribe")
@@ -122,7 +122,7 @@ public class SubscribeControllerTest {
         Topic tp = mockTestData.mockTopic();
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getTopicById(idTopic)).thenReturn(tp);
@@ -149,7 +149,7 @@ public class SubscribeControllerTest {
         Subscription sub = mockTestData.mockSubscription();
         Topic tp = mockTestData.mockTopic();
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
-        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
@@ -204,7 +204,7 @@ public class SubscribeControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
+        when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)

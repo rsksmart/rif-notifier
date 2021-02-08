@@ -70,6 +70,17 @@ public class NotificationManager {
         return notificationRepository.findUnsentNotifications(maxRetries);
     }
 
+    /**
+     * Returns the count of unsent notifications for the given subscription. Max retries specifies the maximum
+     * retries the notifications should be tried before it is considered unsent.
+     * @param subscriptionId
+     * @param maxRetries
+     * @return
+     */
+    public int getUnsentNotificationsCount(int subscriptionId, int maxRetries) {
+        return notificationRepository.countUnsentNotifications(subscriptionId, maxRetries);
+    }
+
     public List<Notification> getUnsentNotifications(int maxRetries) {
         return notificationRepository.findAllBySentFalseAndNotificationLogs_RetryCountLessThan(maxRetries);
     }

@@ -1,18 +1,13 @@
 package org.rif.notifier.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.exception.SubscriptionException;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
-import org.rif.notifier.models.DTO.DTOResponse;
-import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
-import org.rif.notifier.models.DTO.SubscriptionResponse;
-import org.rif.notifier.models.DTO.TopicDTO;
+import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
-import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.rif.notifier.validation.NotificationPreferenceValidator;
@@ -26,10 +21,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Optional;
 
-@Api(tags = {"Onboarding Resource"})
+@Api(tags = {"Batch Onboarding Resource"})
 @Validated
 @RestController
 public class SubscriptionBatchController {
@@ -40,21 +36,24 @@ public class SubscriptionBatchController {
     private NotificationPreferenceManager notificationPreferenceManager;
     private NotificationPreferenceValidator notificationPreferenceValidator;
     private SubscribeValidator subscribeValidator;
-    //@Autowired
-    //@Qualifier("providerAddress")
-    //private String providerAddress;
+    private String providerAddress;
+    private String providerPrivateKey;
 
 
     @Autowired
     public SubscriptionBatchController(@Autowired SubscribeServices subscribeServices, @Autowired UserServices userServices,
                                        @Autowired NotificationPreferenceManager notificationPreferenceManager,
                                        @Autowired NotificationPreferenceValidator notificationPreferenceValidator,
-                                       @Autowired SubscribeValidator subscribeValidator) {
+                                       @Autowired SubscribeValidator subscribeValidator,
+                                       @Autowired @Qualifier("providerAddress") String providerAddress,
+                                       @Autowired @Qualifier("providerPrivateKey") String providerPrivateKey) {
         this.subscribeServices = subscribeServices;
         this.userServices = userServices;
         this.notificationPreferenceManager = notificationPreferenceManager;
         this.notificationPreferenceValidator = notificationPreferenceValidator;
         this.subscribeValidator = subscribeValidator;
+        this.providerAddress = providerAddress;
+        this.providerPrivateKey = providerPrivateKey;
     }
 
     /**
@@ -96,12 +95,16 @@ public class SubscriptionBatchController {
      * }
      * @return
      */
-    @ApiOperation(value = "create a subscription with all the provided details",
+    @ApiOperation(value = "Subscribe to Rif Notifier with plan id, topics, notification preferences", notes="Returns http 409 in case of error",
             response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @ApiResponses(value={
+            @ApiResponse(code=200, message="Subscription created successfully.", response=SubscriptionBatchResponse.class),
+            @ApiResponse(code= 409, message="Error creating subsription.", response=DTOResponse.class)
+    })
     @RequestMapping(value = "/subscribeToPlan", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> subscribeToPlan(
-            @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
+            @ApiParam(required=true, name="Subscription details required to create the subscription. See SubscriptionBatchDTO") @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
         DTOResponse resp = new DTOResponse();
         User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
         //first validate if the topic and preferences are in correct format
@@ -109,10 +112,66 @@ public class SubscriptionBatchController {
         validate(topicDTOs);
         //proceed to create subscription
         SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), subscriptionBatchDTO.getCurrency());
-        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId());
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId(), false);
         subscribeToTopic(subscription, topicDTOs);
+        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress, user);
+        String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
+        subscription.setHash(hash);
+        //update the database with the generated hash
+        subscribeServices.updateSubscription(subscription);
+        //generate the subscription contract son
+        resp.setContent(subscribeServices.createSubscriptionBatchResponse(subscriptionDTO, hash, providerPrivateKey));
         return new ResponseEntity<>(resp, resp.getStatus());
+    }
 
+
+    @ApiOperation(value = "Renew Rif Notifier subscription with plan id, topics, notification preferences", notes="Returns http 409 in case of error",
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @ApiResponses(value={
+            @ApiResponse(code=200, message="Subscription created successfully.", response=SubscriptionBatchResponse.class),
+            @ApiResponse(code= 409, message="Error creating subsription.", response=DTOResponse.class)
+    })
+    @RequestMapping(value = "/renewSubscription", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
+    @ResponseBody
+    public ResponseEntity<DTOResponse> renewSubscription(
+            @ApiParam(required=true, name="Subscription hash of the previous subscription.")
+            @NotBlank @RequestParam String previousSubscriptionHash,
+            @ApiParam(required=true, name="Subscription details required to create the subscription. See SubscriptionBatchDTO")
+            @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
+        DTOResponse resp = new DTOResponse();
+        User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
+        //first validate if the topic and preferences are in correct format
+        List<TopicDTO> topicDTOs = subscriptionBatchDTO.getTopics();
+        validate(topicDTOs);
+        Subscription previousSubscription = validate(previousSubscriptionHash);
+        //proceed to create subscription
+        SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), subscriptionBatchDTO.getCurrency());
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId(), true);
+        subscription.setPreviousSubscription(previousSubscription);
+        subscribeToTopic(subscription, topicDTOs);
+        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress, user);
+        String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
+        subscription.setHash(hash);
+        //update the database with the generated hash
+        subscribeServices.updateSubscription(subscription);
+        //generate the subscription contract son
+        resp.setContent(subscribeServices.createSubscriptionBatchResponse(subscriptionDTO, hash, providerPrivateKey));
+        return new ResponseEntity<>(resp, resp.getStatus());
+    }
+
+
+    /*
+     * Validate that the previous subscription exists and is not in pending state
+     * Only active, completed or expired subscriptions can be renewed.
+     * @param previousSubscriptionHash
+     */
+    private Subscription validate(String previousSubscriptionHash)  {
+        Subscription subscription = Optional.ofNullable(subscribeServices.getSubscriptionByHash(previousSubscriptionHash))
+                .orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_NOT_FOUND_HASH));
+        if(subscription.isPending())    {
+            throw new ValidationException(ResponseConstants.PREVIOUS_SUBSCRIPTION_INVALID_STATE);
+        }
+        return subscription;
     }
 
     /*
@@ -133,6 +192,7 @@ public class SubscriptionBatchController {
             notificationPreferenceValidator.validate(topicDTO.getNotificationPreferences());
         });
     }
+
 
     private void subscribeToTopic(Subscription subscription, List<TopicDTO> topicDTOs) {
         topicDTOs.forEach(topicDTO->{
@@ -155,19 +215,20 @@ public class SubscriptionBatchController {
             preference.setIdTopic(topic.getId());
         });
         notificationPreferenceManager.saveNotificationPreferences(preferences);
-
     }
 
-    private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, int subscriptionPlanId)   {
+    private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, int subscriptionPlanId, boolean renewal)   {
         //validate if this subscription plan actually exists in the database
         SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(subscriptionPlanId);
         Optional.ofNullable(subscriptionPlan).orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //validate if the provided price exists for this plan
         subscribeValidator.validateSubscriptionPrice(subscriptionPrice, subscriptionPlan);
         //throw exception if subscription already added
-        Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(user.getAddress(), subscriptionPlan)).ifPresent(p -> {
-            throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
-        });
+        if (!renewal) {
+            Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(user.getAddress(), subscriptionPlan)).ifPresent(p -> {
+                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_ALREADY_ADDED);
+            });
+        }
         //if no active subscription for given user and subscription type found, then create a new subscriiption
         return subscribeServices.createPendingSubscription(user, subscriptionPlan, subscriptionPrice);
     }

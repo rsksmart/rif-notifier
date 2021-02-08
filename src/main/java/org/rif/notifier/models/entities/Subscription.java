@@ -1,4 +1,5 @@
 package org.rif.notifier.models.entities;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
@@ -61,6 +62,10 @@ public class Subscription implements Serializable {
 
     @Column(name = "notification_balance")
     private int notificationBalance;
+
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy="subscription", cascade = CascadeType.ALL)
+    private List<SubscriptionPayment> subscriptionPayments;
 
     public Subscription() {}
 
@@ -190,6 +195,45 @@ public class Subscription implements Serializable {
 
     public boolean isActive()  {
         return this.status == SubscriptionStatus.ACTIVE;
+    }
+
+    public boolean isPending()  {
+        return this.status == SubscriptionStatus.PENDING;
+    }
+
+    /**
+     * A subscription is renewable if it's previous subscription is in complete or expired state
+     * @return
+     */
+    public boolean canActivate()    {
+        return previousSubscription == null || !(previousSubscription.isActive() || previousSubscription.isPending());
+    }
+
+    /**
+     * Checks if the total of amount received minus the total of amount refunded is not less than the subscription price.
+     * @return true if the difference of amount received and refunded is not less than the subscription price
+     */
+    public boolean isPaid() {
+        if (!CollectionUtils.isEmpty(subscriptionPayments)) {
+            Optional<BigInteger> receivedTotal = subscriptionPayments.stream().filter(p -> p.isReceived()).map(p -> p.getAmount()).reduce((p1, p2) -> p1.add(p2));
+            Optional<BigInteger> refundedTotal = subscriptionPayments.stream().filter(p -> p.isRefunded()).map(p -> p.getAmount()).reduce((p1, p2) -> p1.add(p2));
+            return receivedTotal.map(received -> {
+                //if there are refunds, subtract the refund amount
+                BigInteger paid = refundedTotal.map(refunded -> received.subtract(refunded)).orElse(received);
+                //check total paid is not less than the subscription price
+                return paid.compareTo(price) != -1;
+            }).orElse(false);
+        }
+        //payment not received so return false
+        return false;
+    }
+
+    public List<SubscriptionPayment> getSubscriptionPayments() {
+        return subscriptionPayments;
+    }
+
+    public void setSubscriptionPayments(List<SubscriptionPayment> subscriptionPayments) {
+        this.subscriptionPayments = subscriptionPayments;
     }
 
     @Override

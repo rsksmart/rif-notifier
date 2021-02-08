@@ -38,12 +38,20 @@ public class DataFetcherManager {
         return getLastBlockForType(BlockTypes.RSK_CHAINADDR_BLOCK) ;
     }
 
+    public BigInteger getLastPaymentBlock(){
+        return getLastBlockForType(BlockTypes.RSK_BLOCK_PAYMENT) ;
+    }
+
     public DataFetcherEntity saveOrUpdate(BigInteger lastBlock){
         return saveOrUpdate(lastBlock, BlockTypes.RSK_BLOCK);
     }
 
     public DataFetcherEntity saveOrUpdateBlockChainAddress(BigInteger lastBlock){
         return saveOrUpdate(lastBlock, BlockTypes.RSK_CHAINADDR_BLOCK);
+    }
+
+    public DataFetcherEntity saveOrUpdateBlockPayment(BigInteger lastBlock){
+        return saveOrUpdate(lastBlock, BlockTypes.RSK_BLOCK_PAYMENT);
     }
 
 

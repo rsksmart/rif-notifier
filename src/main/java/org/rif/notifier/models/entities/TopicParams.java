@@ -1,5 +1,7 @@
 package org.rif.notifier.models.entities;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.rif.notifier.constants.TopicParamTypes;
 
@@ -7,6 +9,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "topic_params")
+@ApiModel(description="Defines topic parameters for a topic. This is only required for CONTRACT_EVENT")
 public class TopicParams {
     @Id
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
@@ -16,6 +19,7 @@ public class TopicParams {
     @JoinColumn(name="id_topic")
     private Topic topic;
 
+    @ApiModelProperty(notes="Topic type to listen to.", example="CONTRACT_ADDRESS", allowableValues="EVENT_PARAM,EVENT_NAME,CONTRACT_ADDRESS")
     @Enumerated(EnumType.STRING)
     @Column(name = "param_type")
     private TopicParamTypes type;

@@ -1,5 +1,6 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -9,6 +10,7 @@ import java.math.BigInteger;
 @Entity
 @Table(name = "SUBSCRIPTION_PRICE")
 public class SubscriptionPrice {
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Id
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
     private int id;
@@ -19,6 +21,7 @@ public class SubscriptionPrice {
     @Column(name="currency")
     private String currency;
 
+    @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
     @ManyToOne
     @JoinColumn(name="subscription_plan_id")
     private SubscriptionPlan subscriptionPlan;
