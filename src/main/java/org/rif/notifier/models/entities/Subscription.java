@@ -32,8 +32,9 @@ public class Subscription implements Serializable {
     @Column(name="price")
     private BigInteger price;
 
-    @Column(name="currency")
-    private String currency;
+    @ManyToOne
+    @JoinColumn(name="currency_id")
+    private Currency currency;
 
     @OneToOne
     @JoinColumn(name="previous_subscription_id")
@@ -46,8 +47,9 @@ public class Subscription implements Serializable {
     private Date expirationDate;
 
     @UpdateTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name="last_updated")
-    private Timestamp last_updated;
+    private Date lastUpdated;
 
     @Column(name = "user_address")
     private String userAddress;
@@ -125,11 +127,11 @@ public class Subscription implements Serializable {
         this.price = price;
     }
 
-    public String getCurrency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(Currency currency) {
         this.currency = currency;
     }
 
@@ -157,12 +159,12 @@ public class Subscription implements Serializable {
         this.expirationDate = expirationDate;
     }
 
-    public Timestamp getLast_updated() {
-        return last_updated;
+    public Date getLastUpdated() {
+        return lastUpdated;
     }
 
-    public void setLast_updated(Timestamp last_updated) {
-        this.last_updated = last_updated;
+    public void setLastUpdated(Timestamp lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
     public List<NotificationPreference> getNotificationPreferences() {

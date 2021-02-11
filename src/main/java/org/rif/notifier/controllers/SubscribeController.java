@@ -33,7 +33,6 @@ public class SubscribeController {
     private UserServices userServices;
     private LuminoEventServices luminoEventServices;
     private SubscribeValidator subscribeValidator;
-    @Autowired @Qualifier("providerAddress") private String providerAddress;
 
     @Autowired
     public SubscribeController(SubscribeServices subscribeServices, UserServices userServices, LuminoEventServices luminoEventServices, @Autowired SubscribeValidator subscribeValidator) {

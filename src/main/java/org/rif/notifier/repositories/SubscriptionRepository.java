@@ -46,7 +46,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
      */
     @Query(value = "SELECT DISTINCT cur.* FROM subscription cur JOIN subscription_payment p ON cur.id=p.subscription_id " +
                     "AND p.amount>=cur.price LEFT JOIN subscription prev ON prev.id=cur.previous_subscription_id WHERE " +
-                    "(pr.id IS NULL OR pr.status NOT IN  ('ACTIVE')) AND cur.status='PENDING'",nativeQuery = true)
+                    "(prev.id IS NULL OR prev.status NOT IN  ('ACTIVE')) AND cur.status='PENDING'",nativeQuery = true)
     List<Subscription> findPendingSubscriptions();
 
     @Query(value="SELECT COUNT(1) FROM Subscription s WHERE s.status <> 'EXPIRED' AND s.expirationDate < CURRENT_DATE")

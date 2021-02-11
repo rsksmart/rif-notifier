@@ -1,27 +1,26 @@
 import mocked.MockTestData;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
-import org.rif.notifier.exception.SubscriptionException;
-import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.datafetching.FetchedEvent;
+import org.rif.notifier.models.entities.Currency;
 import org.rif.notifier.models.entities.Subscription;
-import org.rif.notifier.models.entities.SubscriptionPaymentStatus;
 import org.rif.notifier.models.entities.SubscriptionStatus;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
 import org.rif.notifier.scheduled.PaymentProcessingJob;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.blockchain.generic.rootstock.RskBlockchainService;
 import org.rif.notifier.services.blockchain.payment.RskPaymentService;
+import org.rif.notifier.validation.CurrencyValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.web3j.abi.datatypes.Address;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -38,6 +37,7 @@ public class PaymentProcessingJobTest {
     @Mock private RskPaymentService rskPaymentService;
     @Mock private RskBlockchainService rskBlockchainService;
     @Mock private SubscribeServices subscribeServices;
+    @Mock private CurrencyValidator currencyValidator;
 
     @InjectMocks @Autowired private PaymentProcessingJob paymentJob;
     @InjectMocks @Autowired private RskPaymentService rskPaymentServiceInject;
@@ -64,11 +64,12 @@ public class PaymentProcessingJobTest {
 
     private void paymentTest(String eventName, String price, String cur, int expected, Subscription sub, String providerAddress, VerificationMode validHashVerification)   throws Exception {
         FetchedEvent event = mockTestData.mockPaymentEvent(eventName);
-        ReflectionTestUtils.setField(rskPaymentServiceInject, "providerAddress", providerAddress);
+        ReflectionTestUtils.setField(rskPaymentServiceInject, "providerAddress", new Address(providerAddress));
         if(sub != null) {
             sub.setStatus(SubscriptionStatus.PENDING);
             sub.setPrice(new BigInteger(price));
-            sub.setCurrency(cur);
+            Currency c = new Currency(cur, new Address("0x0"));
+            sub.setCurrency(c);
         }
         when(dbManagerFacade.getSubscriptionByHash(anyString())).thenReturn(sub);
         rskPaymentServiceInject.processEventTasks(mockTestData.mockFutureEvent(event), 100, BigInteger.ONE);
@@ -130,6 +131,7 @@ public class PaymentProcessingJobTest {
     public void canActivateSubscription() throws Exception   {
         Subscription sub = mockTestData.mockSubscription();
         doCallRealMethod().when(subscribeServices).activateSubscription(any(Subscription.class));
+        when(currencyValidator.validate(any(Address.class))).thenReturn(mockTestData.mockCurrency());
         when(dbManagerFacade.updateSubscription(any(Subscription.class))).thenReturn(sub);
         paymentTest("SubscriptionCreated", 1, sub);
         assertEquals(SubscriptionStatus.ACTIVE, sub.getStatus());
@@ -182,6 +184,7 @@ public class PaymentProcessingJobTest {
         Subscription sub = mockTestData.mockPaidSubscription();
         Subscription prev = mockTestData.mockPaidSubscription();
         doCallRealMethod().when(subscribeServices).activateSubscription(any(Subscription.class));
+        when(currencyValidator.validate(any(Address.class))).thenReturn(mockTestData.mockCurrency());
         when(dbManagerFacade.updateSubscription(any(Subscription.class))).thenReturn(sub);
         MutableInt expected = new MutableInt(1);
         //if the previous subscription sttus is not pending or active, then activate the new subscription

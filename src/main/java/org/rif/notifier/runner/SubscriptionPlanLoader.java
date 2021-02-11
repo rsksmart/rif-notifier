@@ -1,12 +1,13 @@
 package org.rif.notifier.runner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.util.StringUtils;
 import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.DbManagerFacade;
+import org.rif.notifier.models.entities.Currency;
 import org.rif.notifier.models.entities.NotificationServiceType;
 import org.rif.notifier.models.entities.SubscriptionPlan;
+import org.rif.notifier.models.entities.SubscriptionPrice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +15,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import org.web3j.abi.datatypes.Address;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,7 +70,11 @@ public class SubscriptionPlanLoader implements CommandLineRunner {
             throw new ValidationException("subscription-plan.json is not found in the classpath");
         }
         ObjectMapper mapper = new ObjectMapper();
-        return Arrays.asList(mapper.readValue(subscriptionPlanJson.getInputStream(), SubscriptionPlan[].class));
+        try {
+            return Arrays.asList(mapper.readValue(subscriptionPlanJson.getInputStream(), SubscriptionPlan[].class));
+        } catch(Exception e)    {
+            throw new ValidationException("subscription-plan.json contains invalid data. " + e.getMessage(), e);
+        }
     }
 
     private void validatePlans(List<SubscriptionPlan> plans)    {
@@ -97,15 +105,47 @@ public class SubscriptionPlanLoader implements CommandLineRunner {
                if(price.getPrice() == null || price.getPrice().equals(BigInteger.ZERO))    {
                    throw new ValidationException("Subscription price cannot be zero");
                }
-               else if(StringUtils.isBlank(price.getCurrency() ))    {
+               else if(price.getCurrency()  == null)    {
                     throw new ValidationException("Currency must be specified");
-                }
-               else if(!notifierConfig.getAcceptedCurrencies().contains(price.getCurrency() ))    {
+               }
+               else if (price.getCurrency().getAddress() == null || price.getCurrency().getName() == null) {
+                   throw new ValidationException("Currency address and name must be specified");
+               }
+               else if(!notifierConfig.getAcceptedCurrencies().contains(price.getCurrency().getName() ))    {
                    throw new ValidationException("Currency is not in the list of accepted currencies. Please provide a currency from rif.notifier.subscription.currencies list.");
                }
+               validateCurrencies(plans);
             });
 
         });
+    }
+
+    /*
+     * Validates that same currency name with different address not specified and
+     * same currency address with different names not specified
+     */
+    private void validateCurrencies(List<SubscriptionPlan> plans)   {
+        List<Currency> currencies = new ArrayList<>(5);
+        plans.forEach(plan->{
+            currencies.addAll(plan.getSubscriptionPriceList().stream().map(SubscriptionPrice::getCurrency).collect(Collectors.toList()));
+        });
+        long distinctCurrencies = currencies.stream().distinct().count();
+        long distinctCurrencyNames = currencies.stream().map(c->c.getName()).distinct().count();
+        long distinctCurrencyAddresses = currencies.stream().map(c->c.getAddress()).distinct().count();
+        if(distinctCurrencies != distinctCurrencyNames || distinctCurrencies != distinctCurrencyAddresses)  {
+            throw new ValidationException("Same currency name with different addresses found or same currency address with different names found Please correct the json");
+        }
+    }
+
+    protected void saveCurrencies(List<SubscriptionPlan> plans) {
+       plans.forEach(plan->{
+           plan.getSubscriptionPriceList().stream().forEach(price->{
+              String name = price.getCurrency().getName();
+              //if the currency specified doesnt exist create it, or else just return the existing one
+              price.setCurrency(dbManagerFacade.getCurrencyByName(name).orElseGet(
+                      ()->dbManagerFacade.saveCurrency(price.getCurrency())));
+           });
+       });
     }
 
     protected void createSubscriptionPlans(List<SubscriptionPlan> plans)   {
@@ -119,6 +159,8 @@ public class SubscriptionPlanLoader implements CommandLineRunner {
                             ;
                 }
         )).collect(Collectors.toList());
+        //if any of the currencies specified in json, does not exist create those. if they exist then fetch
+        saveCurrencies(plansToBeAdded);
         //associate price with plan
         plansToBeAdded.forEach(p->p.getSubscriptionPriceList().stream().forEach(price->price.setSubscriptionPlan(p)));
         if (plansToBeAdded.isEmpty())   {

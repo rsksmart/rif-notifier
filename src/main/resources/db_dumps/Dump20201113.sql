@@ -44,6 +44,30 @@ LOCK TABLES `chainaddress_event` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `currency`
+--
+
+DROP TABLE IF EXISTS `currency`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `currency` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) NOT NULL,
+  `address` decimal(49,0) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `currency`
+--
+
+LOCK TABLES `currency` WRITE;
+/*!40000 ALTER TABLE `currency` DISABLE KEYS */;
+/*!40000 ALTER TABLE `currency` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `datafetcher`
 --
 
@@ -53,9 +77,9 @@ DROP TABLE IF EXISTS `datafetcher`;
 CREATE TABLE `datafetcher` (
   `id` int NOT NULL AUTO_INCREMENT,
   `last_block` bigint NOT NULL,
-  `block_type` enum('RSK_BLOCK','RSK_CHAINADDR_BLOCK') NOT NULL,
+  `block_type` enum('RSK_BLOCK','RSK_CHAINADDR_BLOCK','RSK_BLOCK_PAYMENT') DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=106 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -64,7 +88,7 @@ CREATE TABLE `datafetcher` (
 
 LOCK TABLES `datafetcher` WRITE;
 /*!40000 ALTER TABLE `datafetcher` DISABLE KEYS */;
-INSERT INTO `datafetcher` VALUES (1,0,'RSK_BLOCK'),(2,0,'RSK_CHAINADDR_BLOCK');
+INSERT INTO `datafetcher` VALUES (1,218,'RSK_BLOCK'),(2,238,'RSK_CHAINADDR_BLOCK'),(105,218,'RSK_BLOCK_PAYMENT');
 /*!40000 ALTER TABLE `datafetcher` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -267,11 +291,11 @@ CREATE TABLE `subscription` (
   `status` enum('PENDING','ACTIVE','EXPIRED','COMPLETED') NOT NULL,
   `subscription_plan_id` int NOT NULL,
   `price` bigint NOT NULL,
-  `currency` varchar(20) NOT NULL,
   `previous_subscription_id` int DEFAULT NULL,
   `hash` varchar(100) NOT NULL,
   `expiration_date` date NOT NULL,
   `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `currency_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `subscription_idx_1` (`user_address`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
@@ -299,6 +323,8 @@ CREATE TABLE `subscription_payment` (
   `payment_reference` varchar(128) DEFAULT NULL,
   `amount` bigint NOT NULL,
   `payment_date` timestamp NOT NULL,
+  `status` enum('RECEIVED','WITHDRAWN','REFUNDED') NOT NULL,
+  `currency_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `subscription_payment_idx_1` (`subscription_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -350,8 +376,8 @@ DROP TABLE IF EXISTS `subscription_price`;
 CREATE TABLE `subscription_price` (
   `id` int NOT NULL AUTO_INCREMENT,
   `price` bigint NOT NULL,
-  `currency` varchar(20) NOT NULL,
   `subscription_plan_id` int NOT NULL,
+  `currency_id` int NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -364,7 +390,6 @@ LOCK TABLES `subscription_price` WRITE;
 /*!40000 ALTER TABLE `subscription_price` DISABLE KEYS */;
 /*!40000 ALTER TABLE `subscription_price` ENABLE KEYS */;
 UNLOCK TABLES;
-
 
 --
 -- Table structure for table `topic`
@@ -451,7 +476,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-01-12 16:32:24
-
-alter table subscription_payment add status enum('RECEIVED', 'WITHDRAWN', 'REFUNDED');
-alter table datafetcher modify block_type enum('RSK_BLOCK', 'RSK_CHAINADDR_BLOCK', 'RSK_BLOCK_PAYMENT');
+-- Dump completed on 2021-02-11 16:50:25

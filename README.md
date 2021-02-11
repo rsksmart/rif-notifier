@@ -527,11 +527,17 @@ A sample json structure below
     "subscriptionPriceList": [
       {
         "price": "10",
-        "currency": "RBTC"
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
       },
       {
         "price": "20",
-        "currency": "RIF"
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
       }
     ]
   },
@@ -544,15 +550,22 @@ A sample json structure below
     "subscriptionPriceList": [
       {
         "price": "20",
-        "currency": "RBTC"
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
       },
       {
         "price": "40",
-        "currency": "RIF"
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
       }
     ]
   }
 ]
+
 ```
 
 ##### Health Check

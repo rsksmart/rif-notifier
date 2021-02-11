@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.datatypes.Address;
 
 import java.io.IOException;
 import java.util.*;
@@ -239,7 +240,7 @@ public class SubscribeServices  {
 
 
     public SubscriptionDTO createSubscriptionDTO(SubscriptionBatchDTO subscriptionBatchDTO,
-                                                 Subscription subscription, String providerAddress, User user)   {
+                                                 Subscription subscription, Address providerAddress, User user)   {
         SubscriptionDTO subscriptionDTO = new SubscriptionDTO();
         subscriptionDTO.setUserAddress(subscriptionBatchDTO.getUserAddress());
         subscriptionDTO.setProviderAddress(providerAddress);
@@ -247,7 +248,7 @@ public class SubscribeServices  {
         subscriptionDTO.setExpirationDate(subscription.getExpirationDate());
         subscriptionDTO.setNotificationBalance(subscription.getNotificationBalance());
         subscriptionDTO.setStatus(subscription.getStatus());
-        subscriptionDTO.setCurrency(subscription.getCurrency());
+        subscriptionDTO.setCurrency(subscription.getCurrency().getName());
         subscriptionDTO.setTopics(subscriptionBatchDTO.getTopics());
         subscriptionDTO.setApiKey(user.getApiKey());
         return subscriptionDTO;

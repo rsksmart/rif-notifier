@@ -11,6 +11,8 @@ abstract public class BaseValidator {
 
     private UserServices userServices;
 
+    public BaseValidator()  {}
+
     public BaseValidator(UserServices userServices)    {
         this.userServices = userServices;
     }

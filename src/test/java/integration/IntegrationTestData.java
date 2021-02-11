@@ -6,17 +6,16 @@ import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.managers.datamanagers.TopicManager;
 import org.rif.notifier.models.entities.*;
+import org.rif.notifier.models.entities.Currency;
 import org.rif.notifier.repositories.SubscriptionPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.web3j.abi.datatypes.Address;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 
 /**
  * Serves to insert data into database for integration testing, only inserts data once for subscription, topic, user, and subscriptiontype
@@ -31,6 +30,8 @@ public class IntegrationTestData {
     @Autowired private TopicManager topicManager;
     @Autowired DbManagerFacade dbManagerFacade;
     @Autowired NotificationPreferenceManager notificationPreferenceManager;
+
+    public static final Address TEST_ADDRESS = new Address("0x5b4Ff44769C1Da53ee4eBeCd641bA7B4926DFdBd");
 
     //subscription user
     @Value("${notificationservice.integrationtest.user}") private String user;
@@ -48,6 +49,7 @@ public class IntegrationTestData {
     private SubscriptionPlan subscriptionPlan ;
     private SubscriptionPrice subscriptionPrice;
     private Subscription activeSubscription;
+    private Currency currency;
     private int topicId;
     private NotificationPreference apiPreference;
     private NotificationPreference invalidApiPreference;
@@ -140,11 +142,20 @@ public class IntegrationTestData {
         dbManagerFacade.saveUser(user, userApiKey);
     }
 
+    private void setupCurrency()    {
+       currency = dbManagerFacade.getCurrencyByName("RIF").orElseGet(()->{
+            Currency c = new Currency("RIF", new Address("0x0")) ;
+            dbManagerFacade.saveCurrency(c);
+            return c;
+       });
+    }
+
     private void setupSubscriptionPlan()       {
         subscriptionPlan  = subTypeRepo.findByNotificationQuantity(10000);
         if (subscriptionPlan == null) {
             subscriptionPlan = new SubscriptionPlan(10000);
-            subscriptionPrice = new SubscriptionPrice(new BigInteger("100"), "RSK");
+            subscriptionPlan.setValidity(100);
+            subscriptionPrice = new SubscriptionPrice(new BigInteger("100"), currency);
             subscriptionPlan.setName("test");
             subscriptionPrice.setSubscriptionPlan(subscriptionPlan);
             subscriptionPlan.setSubscriptionPriceList(Collections.singletonList(subscriptionPrice));
@@ -157,10 +168,18 @@ public class IntegrationTestData {
     }
 
     private void setupSubscription()    {
-        Date date = new Date(System.currentTimeMillis()+86400*1000);
+        //10 days
+        Date date = new Date(System.currentTimeMillis()+86400*10000);
         activeSubscription = dbManagerFacade.getSubscriptionByAddress(user).stream().findFirst().orElse(null);
         if (activeSubscription == null) {
             activeSubscription = dbManagerFacade.createSubscription(date, user, subscriptionPlan, SubscriptionStatus.ACTIVE, subscriptionPrice);
+        }
+        else    {
+            if(activeSubscription.getExpirationDate().getTime() < System.currentTimeMillis())   {
+                activeSubscription.setStatus(SubscriptionStatus.ACTIVE);
+                activeSubscription.setExpirationDate(date);
+                dbManagerFacade.updateSubscription(activeSubscription);
+            }
         }
     }
     private void setupTopic()   {
@@ -189,6 +208,7 @@ public class IntegrationTestData {
 
     public void setup() {
         setupUser();
+        setupCurrency();
         setupSubscriptionPlan();
         setupSubscription();
         setupTopic();

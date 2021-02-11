@@ -3,28 +3,18 @@ package org.rif.notifier.controllers;
 import io.swagger.annotations.*;
 import org.rif.notifier.constants.ControllerConstants;
 import org.rif.notifier.constants.ResponseConstants;
-import org.rif.notifier.exception.SubscriptionException;
 import org.rif.notifier.exception.ValidationException;
-import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
-import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.SubscriptionPlanServices;
-import org.rif.notifier.services.UserServices;
-import org.rif.notifier.validation.NotificationPreferenceValidator;
-import org.rif.notifier.validation.SubscribeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
 @Api(tags = {"Subscription Plan Resource"})

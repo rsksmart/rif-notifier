@@ -6,17 +6,16 @@ import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.managers.datamanagers.*;
 import org.rif.notifier.managers.datamanagers.NotificationManager;
 import org.rif.notifier.models.entities.*;
+import org.rif.notifier.models.entities.Currency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.datatypes.Address;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,6 +57,9 @@ public class DbManagerFacade {
 
     @Autowired
     private NotificationPreferenceManager notificationPreferenceManager;
+
+    @Autowired
+    private CurrencyManager currencyManager;
 
     public RawData saveRawData(String type, String data, boolean processed, BigInteger block, int idTopic, int hashcode){
         return rawDataManager.insert(type,data,processed, block, idTopic, hashcode);
@@ -333,5 +335,17 @@ public class DbManagerFacade {
 
     public List<SubscriptionPlan> getSubscriptionPlans()    {
         return subscriptionPlanManager.getSubscriptionPlans();
+    }
+
+    public Optional<Currency> getCurrencyByAddress(Address address)    {
+        return currencyManager.getCurrencyByAddress(address);
+    }
+
+    public Optional<Currency> getCurrencyByName(String name)    {
+        return currencyManager.getCurrencyByName(name);
+    }
+
+    public Currency saveCurrency(Currency cur)  {
+        return currencyManager.saveCurrency(cur);
     }
 }

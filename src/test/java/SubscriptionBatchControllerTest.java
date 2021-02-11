@@ -3,6 +3,7 @@ import mocked.MockTestData;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.rif.notifier.Application;
 import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.controllers.SubscriptionBatchController;
@@ -10,11 +11,14 @@ import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
+import org.rif.notifier.services.CurrencyServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
+import org.rif.notifier.validation.CurrencyValidator;
 import org.rif.notifier.validation.NotificationPreferenceValidator;
 import org.rif.notifier.validation.SubscribeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -22,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.web3j.abi.datatypes.Address;
 
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +63,12 @@ public class SubscriptionBatchControllerTest {
     @MockBean
     private SubscribeValidator subscribeValidator;
 
+    @MockBean
+    private CurrencyServices currencyServices;
+
+    @MockBean
+    private CurrencyValidator currencyValidator;
+
     private MockTestData mockTestData = new MockTestData();
     ObjectMapper mapper = new ObjectMapper();
 
@@ -89,14 +100,16 @@ public class SubscriptionBatchControllerTest {
         SubscriptionDTO subscriptionDTO = mockTestData.mockSubscriptionDTO();
         SubscriptionBatchResponse response = new SubscriptionBatchResponse("test", "testsignature", subscriptionDTO);
         when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(prev);
-        when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), anyString(), any(User.class))).thenReturn(subscriptionDTO);
+        when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), any(Address.class), any(User.class))).thenReturn(subscriptionDTO);
         when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
         when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(response);
+        when(currencyServices.getCurrencyByName(anyString())).thenReturn(mockTestData.mockCurrency());
         return subscriptionBatch;
     }
 
     @Test
     public void canSubscribeBatch() throws Exception {
+        prepareBatchTest();
         SubscriptionBatchDTO subscriptionBatch = mockTestData.mockSubscriptionBatch();
         DTOResponse dto = new DTOResponse();
         MvcResult result = mockMvc.perform(
