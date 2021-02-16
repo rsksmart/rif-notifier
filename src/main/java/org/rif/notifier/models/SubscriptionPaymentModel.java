@@ -4,12 +4,14 @@ import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.entities.Currency;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.List;
 
 public class SubscriptionPaymentModel {
-    private static final int EXPECTED_EVENT_SIZE = 4;
+    private static final int SUBSCRIPTION_CREATED_EVENT_SIZE = 4;
+    private static final int REFUND_WITHDRAW_EVENT_SIZE = 3;
     private BigInteger amount;
     private Address currencyAddress;
     private String hash;
@@ -23,19 +25,24 @@ public class SubscriptionPaymentModel {
         this.provider = provider;
     }
 
-    private SubscriptionPaymentModel(List<Type> values)   {
-        this((String)values.get(0).getValue(), //hash
-                (Address)values.get(1), //provider
-                (BigInteger)values.get(2).getValue(), //amount
-                (Address)values.get(3)); //currency
-    }
-
     public static SubscriptionPaymentModel fromEventValues(List<Type> eventValues)  {
-        if(eventValues.size() != EXPECTED_EVENT_SIZE)  {
+        if(eventValues.size() < REFUND_WITHDRAW_EVENT_SIZE || eventValues.size() > SUBSCRIPTION_CREATED_EVENT_SIZE)  {
             throw new ValidationException("Invalid payment event values received");
         }
         try {
-            return new SubscriptionPaymentModel(eventValues);
+            if(eventValues.size() == 4) {
+                return new SubscriptionPaymentModel(Numeric.toHexString((byte[])eventValues.get(0).getValue()), //hash
+                (Address)eventValues.get(1), //provider
+                (BigInteger)eventValues.get(3).getValue(), //amount
+                (Address)eventValues.get(2)); //currency
+            }
+            else if (eventValues.size() == 3)   {
+                return new SubscriptionPaymentModel(Numeric.toHexString((byte[])eventValues.get(0).getValue()),
+                        null,
+                        (BigInteger)eventValues.get(1).getValue(), //amount
+                        (Address)eventValues.get(2)); //currency
+            }
+            throw new ValidationException("Invalid payment event values received");
         }catch(Exception e) {
             throw new ValidationException("Invalid payment event values received. " + e.getMessage(), e);
         }

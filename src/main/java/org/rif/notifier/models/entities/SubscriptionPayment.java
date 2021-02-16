@@ -1,5 +1,8 @@
 package org.rif.notifier.models.entities;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.util.Date;
@@ -16,6 +19,8 @@ public class SubscriptionPayment {
     @Column(name="amount")
     private BigInteger amount;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name="payment_date")
     private Date paymentDate;
 
@@ -30,6 +35,8 @@ public class SubscriptionPayment {
     @Enumerated(EnumType.STRING)
     @Column(name="status")
     private SubscriptionPaymentStatus status;
+
+    public SubscriptionPayment()    {}
 
     public SubscriptionPayment(BigInteger amount, Subscription subscription, Currency currency, SubscriptionPaymentStatus status) {
         this.amount = amount;

@@ -1,7 +1,6 @@
 package integration;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
@@ -23,6 +22,9 @@ import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
+/**
+ * Integration tests for NotificationProcessorJob and NotificationServices
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {Application.class, IntegrationTestData.class})
 @ActiveProfiles("test")
@@ -42,7 +44,7 @@ public class NotificationServiceIntegrationTest {
 
 
     private void saveApiEndpoint(Notification notif, String endpoint)    {
-        Subscription activeSubscription = integrationTestData.getActiveSubscription();
+        Subscription activeSubscription = integrationTestData.getSubscription();
         int topicId = integrationTestData.getTopicId();
         NotificationPreference pref = notificationPreferenceRepository.findBySubscriptionAndIdTopicAndNotificationService(activeSubscription, topicId, NotificationServiceType.API);
         pref.setDestination(endpoint);
@@ -75,7 +77,7 @@ public class NotificationServiceIntegrationTest {
 
     @Test
     public void canSaveNotificationPreferences()  {
-        NotificationPreference preference = notificationPreferenceManager.getNotificationPreference(integrationTestData.getActiveSubscription(), integrationTestData.getTopicId(), NotificationServiceType.API);
+        NotificationPreference preference = notificationPreferenceManager.getNotificationPreference(integrationTestData.getSubscription(), integrationTestData.getTopicId(), NotificationServiceType.API);
         String destination = preference != null ? preference.getDestination() : "";
         if (preference == null) {
             preference = integrationTestData.newNotificationPreference(NotificationServiceType.API);

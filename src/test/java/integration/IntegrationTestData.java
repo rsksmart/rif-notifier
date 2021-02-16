@@ -5,6 +5,7 @@ import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.managers.datamanagers.TopicManager;
+import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.models.entities.Currency;
 import org.rif.notifier.repositories.SubscriptionPlanRepository;
@@ -12,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Uint256;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -62,7 +66,7 @@ public class IntegrationTestData {
         return subscriptionPlan;
     }
 
-    protected Subscription getActiveSubscription() {
+    protected Subscription getSubscription() {
         return activeSubscription;
     }
 
@@ -103,8 +107,8 @@ public class IntegrationTestData {
 
     private NotificationPreference findOrCreateNotificationPreference(NotificationServiceType type, String destination)   {
         NotificationPreference preference = null;
-        preference = destination == null ? notificationPreferenceManager.getNotificationPreference(this.getActiveSubscription(), topicId, type) :
-                notificationPreferenceManager.getNotificationPreference(this.getActiveSubscription(), topicId, type, destination);
+        preference = destination == null ? notificationPreferenceManager.getNotificationPreference(this.getSubscription(), topicId, type) :
+                notificationPreferenceManager.getNotificationPreference(this.getSubscription(), topicId, type, destination);
         if (preference == null) {
             preference = newNotificationPreference(type);
             if (destination != null)    {
@@ -117,7 +121,7 @@ public class IntegrationTestData {
 
     protected Notification newNotification()  {
         String data = "{\"data\":\"integrationtest-millis-" + System.currentTimeMillis() +"\"}";
-        Notification notification = new Notification(getActiveSubscription(), new Timestamp(new Date().getTime()).toString(), false, data, topicId);
+        Notification notification = new Notification(getSubscription(), new Timestamp(new Date().getTime()).toString(), false, data, topicId);
         notification.setNotificationLogs(new ArrayList<NotificationLog>());
         return notification;
     }
@@ -136,6 +140,18 @@ public class IntegrationTestData {
             notificationLog.setNotification(notif);
             notif.getNotificationLogs().add(notificationLog);
         });
+    }
+
+    public FetchedEvent paymentEvent(String eventName, Address provider, Subscription subscription){
+        List<Type> values = new ArrayList<>();
+        values.add(new Utf8String(subscription.getHash()));
+        values.add(provider);
+        values.add(new Uint256(subscription.getPrice()));
+        values.add(subscription.getCurrency().getAddress());
+        FetchedEvent fetchedEvent = new FetchedEvent
+                (eventName, values, new BigInteger("55"), "0x0", 0);
+
+        return  fetchedEvent;
     }
 
     private void setupUser()    {
@@ -167,16 +183,16 @@ public class IntegrationTestData {
         }
     }
 
-    private void setupSubscription()    {
+    private void setupSubscription(SubscriptionStatus status, boolean createAlways)    {
         //10 days
         Date date = new Date(System.currentTimeMillis()+86400*10000);
         activeSubscription = dbManagerFacade.getSubscriptionByAddress(user).stream().findFirst().orElse(null);
-        if (activeSubscription == null) {
-            activeSubscription = dbManagerFacade.createSubscription(date, user, subscriptionPlan, SubscriptionStatus.ACTIVE, subscriptionPrice);
+        if (createAlways || activeSubscription == null) {
+            activeSubscription = dbManagerFacade.createSubscription(date, user, subscriptionPlan, status, subscriptionPrice);
         }
         else    {
             if(activeSubscription.getExpirationDate().getTime() < System.currentTimeMillis())   {
-                activeSubscription.setStatus(SubscriptionStatus.ACTIVE);
+                activeSubscription.setStatus(status);
                 activeSubscription.setExpirationDate(date);
                 dbManagerFacade.updateSubscription(activeSubscription);
             }
@@ -207,10 +223,14 @@ public class IntegrationTestData {
     }
 
     public void setup() {
+       setup(SubscriptionStatus.ACTIVE, false);
+    }
+
+    public void setup(SubscriptionStatus status, boolean createAlways) {
         setupUser();
         setupCurrency();
         setupSubscriptionPlan();
-        setupSubscription();
+        setupSubscription(status, createAlways);
         setupTopic();
         setupNotificationPreferences();
         setupNotification();

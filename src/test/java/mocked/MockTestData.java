@@ -502,9 +502,12 @@ public class MockTestData {
        return subscriptionDTO;
     }
 
-    public FetchedEvent mockPaymentEvent(String eventName){
+    public FetchedEvent mockPaymentEvent(String eventName)  {
+        return mockPaymentEvent(eventName,new Address("0x0"));
+    }
+
+    public FetchedEvent mockPaymentEvent(String eventName, Address provider){
         List<Type > values = new ArrayList<>();
-        Address provider= new Address("0x0");
         Utf8String hash = new Utf8String("testhash");
         Address currencyAddress = new Address("0x0");
         Uint256 price = new Uint256(100000);

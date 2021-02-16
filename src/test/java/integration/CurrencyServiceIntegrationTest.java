@@ -19,6 +19,9 @@ import java.util.Optional;
 import static integration.IntegrationTestData.TEST_ADDRESS;
 import static org.junit.Assert.*;
 
+/**
+ * Integration test for CurrencyServices and CurrencyRepository
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {Application.class, IntegrationTestData.class})
 @ActiveProfiles("test")
