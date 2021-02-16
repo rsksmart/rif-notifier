@@ -9,13 +9,16 @@ import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.models.entities.Currency;
 import org.rif.notifier.repositories.SubscriptionPlanRepository;
+import org.rif.notifier.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -144,10 +147,16 @@ public class IntegrationTestData {
 
     public FetchedEvent paymentEvent(String eventName, Address provider, Subscription subscription){
         List<Type> values = new ArrayList<>();
-        values.add(new Utf8String(subscription.getHash()));
-        values.add(provider);
-        values.add(new Uint256(subscription.getPrice()));
-        values.add(subscription.getCurrency().getAddress());
+        values.add(new Bytes32(Numeric.hexStringToByteArray(subscription.getHash())));
+        if (eventName.equals("SubscriptionCreated")) {
+            values.add(provider);
+            values.add(subscription.getCurrency().getAddress());
+            values.add(new Uint256(subscription.getPrice()));
+        }
+        else    {
+            values.add(new Uint256(subscription.getPrice()));
+            values.add(subscription.getCurrency().getAddress());
+        }
         FetchedEvent fetchedEvent = new FetchedEvent
                 (eventName, values, new BigInteger("55"), "0x0", 0);
 
@@ -189,6 +198,8 @@ public class IntegrationTestData {
         activeSubscription = dbManagerFacade.getSubscriptionByAddress(user).stream().findFirst().orElse(null);
         if (createAlways || activeSubscription == null) {
             activeSubscription = dbManagerFacade.createSubscription(date, user, subscriptionPlan, status, subscriptionPrice);
+            activeSubscription.setHash(Utils.generateHash(activeSubscription.getHash()));
+            dbManagerFacade.updateSubscription(activeSubscription);
         }
         else    {
             if(activeSubscription.getExpirationDate().getTime() < System.currentTimeMillis())   {

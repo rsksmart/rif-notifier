@@ -147,13 +147,13 @@ public class PaymentServiceIntegrationTest {
     @Test
     public void failActivateOnRefund()    throws Exception {
         //sub.to wrong currency
-        failureTest(sub->{eventName="Refund";}, payment->assertTrue(payment.isRefunded()), SubscriptionStatus.EXPIRED);
+        failureTest(sub->{eventName="FundsRefund";}, payment->assertTrue(payment.isRefunded()), SubscriptionStatus.EXPIRED);
     }
 
     @Test
     public void canWithdraw()    throws Exception {
         //sub.to wrong currency
-        failureTest(sub->{eventName="Withdrawal";},
+        failureTest(sub->{eventName="FundsWithdrawn";},
                 payment->assertEquals(SubscriptionPaymentStatus.WITHDRAWN, payment.getStatus()), null);
     }
 

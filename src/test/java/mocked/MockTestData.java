@@ -20,9 +20,11 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -508,13 +510,19 @@ public class MockTestData {
 
     public FetchedEvent mockPaymentEvent(String eventName, Address provider){
         List<Type > values = new ArrayList<>();
-        Utf8String hash = new Utf8String("testhash");
+        Bytes32 hash = new Bytes32(Numeric.hexStringToByteArray(Utils.generateHash("testhash")));
         Address currencyAddress = new Address("0x0");
         Uint256 price = new Uint256(100000);
         values.add(hash);
-        values.add(provider);
-        values.add(price);
-        values.add(currencyAddress);
+        if (eventName.equals("SubscriptionCreated")) {
+            values.add(provider);
+            values.add(currencyAddress);
+            values.add(price);
+        }
+        else {
+            values.add(price);
+            values.add(currencyAddress);
+        }
         FetchedEvent fetchedEvent = new FetchedEvent
                 (eventName, values, new BigInteger("55"), "0x0", 0);
 
