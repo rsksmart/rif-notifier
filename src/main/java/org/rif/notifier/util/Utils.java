@@ -82,7 +82,7 @@ public class Utils {
     public static Sign.SignatureData signAsSignatureData(String hash, String privateKey)    {
         ECKeyPair ecKeyPair = ECKeyPair.create(Numeric.toBigInt(privateKey));
         Sign.SignatureData signatureData =
-                Sign.signPrefixedMessage(hash.getBytes(), ecKeyPair);
+                Sign.signPrefixedMessage(Numeric.hexStringToByteArray(hash), ecKeyPair);
         return signatureData;
     }
 
@@ -95,7 +95,9 @@ public class Utils {
         byte[] sig = new byte[65];
         System.arraycopy(signatureData.getR(), 0, sig, 0, 32);
         System.arraycopy(signatureData.getS(), 0, sig, 32, 32);
-        sig[64] = (byte) ((signatureData.getV() & 0xFF) - 27);
+        //sig[64] = (byte) ((signatureData.getV() & 0xFF) - 27);
+        //v is already compatible with ecrecover so no conversion needed
+        sig[64] = (byte)signatureData.getV();
         return sig;
     }
 
