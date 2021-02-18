@@ -22,7 +22,9 @@
 	6. [Get chain addresses events](#get-rns-events)
 13. [Verify blockchain events are processed](#verify-blockchain-events)
 14. [Create Subscription Plans](#create-subscription-plans)
-15. [Health Check](#health-check)
+15. [Update Subscription Plans](#update-subscription-plans)
+16. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
+16. [Health Check](#health-check)
 
 
 ## Quick Start
@@ -510,12 +512,12 @@ Return example:
 8. Check notifications are being sent by verifying sent=1 in notification table, for the notification preference set. In case not sent check the notification_log table.
 
 ##### Create Subscription Plans
-1. Modify subscription-plan.json under resources folder with your own plan details.
-2. All the fields are required. The notificationPreferences should contact only enabled preferences in application.properties
+1. One or more subscription plans can be created by modifying subscription-plan.json under resources folder with your own plan details.
+2. All the json attributes are required. The notificationPreferences should only contain preferences that are enabled in application.properties
 3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.properties 
-3. Run bin/subscriptionplans.sh from the home directory of this project
-3. If the json is correct, the plans will be created in the database.
-A sample json structure below
+4. Run bin/subscriptionplans.sh from the home directory of this project
+5. If the json is correct, the plans will be created in the database.
+6. A sample json structure is given below
 ```
 [
   {
@@ -567,6 +569,70 @@ A sample json structure below
 ]
 
 ```
+##### Update Subscription Plans
+1. A subscription plan that already exists can be updated. In order to update, the "id" attribute must be specified as part of the subscription-plan.json for the plan to be updated. 
+2. All json attributes are required as given in subscription-plan.json. The notificationPreferences should only contain enabled preferences in application.properties
+2. Modify subscription-plan.json under resources folder with your own plan details.
+5. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.properties 
+6. Run bin/subscriptionplans.sh from the home directory of this project
+7. If the json is correct, the plans will be created in the database.
+8. A sample json structure for update operation is given below
+```
+[
+  {
+    "id":1,
+    "name": "RIF-10k",
+    "notificationQuantity": 10000,
+    "validity": 150,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "10",
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
+      },
+      {
+        "price": "20",
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
+      }
+    ]
+  },
+  {
+    "id":"2"
+    "name": "RIF-20k",
+    "notificationQuantity": 20000,
+    "validity": 200,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "20",
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
+      },
+      {
+        "price": "40",
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
+      }
+    ]
+  }
+]
+
+```
+
+##### Enable or disable subscription plans
+A subscription plan can be enabled or disabled by setting the "status" property to true or false in subscription-plan.json
 
 ##### Health Check
 Health check provides a way to ensure that the rif-notifier service is

@@ -167,6 +167,8 @@ public class DbManagerFacade {
 
     public SubscriptionPlan getSubscriptionPlanById(int id){ return  subscriptionPlanManager.getSubscriptionPlanById(id); }
 
+    public Optional<SubscriptionPlan> getActiveSubscriptionPlanById(int id){ return  subscriptionPlanManager.getActiveSubscriptionPlanById(id); }
+
     public Topic getTopicById(int Id){
         return topicManager.getTopicById(Id);
     }

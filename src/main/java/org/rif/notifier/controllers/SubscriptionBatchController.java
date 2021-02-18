@@ -10,6 +10,7 @@ import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.SubscribeServices;
+import org.rif.notifier.services.SubscriptionPlanServices;
 import org.rif.notifier.services.UserServices;
 import org.rif.notifier.validation.CurrencyValidator;
 import org.rif.notifier.validation.NotificationPreferenceValidator;
@@ -34,6 +35,7 @@ public class SubscriptionBatchController {
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionBatchController.class);
 
     private SubscribeServices subscribeServices;
+    private SubscriptionPlanServices subscriptionPlanServices;
     private UserServices userServices;
     private CurrencyValidator currencyValidator;
     private NotificationPreferenceManager notificationPreferenceManager;
@@ -47,7 +49,7 @@ public class SubscriptionBatchController {
                                        NotificationPreferenceManager notificationPreferenceManager,
                                        NotificationPreferenceValidator notificationPreferenceValidator,
                                        SubscribeValidator subscribeValidator, CurrencyValidator currencyValidator,
-                                       NotifierConfig notifierConfig,
+                                       NotifierConfig notifierConfig,SubscriptionPlanServices subscriptionPlanServices,
                                        @Qualifier("providerAddress") Address providerAddress,
                                        @Qualifier("providerPrivateKey") String providerPrivateKey) {
         this.subscribeServices = subscribeServices;
@@ -59,6 +61,7 @@ public class SubscriptionBatchController {
         this.providerPrivateKey = providerPrivateKey;
         this.currencyValidator = currencyValidator;
         this.notifierConfig = notifierConfig;
+        this.subscriptionPlanServices = subscriptionPlanServices;
     }
 
     /**
@@ -138,7 +141,7 @@ public class SubscriptionBatchController {
         Optional<Subscription> previousSubscription = validateAndGetPreviousSubscription(previousSubscriptionHash);
         //proceed to create subscription
         SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), currencyValidator.validate(subscriptionBatchDTO.getCurrency()));
-        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId(), true);
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId(), previousSubscription.isPresent());
         previousSubscription.ifPresent(prev->subscription.setPreviousSubscription(prev));
         subscribeToTopic(subscription, subscriptionBatchDTO.getTopics());
         SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress, user);
@@ -217,8 +220,8 @@ public class SubscriptionBatchController {
 
     private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, int subscriptionPlanId, boolean renewal)   {
         //validate if this subscription plan actually exists in the database
-        SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(subscriptionPlanId);
-        Optional.ofNullable(subscriptionPlan).orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        SubscriptionPlan subscriptionPlan = subscriptionPlanServices.getActiveSubscriptionPlan(subscriptionPlanId)
+                .orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //validate if the provided price exists for this plan
         subscribeValidator.validateSubscriptionPrice(subscriptionPrice, subscriptionPlan);
         //throw exception if subscription already added

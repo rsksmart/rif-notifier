@@ -13,6 +13,7 @@ import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.CurrencyServices;
 import org.rif.notifier.services.SubscribeServices;
+import org.rif.notifier.services.SubscriptionPlanServices;
 import org.rif.notifier.services.UserServices;
 import org.rif.notifier.validation.CurrencyValidator;
 import org.rif.notifier.validation.NotificationPreferenceValidator;
@@ -31,6 +32,7 @@ import org.web3j.abi.datatypes.Address;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -69,6 +71,9 @@ public class SubscriptionBatchControllerTest {
     @MockBean
     private CurrencyValidator currencyValidator;
 
+    @MockBean
+    private SubscriptionPlanServices subscriptionPlanServices;
+
     private MockTestData mockTestData = new MockTestData();
     ObjectMapper mapper = new ObjectMapper();
 
@@ -80,7 +85,7 @@ public class SubscriptionBatchControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         List<TopicDTO> topics = mockTestData.mockTopics();
         when(userServices.userExists(anyString())).thenReturn(us);
-        when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
+        when(subscriptionPlanServices.getActiveSubscriptionPlan(anyInt())).thenReturn(Optional.of(subType));
         when(subscribeServices.getSubscriptionByAddressAndPlan(anyString(), any(SubscriptionPlan.class))).thenReturn(subscription);
         when(subscribeServices.createSubscription(any(User.class), any(SubscriptionPlan.class), any(SubscriptionPrice.class))).thenReturn("");
         when(subscribeServices.getActiveSubscriptionByAddressAndPlan(anyString(), any(SubscriptionPlan.class))).thenReturn(null);

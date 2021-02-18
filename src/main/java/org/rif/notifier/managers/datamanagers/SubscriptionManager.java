@@ -67,7 +67,7 @@ public class SubscriptionManager {
     }
 
     public Subscription getActiveSubscriptionByAddressAndType(String user_address, SubscriptionPlan subscriptionPlan){
-        return subscriptionRepository.findByUserAddressAndSubscriptionPlan(user_address, subscriptionPlan);
+        return subscriptionRepository.findByUserAddressAndSubscriptionPlanAndStatus(user_address, subscriptionPlan, SubscriptionStatus.ACTIVE);
     }
 
     public Subscription getSubscriptionByHash(String hash){

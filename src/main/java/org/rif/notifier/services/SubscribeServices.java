@@ -177,7 +177,7 @@ public class SubscribeServices  {
      * @return Subscription type in case finds it
      */
     public SubscriptionPlan getSubscriptionPlanById(int planId){
-        return dbManagerFacade.getSubscriptionPlanById(planId);
+        return dbManagerFacade.getActiveSubscriptionPlanById(planId).orElse(null);
     }
 
     /**

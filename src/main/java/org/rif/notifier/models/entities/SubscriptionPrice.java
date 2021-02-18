@@ -75,7 +75,6 @@ public class SubscriptionPrice {
         SubscriptionPrice that = (SubscriptionPrice) o;
 
         return new EqualsBuilder()
-                .append(id, that.id)
                 .append(price, that.price)
                 .append(currency, that.currency)
                 .isEquals();
@@ -84,7 +83,6 @@ public class SubscriptionPrice {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(id)
                 .append(price)
                 .append(currency)
                 .toHashCode();
