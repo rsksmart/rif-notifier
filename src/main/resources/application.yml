@@ -1,0 +1,91 @@
+logging:
+    level:
+        org:
+            rif:
+                notifier:
+                    datafetcher: ERROR
+                    runner:
+                        SubscriptionPlanLoader: WARN
+                    scheduled: ERROR
+                    scheduled.NotificationProcessorJob: ERROR
+management:
+    endpoint:
+        health:
+            show-details: always
+notificationservice:
+    email:
+        from: no_reply@iovlabs.org
+    maxretries: 3
+    services:
+        enabled: ${notificationpreferences:API,EMAIL}
+    sms:
+        from: 13473475555
+    twilio:
+        account_sid: test
+        auth_token: test
+notifier:
+    blocks:
+        block-confirmation-count: ${blockconfirmationcount:20}
+        start-from-RSK-last-block: false
+    executor:
+        corePoolSize: 7
+        maxPoolSize: 8
+        queueCapacity: 11
+    notifications:
+        maxquerylimit: 1000
+    run:
+        fixedDelayFetchingChainAddresses: 3000
+        fixedDelayFetchingJob: 5000
+        fixedDelayNotificationJob: 3000
+        fixedDelayProcessJob: 3000
+        fixedDelaySubscriptionProcessorJob: 3600000
+        fixedInitialDelayFetchingChainAddresses: 2000
+        fixedInitialDelayFetchingJob: 2000
+        fixedInitialDelayNotificationJob: 2000
+        fixedInitialDelayProcessJob: 2000
+        fixedInitialSubscriptionProcessorJob: 3600000
+        poolSize: 3
+rif:
+    notifier:
+        account:
+            file: UTC--2019-04-19T15-07-00.568000000Z--034000b5f2862d114e4b3474f79fc64aad0cb742.json
+            paassword: Z&VT=JRSAQAsMYgSXaCEMf!S7vXaDPfY+SW^aGC4TCATUTjExDb2+=GC7+fux88LdGtR!^m-v4dtX2_*2?9@E$7B7f!RCExn&4R9$GMHxK5vrk&qrp8aZ5Z4GzWPP5@vnffKpXU*2evJm!GtDCN-@BWZ-V*6EMeQ*3Rc=y-gbWFUGGm4+7y2j3fs@mxT$kSe48as-aTZ?BdtMUNgH4tJzeF2%hsy5$M@ELY86Z9dfLWWjq!Up-atxPr!Wt&3a2LZ
+        provider:
+            address: ${provideraddress:0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9}
+            privatekey: ${providerprivatekey:b1ed36c7f7e02edeaacfd7b485cc857e3051e94a73195a6c96c88dd74d22744a}
+        subscription:
+            currencies: ${acceptedcurrencies:RIF,RBTC}
+rsk:
+    blockchain:
+        endpoint: ${blockchainendpoint:http://localhost:7545}
+        multichaincontract: ${multichaincontract:0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA}
+        notifier-smart-contract-address: ${smartcontractaddress:0xC2Cd3835d36510dc065d0f8991785DAA70a601a4}
+        tokennetworkregistry: ${tokennetworkregistry:0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA}
+spring:
+    datasource:
+        url: jdbc:mysql://localhost:3306/${dbname:rif_notifier}?createDatabaseIfNotExist=true
+        initialization-mode: never
+        username: ${dbuser:root}
+        password: ${dbpassword:root}
+    mail:
+        host: smtp.gmail.com
+        password: ''
+        port: 587
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    connectiontimeout: 5000
+                    starttls:
+                        enable: true
+                    timeout: 5000
+                    writetimeout: 5000
+        username: ''
+    task:
+        scheduling:
+            pool:
+                size: 6
+flyway:
+    url: jdbc:mysql:${dbhost:localhost}/${dbname:rif_notifier}
+    user: ${dbuser:root}
+    password: ${dbpassword:root}

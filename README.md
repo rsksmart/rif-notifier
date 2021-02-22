@@ -4,61 +4,150 @@
 
 1. [Quick start](#quick-start) 
 2. [Installation](#installation-guide) 
-3. [Docker Installation](#docker-installation-guide) 
-4. [Get signed address and private key to register a user](#get-signed-address-and-privatekey)
-5. [Register user to notifier](#first-you-need-to-register-a-user)
-6. [Generate subscription for notifier](#now-you-need-to-generate-a-subscription-to-the-service)
-7. [Subscribe to a topic](#now-just-rest-to-send-the-topics-with-params-to-be-listened)
-8. [Retrieve notifications](#getting-notifications)
-9. [Unsubscribe from topic](#unsubscribing-from-a-topic)
-10. [Save notification Preference](#save-notification-preference)
-11. [Remove notification Preference](#remove-notification-preference)
-12. [Other available endpoints](#other-available-endpoints)
+4. [Usage Guide](#usage-guide)
+5. [Retrieve notifications](#getting-notifications)
+6. [Unsubscribe from topic](#unsubscribing-from-a-topic)
+7. [Save notification Preference](#save-notification-preference)
+8. [Remove notification Preference](#remove-notification-preference)
+9. [Other available endpoints](#other-available-endpoints)
 	1. [Get subscription info](#get-subscription-info)
 	2. [Get Lumino tokens](#get-lumino-tokens)
 	3. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
 	4. [Subscribe to close channel](#subscribe-to-close-channel)
 	5. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
 	6. [Get chain addresses events](#get-rns-events)
-13. [Verify blockchain events are processed](#verify-blockchain-events)
-14. [Create Subscription Plans](#create-subscription-plans)
-15. [Update Subscription Plans](#update-subscription-plans)
-16. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
-16. [Health Check](#health-check)
+10. [Verify blockchain events are processed](#verify-blockchain-events)
+11. [Create Subscription Plans](#create-subscription-plans)
+12. [Update Subscription Plans](#update-subscription-plans)
+13. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
+14. [Health Check](#health-check)
 
 
 ## Quick Start
 
 (This steps you can follow if you're already familiar with the notifier, otherwise jump to the installation guide first)
 
--First of all you need to set the blockchain endpoint property  ```rsk.blockchain.endpoint=``` for ex. ```http://localhost:4444``` in the application.properties of this project
+-First of all you need to set the blockchain endpoint property  ```rsk.blockchain.endpoint=``` for ex. ```http://localhost:4444``` in the application.yml of this project
 
--To subscribe to Events like Open Channel or Close Channel, use the property  that needs the Token Network Registry Address to be setted in the application.properties
+-To subscribe to Events like Open Channel or Close Channel, use the property  that needs the Token Network Registry Address to be setted in the application.yml
 
--We use mysql for DB, please put your DB settings in the application.properties too
+-We use mysql for DB, please put your DB settings in the application.yml too
 
--You have the DB schema in src/main/resources/db_dumps/, look for the latest Dump.sql, create a DB with this schema, and in application.properties set the connection to your DB
+-You have the DB schema in src/main/resources/db_dumps/, look for the latest Dump.sql, create a DB with this schema, and in application.yml set the connection to your DB
 
 -Get started with the following steps
 
 ## Installation guide
+## Setup
 
-1. First of all clone this repo
-2. Create a Mysql database, and import the schema from: src/main/resources/db_dumps/Dump20000.sql (The number indicates last date of updating the schema). To dump to a database you can use the following command mysql -u root -p DB_NAME < src/main/resources/db_dumps/Dump200000.sql
-3. Now we need to configure the notifier: Go to src/main/resources/application.properties and set the following data:
-	1. Conn to DB:
-		1. spring.datasource.url=jdbc:mysql://localhost:3306/notifierone 
-		2. spring.datasource.username=notifier1
-		3. spring.datasource.password=123456
-	2. RSK Blockchain endpoint for listening to contract events, new blocks and new transactions
-	    1. rsk.blockchain.endpoint=http://localhost:4444
-	3. RSK Node endpoint, listening to contract events and fetch lumino tokens
-		1. rsk.blockchain.tokennetworkregistry=0x088AF4986f3DBD66b4d97bE5f6742BC4853D8BA8
-	4. Multichain contract address, to obtain the chainaddresses event
-		1. rsk.blockchain.multichaincontract=0x7557fcE0BbFAe81a9508FF469D481f2c72a8B5f3
-4. Now just rests to init the notifier, for that, you need to run the following command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=${PORT}" 
+### Prerequisites
+#### 1. RSK Blockchain (Mainnet)
+The first requirement is an RSK node which can be run using the **JAR file** method. Use the latest RSKj version avaiable and have it sync with mainnet.
 
-(As a note, you can ignore the -Dspring-boot arguments, and just run the notifier with mvn spring-boot:run)
+This node should be accessible through `localhost:4444`. For more information on how to achieve this, please consult the [_Setup node on Java_ section on the Developer Portal](https://developers.rsk.co/rsk/node/install/java/).
+
+#### 2. git
+The latest version of the `git` client can be installed through:
+
+```shell
+sudo apt update
+sudo apt install git
+```
+
+#### 3. MySQL
+The latest version of the `mysql-server` database can be installed through:
+
+```shell
+sudo apt update
+sudo apt install mysql-server
+```
+
+Then, run the installer by executing:
+
+```shell
+sudo mysql_secure_installation
+```
+
+This will take you through a series of prompts where you can configure your MySQL installation.
+
+##### 3.1 Verification
+You can verify the MySQL service is running by executing:
+
+```shell
+sudo service mysql status
+```
+
+You can verify the port used by the MySQL is of the expected value `3306` by executing:
+
+```shell
+sudo netstat -tlnp | grep mysql
+```
+
+`netstat` can be installed through `sudo apt install net-tools`.
+
+#### 4. Maven
+The latest version of maven can be installed through:
+
+```shell
+sudo apt install maven
+```
+###Installation steps
+1. Pick a directory for all the RIF Notifier code to reside in. From now on this will be called `notifier-dir`, but replace it with your own.
+2. Clone the RIF Notifier git project into its directory doing:
+
+```shell
+git clone https://github.com/rsksmart/rif-notifier notifier-dir
+```
+Stay on the `master` branch.
+
+Run bin/install.sh with 3 parameters, this will clone the rif-notifier repo from github and create the mysql user notifier_user with
+ required permissions
+```
+bin/install.sh <database root user> <database root password> <notifier_user password>
+```
+The third parameter is the password for preconfigured user notifier_user which will be created by this script
+
+####Manual steps
+Alternatively the steps can be performed manually as below
+
+. Create the RIF Notifier database and configure its access. This is done by first opening the MySQL prompt by executing:
+
+```shell
+sudo mysql
+```
+
+Then, pick a name for the RIF Notifier database to be used. From now on this will be called `notifier_db`, but replace it with your own.
+
+Create the schema by entering:
+
+```mysql
+CREATE DATABASE notifier_db;
+```
+
+in the `mysql` prompt.
+
+Now pick a username and password for the database to be accessed with. From now on these will be called `notifier_db_user` and `notifier_db_password`, but replace them with your own.
+
+To have these set up in the MySQL database first do:
+
+```mysql
+CREATE USER 'notifier_db_user'@'localhost' IDENTIFIED BY 'notifier_db_password';
+```
+
+in the `mysql` prompt. Then grant this user all permissions on the schema by doing:
+
+```mysql
+GRANT ALL PRIVILEGES ON notifier_db.* TO 'notifier_db_user'@'localhost';
+```
+
+and then exit the `mysql` terminal by entering `exit`.
+
+Restart the MySQL service by executing:
+
+```shell
+sudo /etc/init.d/mysql restart
+```
+
 
 ## Docker Installation guide
 1. Download docker image <rifnotifier.tar> from gdrive link provided
@@ -70,6 +159,67 @@ cd ~/rif-notifier
 git pull
 mvn spring-boot:run
 ```
+---
+
+## Execution
+
+### Preconditions
+
+RIF Notifier uses `eth_getLogs` rpc to get the information about events, therefore the RSK node must respond in a reasonable
+timeframe (< 30s)
+
+Since the `eth_getLogs` result is cached, it will take a long time for this call to finish the first time it is executed after the RSK node is started. This will happen each time the RSK node boots.
+After this, each call should be finished in a reasonable time.
+
+Use this curl to test the `eth_getLogs` response:
+```
+curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"eth_getLogs","params":[{"address":"0xde2D53e8d0E673A4b1D9054cE83091777F2fd8Ce","fromBlock":"0x0","toBlock":"latest"}],"id":74}'
+```
+
+### Start the application
+
+To run the RIF Notifier start a terminal in `rif-notifier` and run:
+
+
+First modify the ```config.json``` file to setup the rsk blockchain and database properties
+```
+{
+	"serverport":"8080",  // server port to start the server on
+
+	"dbhost":"localhost",  //database host name
+	"dbname":"rif_notifier",  //database name
+	"dbuser":"notifier_user",  //database user with privileges
+	"dbpassword":"##password##",  //database password
+
+	"rskendpoint":"http://localhost:7545",  //rsk blockchain endpoint
+	"blockconfirmationcount":"20",  // number of blocks to wait for confirmation
+	"smartcontractaddress":"0xC2Cd3835d36510dc065d0f8991785DAA70a601a4",  // smart contract address for payments
+	"tokennetworkregistry":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA", 
+	"multichaincontract":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
+
+	"provideraddress":"0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9",  // provider address
+	"providerprivatekey":"b1ed36c7f7e02edeaacfd7b485cc857e3051e94a73195a6c96c88dd74d22744a", //provider privatekey without hex prefix
+
+	"notificationpreferences":"API,EMAIL",  // supported notifications comma separated
+
+	"acceptedcurrencies":"RIF,RBTC"  // supported currencies comma separated
+}
+
+```
+Then run the command ```bin/subscriptionplans.sh```  to create the subscription plans. Refer to [create subscription plans](#create-subscription-plans) and [update subscription plans](#update-subscription-plans)
+
+###Start the application
+ Run
+the command ```bin/run.sh``` to start the application.
+---
+
+## Update
+To update an already installed RIF Notifier follow these steps:
+1. Stop the RIF Notifier process.
+2. Navigate to the `notifier-dir` and pull the latest code by executing `git pull`. The `master` branch should still be used.
+3. Re-initialize the RIF Notifier database by following **step 4** in the [Installation steps section](#installation-steps).
+4. Start the RIF Notifier as indicated in the [Execution section](#execution).
+
 ###### Get signed address and privatekey
 1. Get a wallet address and private key from a wallet for ex. nifty wallet
 2. Sign the address using the wallet private key with the below javascript 
@@ -513,8 +663,8 @@ Return example:
 
 ##### Create Subscription Plans
 1. One or more subscription plans can be created by modifying subscription-plan.json under resources folder with your own plan details.
-2. All the json attributes are required. The notificationPreferences should only contain preferences that are enabled in application.properties
-3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.properties 
+2. All the json attributes are required. The notificationPreferences should only contain preferences that are enabled in application.yml
+3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
 4. Run bin/subscriptionplans.sh from the home directory of this project
 5. If the json is correct, the plans will be created in the database.
 6. A sample json structure is given below
@@ -571,9 +721,9 @@ Return example:
 ```
 ##### Update Subscription Plans
 1. A subscription plan that already exists can be updated. In order to update, the "id" attribute must be specified as part of the subscription-plan.json for the plan to be updated. 
-2. All json attributes are required as given in subscription-plan.json. The notificationPreferences should only contain enabled preferences in application.properties
+2. All json attributes are required as given in subscription-plan.json. The notificationPreferences should only contain enabled preferences in application.yml
 2. Modify subscription-plan.json under resources folder with your own plan details.
-5. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.properties 
+5. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
 6. Run bin/subscriptionplans.sh from the home directory of this project
 7. If the json is correct, the plans will be created in the database.
 8. A sample json structure for update operation is given below
