@@ -29,7 +29,7 @@
 	9. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
 	10. [Get chain addresses events](#get-rns-events)
 5. [Verify blockchain events are processed](#verify-blockchain-events)
-9. [Health Check](#health-check)
+6. [Health Check](#health-check)
 
 
 ## Quick Start
