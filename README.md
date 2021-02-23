@@ -3,45 +3,54 @@
 ## Indexes
 
 1. [Quick start](#quick-start) 
-2. [Installation](#installation-guide) 
-3. [Usage Guide](#usage-guide)
-4. [Retrieve notifications](#getting-notifications)
-5. [Unsubscribe from topic](#unsubscribing-from-a-topic)
-6. [Save notification Preference](#save-notification-preference)
-7. [Remove notification Preference](#remove-notification-preference)
-8. [Other available endpoints](#other-available-endpoints)
-	1. [Get subscription info](#get-subscription-info)
-	2. [Get Lumino tokens](#get-lumino-tokens)
-	3. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
-	4. [Subscribe to close channel](#subscribe-to-close-channel)
-	5. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
-	6. [Get chain addresses events](#get-rns-events)
-9. [Verify blockchain events are processed](#verify-blockchain-events)
-10. [Create Subscription Plans](#create-subscription-plans)
-11. [Update Subscription Plans](#update-subscription-plans)
-12. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
-13. [Health Check](#health-check)
+2. [Installation](#installation-guide)
+   1. [Prerequisites](#prerequisites)
+   2. [Automatic Installation](#automatic-installation-steps)
+   3. [Manual Installation](#manual-installation-steps)
+   4. [Docker Installation](#docker-installation-steps)
+3. [Usage Guide](#usage-guide)   
+    1. [Preconditions](#preconditions)
+    2. [Start the application](#start-the-application)  
+    3. [Create Subscription Plans](#create-subscription-plans)
+    4. [Update Subscription Plans](#update-subscription-plans)
+    5. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
+    6. [Subscribe to Plan](#subscribe-to-plan)
+    7. [Renew Subscription](#renew-subscription)
+    8. [Subscription and Renewal Response](#subscription-and-renewal-response)
+4. [Other available endpoints](#other-available-endpoints)   
+	1. [Retrieve notifications](#getting-notifications)
+	2. [Unsubscribe from topic](#unsubscribing-from-a-topic)
+	3. [Save notification Preference](#save-notification-preference)
+	4. [Remove notification Preference](#remove-notification-preference)
+	5. [Get subscription info](#get-subscription-info)
+	6. [Get Lumino tokens](#get-lumino-tokens)
+	7. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
+	8. [Subscribe to close channel](#subscribe-to-close-channel)
+	9. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
+	10. [Get chain addresses events](#get-rns-events)
+5. [Verify blockchain events are processed](#verify-blockchain-events)
+9. [Health Check](#health-check)
 
 
 ## Quick Start
 
 (This steps you can follow if you're already familiar with the notifier, otherwise jump to the [Installation](#installation-guide) guide first)
 
--First of all you need to set the blockchain endpoint property  ```rskendpoint:``` for ex. ```http://localhost:4444``` in the config.json found in home directory of this project
+-Open ```config.json``` and set the correct values for each property. To view details on each property refer to [Start the application](#start-the-application)
 
--To subscribe to a plan use the endpoint http://localhost:8080/subscribeToPlan
+-Ensure that the blockchain endpoint property  ```rskendpoint:``` for ex. ```http://localhost:4444``` in the config.json found in home directory of this project is correctly set
 
 -To view all endpoints use http://localhost:8080/swagger-ui.html
 
--To subscribe or renew a plan use http://localhost:8080/subscribeToPlan endpoint http://localhost:8080/renewSubscription
+-To subscribe or renew a plan use http://localhost:8080/subscribeToPlan endpoint and http://localhost:8080/renewSubscription
 
--To subscribe to Events like Open Channel or Close Channel, use the property  that needs the Token Network Registry Address to be setted in the application.yml
+-To subscribe to Events like Open Channel or Close Channel, use the property  that needs the Token Network Registry Address to be set in the config.json 
 
--We use mysql for DB, please put your DB settings in the application.yml too
+-We use mysql for DB, please put your DB settings in the config.json too
 
--You have the DB schema in src/main/resources/db_dumps/, look for the latest Dump.sql, create a DB with this schema, and in application.yml set the connection to your DB
+-DB Schema and database rif_notifier will be generated if it does not exist, provided the mysql user has enough permissions.
 
--Get started with the following steps
+-Get started with the following steps for a fresh install
 
 ## Installation guide
 ## Setup
@@ -97,24 +106,27 @@ The latest version of maven can be installed through:
 ```shell
 sudo apt install maven
 ```
-###Installation steps
-1. Pick a directory for all the RIF Notifier code to reside in. From now on this will be called `notifier-dir`, but replace it with your own.
-2. Clone the RIF Notifier git project into its directory doing:
+### Automatic Installation steps
 
-```shell
-git clone https://github.com/rsksmart/rif-notifier notifier-dir
-```
-Stay on the `master` branch.
-
-Run bin/install.sh with 3 parameters, this will clone the rif-notifier repo from github and create the mysql user notifier_user with
- required permissions
+1. Ensure [prerequisites](#prerequisites) are met.
+   
+2. Run bin/install.sh with 3 parameters as below, this will clone the rif-notifier repo from github and create the mysql user notifier_user with
+required permissions
 ```
 bin/install.sh <database root user> <database root password> <notifier_user password>
 ```
-The third parameter is the password for preconfigured user notifier_user which will be created by this script
+The third parameter is the password for user ```notifier_user``` which will be created by this script
 
-####Manual steps
-Alternatively the steps can be performed manually as below
+3. Run the command ```cd rif-notifier``` and open ```config.json``` file from the ```rif-notifier``` folder. Set the ```dbpassword``` property to the password you just entered in previous step for ```notifier_user_password```
+
+### Manual Installation steps
+1. Pick a directory for all the RIF Notifier code to reside in. From now on this will be called `rif-notifier`, but replace it with your own.
+2. Clone the RIF Notifier git project into its directory doing:
+
+```shell
+git clone https://github.com/rsksmart/rif-notifier rif-notifier
+```
+Stay on the `master` branch.
 
 . Create the RIF Notifier database and configure its access. This is done by first opening the MySQL prompt by executing:
 
@@ -122,28 +134,28 @@ Alternatively the steps can be performed manually as below
 sudo mysql
 ```
 
-Then, pick a name for the RIF Notifier database to be used. From now on this will be called `notifier_db`, but replace it with your own.
+Then, pick a name for the RIF Notifier database to be used. From now on this will be called `rif_notifier`, but replace it with your own.
 
 Create the schema by entering:
 
 ```mysql
-CREATE DATABASE notifier_db;
+CREATE DATABASE rif_notifier;
 ```
 
 in the `mysql` prompt.
 
-Now pick a username and password for the database to be accessed with. From now on these will be called `notifier_db_user` and `notifier_db_password`, but replace them with your own.
+Now pick a username and password for the database to be accessed with. From now on these will be called `notifier_user` and `notifier_db_password`, but replace them with your own.
 
 To have these set up in the MySQL database first do:
 
 ```mysql
-CREATE USER 'notifier_db_user'@'localhost' IDENTIFIED BY 'notifier_db_password';
+CREATE USER 'notifier_user'@'localhost' IDENTIFIED BY 'notifier_db_password';
 ```
 
 in the `mysql` prompt. Then grant this user all permissions on the schema by doing:
 
 ```mysql
-GRANT ALL PRIVILEGES ON notifier_db.* TO 'notifier_db_user'@'localhost';
+GRANT ALL PRIVILEGES ON rif_notifier.* TO 'notifier_user'@'localhost';
 ```
 
 and then exit the `mysql` terminal by entering `exit`.
@@ -155,7 +167,7 @@ sudo /etc/init.d/mysql restart
 ```
 
 
-## Docker Installation guide
+### Docker Installation Steps
 1. Download docker image <rifnotifier.tar> from gdrive link provided
 2. Run command below - 
 ```
@@ -168,7 +180,7 @@ mvn spring-boot:run
 ---
 
 ## Execution
-
+## Usage guide
 ### Preconditions
 
 RIF Notifier uses `eth_getLogs` rpc to get the information about events, therefore the RSK node must respond in a reasonable
@@ -184,10 +196,7 @@ curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jso
 
 ### Start the application
 
-To run the RIF Notifier start a terminal in `rif-notifier` and run:
-
-
-First modify the ```config.json``` file to setup the rsk blockchain and database properties
+First modify the ```config.json``` file to setup the rsk blockchain and database properties. Note: the comments should be removed in the actual json.
 ```
 {
 	"serverport":"8080",  // server port to start the server on
@@ -211,111 +220,173 @@ First modify the ```config.json``` file to setup the rsk blockchain and database
 	"acceptedcurrencies":"RIF,RBTC"  // supported currencies comma separated
 }
 
-```
-Then run the command ```bin/subscriptionplans.sh```  to create the subscription plans. Refer to [create subscription plans](#create-subscription-plans) and [update subscription plans](#update-subscription-plans)
+To run the RIF Notifier start a terminal in `rif-notifier` directory and run:
 
-###Start the application
- Run
-the command ```bin/run.sh``` to start the application.
----
+```
+Then run the command ```bin/subscriptionplans.sh```  to create the subscription plans. Refer to [create subscription plans](#create-subscription-plans) and [update subscription plans](#update-subscription-plans)  
+
+#### Run the application  
+
+Run the command ```bin/run.sh``` to start rif-notifier.
 
 ## Update
 To update an already installed RIF Notifier follow these steps:
 1. Stop the RIF Notifier process.
-2. Navigate to the `notifier-dir` and pull the latest code by executing `git pull`. The `master` branch should still be used.
+2. Navigate to the `rif-notifier` directory and pull the latest code by executing `git pull`. The `master` branch should still be used.
 3. Re-initialize the RIF Notifier database by following **step 4** in the [Installation steps section](#installation-steps).
 4. Start the RIF Notifier as indicated in the [Execution section](#execution).
 
-###### Get signed address and privatekey
-1. Get a wallet address and private key from a wallet for ex. nifty wallet
-2. Sign the address using the wallet private key with the below javascript 
+#### **Create Subscription Plans**
+1. One or more subscription plans can be created by modifying subscription-plan.json under resources folder with your own plan details.
+2. All the json attributes are required. The notificationPreferences should only contain preferences that are enabled in application.yml
+3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
+4. Run bin/subscriptionplans.sh from the home directory of this project
+5. If the json is correct, the plans will be created in the database.
+6. A sample json structure is given below
 ```
-var ethers = require('ethers');
-const Web3 = require('web3');
-const SigningHandler = () => {
-  let web3;
-  let wallet;
-  let decryptedAccount;
-  const init = (_web3, _privateKey) => {
-    web3 = _web3;
-    wallet = new ethers.Wallet(_privateKey);
-console.log(wallet);
-    decryptedAccount = web3.eth.accounts.privateKeyToAccount(_privateKey);
-  };
-  const offChainSign = data => {
-	console.log(wallet);
-    const signature = wallet.signMessage(data);
-    return signature;
-  };
-  const sign = async tx => {
-    const signed_tx = await decryptedAccount.signTransaction(tx);
-    return signed_tx.rawTransaction;
-  };
-  return { init, offChainSign, sign };
-};
-let privatekey = <your wallet private key>;
-let addressstoSign = <your wallet address>;
-let web3 = new Web3('ws://localhost:4444');
-var s = SigningHandler();
-s.init(web3, privatekey);
-console.log(s.offChainSign(addressToSign));
-```
-Note down the signed address to use as body to register user.
-
-###### First you need to register a user
-```
-POST Request: http://localhost:8080/users?address=YOUR_ADDRESS
-Body (Text/plain): Here you need to put your address signed with your private key
-```
-
-The notifier will validate the body of that request, and making sure you own this address.
-
-This endpoint will give you an ApiKey, please keep track of this Api Key cause you will need it for future calls
-
-Newest implementations, if you re-send this, it will return the ApiKey, same as you register for the first time.
-
-Return example:
-
-```json
-{
-    "message": "OK",
-    "data": {
-        "address": "0x7bDB21b2d21EE4b30FB4Bb791781F7D17f465309",
-        "apiKey": "t9lkxFcjIsJL5rnwfPsAayPYBFdjxB74"
-    },
-    "status": "OK"
-}
-```
-
-
-###### Now you need to generate a subscription to the service
-
+[
+  {
+    "name": "RIF-10k",
+    "notificationQuantity": 10000,
+    "validity": 100,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "10",
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
+      },
+      {
+        "price": "20",
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
+      }
+    ]
+  },
+  {
+    "name": "RIF-20k",
+    "notificationQuantity": 20000,
+    "validity": 100,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "20",
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
+      },
+      {
+        "price": "40",
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
+      }
+    ]
+  }
+]
 
 ```
-POST Request: http://localhost:8080/subscribe?type=SUBSCRIPTION_TYPE
-Header param: 
-	key: apiKey #Remember that you get this apiKey from previous step
-	value: API_KEY 
+#### **Update Subscription Plans**
+1. A subscription plan that already exists can be updated. In order to update, the "id" attribute must be specified as part of the subscription-plan.json for the plan to be updated. 
+2. All json attributes are required as given in subscription-plan.json. The notificationPreferences should only contain enabled preferences in application.yml
+2. Modify subscription-plan.json under resources folder with your own plan details.
+5. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
+6. Run bin/subscriptionplans.sh from the home directory of this project
+7. If the json is correct, the plans will be created in the database.
+8. A sample json structure for update operation is given below
+```
+[
+  {
+    "id":1,
+    "name": "RIF-10k",
+    "notificationQuantity": 10000,
+    "validity": 150,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "10",
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
+      },
+      {
+        "price": "20",
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
+      }
+    ]
+  },
+  {
+    "id":"2"
+    "name": "RIF-20k",
+    "notificationQuantity": 20000,
+    "validity": 200,
+    "notificationPreferences": "API,EMAIL",
+    "status": true,
+    "subscriptionPriceList": [
+      {
+        "price": "20",
+        "currency": {
+          "name":"RBTC",
+          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
+        }
+      },
+      {
+        "price": "40",
+        "currency": {
+          "name":"RIF",
+          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
+        }
+      }
+    ]
+  }
+]
+
 ```
 
-*Not implemented yet*
+#### Enable or disable subscription plans
+A subscription plan can be enabled or disabled by setting the "status" property to true or false in subscription-plan.json
 
-*SUBSCRIPTION_TYPE will indicate how many notifications you can recieve. So when selecting one, will be giving you a notification balance.*
+### **Subscribe to Plan**
 
-*When consuming this endpoint, the notifier will be creating a subscription and giving a lumino-invoice, that the user will need to pay. For development purposes, right now it's creating a subscription with MAX_INT*
+Users can create a subscription to a given plan by providing their user address and plan id along with topic details and the notification preferences.
 
+The endpoint http://localhost:8080/subscribeToPlan can be used to create a new subscription. A sample json that can be sent in the request body is provided under ```src/main/resources/subscription-batch-example.json```. Modify the json to provide your own topics and preferences. More information on how to specify the topic subsection can be found at [topic json](#topic-json)
 
-###### Now just rest to send the topics with params to be listened
+```currency``` in json should be one of the currencies accepted by the provider, and allowed in the plan.
 
+```price``` should be same price as in subscription plan for the given currency 
 
-```
-POST Request: http://localhost:8080/subscribeToTopic
-Header param: 
-	key: apiKey
-	value: API_KEY 
-```
+One or more ```notificationPreferences``` can be specified 
+```notificationService``` currently supported are ```API, EMAIL and SMS```. For more information on notificationPreferences subsection refer to [notification preference json body](#notification-preference-json-body)
 
-Sending the next json structure on the body of the request (In this example we're using example values from a contract, so feel free to change them): 
+### **Renew Subscription**
+
+Users can renew a subscription to a given plan by providing their user address and plan id along with topic details and the notification preferences. The renewal json is same as [subscribe to plan](#subscribe-to-plan) json. However, previousSubscriptionHash has to be sent along with the request. The previous subscription cannot be in ```PENDING``` state.
+ 
+The endpoint http://localhost:8080/renewSubscription?previousSubscriptionHash can be used to create a new subscription. ```previousSubscriptionHash``` parameter must be sent as a request parameter. 
+
+### **Subscription and Renewal response**
+As part of the subscription and renewal response a ```hash``` of the subscription along with the ```signature``` is returned. The ```hash``` can be used to identify a subscription. 
+
+**Api key**  
+An api key is also generated as part of the response, which can be used to perform [get subscription info](#get-subscription-info) and [get notifications](#getting-notifications) operations
+
+-------------------
+
+###### **Topic Json**
 
 ```json
 {
@@ -355,7 +426,7 @@ Sending the next json structure on the body of the request (In this example we'r
 }
 ```
 
-**Notes of Json structure**
+#### **Notes of Topic Json structure**
 
 Event type (First param of the json structure), this can be type of: `CONTRACT_EVENT, NEW_TRANSACTIONS, NEW_BLOCK`. It'll indicate the notifier what type of event you want to listen in the blockchain
 
@@ -431,7 +502,7 @@ Header param:
     key: apiKey
     value: API_KEY
 ```
-Api Json Body:
+###### **Notification Preference Json Body:**
 ```
         {
           "notificationService":"API",
@@ -461,7 +532,7 @@ Sms Json Body:
         }     
 ```
 
-###### RemoveNotification Preference
+###### Remove Notification Preference
 Removes a given notification preference
 ```
 POST Request: http://localhost:8080/removeNotificationPreference
@@ -530,6 +601,7 @@ Return example:
 }
 ```
 ----------------
+
 ###### Get lumino tokens
 ```
 GET Request: http://localhost:8080/getLuminoTokens
@@ -667,130 +739,9 @@ Return example:
 7. Check results: Now under raw_data and notification tables there should be data.
 8. Check notifications are being sent by verifying sent=1 in notification table, for the notification preference set. In case not sent check the notification_log table.
 
-##### Create Subscription Plans
-1. One or more subscription plans can be created by modifying subscription-plan.json under resources folder with your own plan details.
-2. All the json attributes are required. The notificationPreferences should only contain preferences that are enabled in application.yml
-3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
-4. Run bin/subscriptionplans.sh from the home directory of this project
-5. If the json is correct, the plans will be created in the database.
-6. A sample json structure is given below
-```
-[
-  {
-    "name": "RIF-10k",
-    "notificationQuantity": 10000,
-    "validity": 100,
-    "notificationPreferences": "API,EMAIL",
-    "status": true,
-    "subscriptionPriceList": [
-      {
-        "price": "10",
-        "currency": {
-          "name":"RBTC",
-          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
-        }
-      },
-      {
-        "price": "20",
-        "currency": {
-          "name":"RIF",
-          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
-        }
-      }
-    ]
-  },
-  {
-    "name": "RIF-20k",
-    "notificationQuantity": 20000,
-    "validity": 100,
-    "notificationPreferences": "API,EMAIL",
-    "status": true,
-    "subscriptionPriceList": [
-      {
-        "price": "20",
-        "currency": {
-          "name":"RBTC",
-          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
-        }
-      },
-      {
-        "price": "40",
-        "currency": {
-          "name":"RIF",
-          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
-        }
-      }
-    ]
-  }
-]
 
-```
-##### Update Subscription Plans
-1. A subscription plan that already exists can be updated. In order to update, the "id" attribute must be specified as part of the subscription-plan.json for the plan to be updated. 
-2. All json attributes are required as given in subscription-plan.json. The notificationPreferences should only contain enabled preferences in application.yml
-2. Modify subscription-plan.json under resources folder with your own plan details.
-5. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
-6. Run bin/subscriptionplans.sh from the home directory of this project
-7. If the json is correct, the plans will be created in the database.
-8. A sample json structure for update operation is given below
-```
-[
-  {
-    "id":1,
-    "name": "RIF-10k",
-    "notificationQuantity": 10000,
-    "validity": 150,
-    "notificationPreferences": "API,EMAIL",
-    "status": true,
-    "subscriptionPriceList": [
-      {
-        "price": "10",
-        "currency": {
-          "name":"RBTC",
-          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
-        }
-      },
-      {
-        "price": "20",
-        "currency": {
-          "name":"RIF",
-          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
-        }
-      }
-    ]
-  },
-  {
-    "id":"2"
-    "name": "RIF-20k",
-    "notificationQuantity": 20000,
-    "validity": 200,
-    "notificationPreferences": "API,EMAIL",
-    "status": true,
-    "subscriptionPriceList": [
-      {
-        "price": "20",
-        "currency": {
-          "name":"RBTC",
-          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
-        }
-      },
-      {
-        "price": "40",
-        "currency": {
-          "name":"RIF",
-          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
-        }
-      }
-    ]
-  }
-]
 
-```
-
-##### Enable or disable subscription plans
-A subscription plan can be enabled or disabled by setting the "status" property to true or false in subscription-plan.json
-
-##### Health Check
+## Health Check
 Health check provides a way to ensure that the rif-notifier service is
 fully functional. The following url is used for health check
 ``` 
