@@ -1,6 +1,5 @@
 package org.rif.notifier.services.blockchain.payment;
 
-import org.rif.notifier.exception.SubscriptionException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.SubscriptionPaymentModel;
 import org.rif.notifier.models.datafetching.FetchedEvent;
@@ -42,9 +41,9 @@ public class RskPaymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(RskPaymentService.class);
 
-    private static final String EVENT_SUBSCRIPTION_CREATED = "SubscriptionCreated";
-    private static final String EVENT_REFUND = "FundsRefund";
-    private static final String EVENT_WITHDRAWAL = "FundsWithdrawn";
+    public static final String EVENT_SUBSCRIPTION_CREATED = "SubscriptionCreated";
+    public static final String EVENT_REFUND = "FundsRefund";
+    public static final String EVENT_WITHDRAWAL = "FundsWithdrawn";
     private static final String EVENT_FUNDS_DEPOSIT = "FundsDeposit";
 
     private static final HashMap<String, SubscriptionPaymentStatus> events = new HashMap(3)
@@ -64,7 +63,6 @@ public class RskPaymentService {
     SubscribeServices subscribeServices;
     CurrencyValidator currencyValidator;
     Map<SubscriptionPaymentStatus, BiConsumer<SubscriptionPaymentModel, Subscription>> payments = new HashMap<>(3);
-
 
     public RskPaymentService(RskBlockchainService rskBlockChainService, DbManagerFacade dbManagerFacade,
                              SubscribeServices subscribeServices, CurrencyValidator currencyValidator,
@@ -129,7 +127,7 @@ public class RskPaymentService {
     * Save a given payment
     */
     private void savePayment(FetchedEvent fetchedEvent)  {
-        SubscriptionPaymentModel paymentModel = SubscriptionPaymentModel.fromEventValues(fetchedEvent.getValues());
+        SubscriptionPaymentModel paymentModel = SubscriptionPaymentModel.fromEventValues(fetchedEvent.getEventName(), fetchedEvent.getValues());
         //get the currency instance associated with the given currency address from db
         Optional<Currency> currency = currencyValidator.validate(paymentModel.getCurrencyAddress());
         paymentModel.setCurrency(currency.orElse(null));

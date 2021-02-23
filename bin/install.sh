@@ -1,3 +1,4 @@
+#!/bin/bash
 if [ "$#" -ne  3 ]; then
 	echo "usage <root database user> <root database password> <dbpassword for notifier_user>"
 	exit
@@ -11,4 +12,4 @@ mysql -e "GRANT ALL PRIVILEGES ON rif_notifier.* TO 'notifier_user'@'localhost' 
 mysql -e "FLUSH PRIVILEGES" --user $1 --password=$2
 
 #clones the repo from github
-git clone https://github.com/rsksmart/rif-notifier rif-notifier
+#git clone https://github.com/rsksmart/rif-notifier rif-notifier

@@ -4,30 +4,36 @@
 
 1. [Quick start](#quick-start) 
 2. [Installation](#installation-guide) 
-4. [Usage Guide](#usage-guide)
-5. [Retrieve notifications](#getting-notifications)
-6. [Unsubscribe from topic](#unsubscribing-from-a-topic)
-7. [Save notification Preference](#save-notification-preference)
-8. [Remove notification Preference](#remove-notification-preference)
-9. [Other available endpoints](#other-available-endpoints)
+3. [Usage Guide](#usage-guide)
+4. [Retrieve notifications](#getting-notifications)
+5. [Unsubscribe from topic](#unsubscribing-from-a-topic)
+6. [Save notification Preference](#save-notification-preference)
+7. [Remove notification Preference](#remove-notification-preference)
+8. [Other available endpoints](#other-available-endpoints)
 	1. [Get subscription info](#get-subscription-info)
 	2. [Get Lumino tokens](#get-lumino-tokens)
 	3. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
 	4. [Subscribe to close channel](#subscribe-to-close-channel)
 	5. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
 	6. [Get chain addresses events](#get-rns-events)
-10. [Verify blockchain events are processed](#verify-blockchain-events)
-11. [Create Subscription Plans](#create-subscription-plans)
-12. [Update Subscription Plans](#update-subscription-plans)
-13. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
-14. [Health Check](#health-check)
+9. [Verify blockchain events are processed](#verify-blockchain-events)
+10. [Create Subscription Plans](#create-subscription-plans)
+11. [Update Subscription Plans](#update-subscription-plans)
+12. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
+13. [Health Check](#health-check)
 
 
 ## Quick Start
 
-(This steps you can follow if you're already familiar with the notifier, otherwise jump to the installation guide first)
+(This steps you can follow if you're already familiar with the notifier, otherwise jump to the [Installation](#installation-guide) guide first)
 
--First of all you need to set the blockchain endpoint property  ```rsk.blockchain.endpoint=``` for ex. ```http://localhost:4444``` in the application.yml of this project
+-First of all you need to set the blockchain endpoint property  ```rskendpoint:``` for ex. ```http://localhost:4444``` in the config.json found in home directory of this project
+
+-To subscribe to a plan use the endpoint http://localhost:8080/subscribeToPlan
+
+-To view all endpoints use http://localhost:8080/swagger-ui.html
+
+-To subscribe or renew a plan use http://localhost:8080/subscribeToPlan endpoint http://localhost:8080/renewSubscription
 
 -To subscribe to Events like Open Channel or Close Channel, use the property  that needs the Token Network Registry Address to be setted in the application.yml
 

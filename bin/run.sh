@@ -1,3 +1,4 @@
+#!/bin/bash
 #script to create / update subscription plans
 
 #modify subscription-plan.json under resources folder to specify your own subscription plan. This provided file is just an example. All the fields in json are required.

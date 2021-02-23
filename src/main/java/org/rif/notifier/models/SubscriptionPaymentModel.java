@@ -9,9 +9,9 @@ import org.web3j.utils.Numeric;
 import java.math.BigInteger;
 import java.util.List;
 
+import static org.rif.notifier.services.blockchain.payment.RskPaymentService.*;
+
 public class SubscriptionPaymentModel {
-    private static final int SUBSCRIPTION_CREATED_EVENT_SIZE = 4;
-    private static final int REFUND_WITHDRAW_EVENT_SIZE = 3;
     private BigInteger amount;
     private Address currencyAddress;
     private String hash;
@@ -25,24 +25,23 @@ public class SubscriptionPaymentModel {
         this.provider = provider;
     }
 
-    public static SubscriptionPaymentModel fromEventValues(List<Type> eventValues)  {
-        if(eventValues.size() < REFUND_WITHDRAW_EVENT_SIZE || eventValues.size() > SUBSCRIPTION_CREATED_EVENT_SIZE)  {
-            throw new ValidationException("Invalid payment event values received");
-        }
+    public static SubscriptionPaymentModel fromEventValues(String eventName, List<Type> eventValues)  {
         try {
-            if(eventValues.size() == 4) {
-                return new SubscriptionPaymentModel(Numeric.toHexString((byte[])eventValues.get(0).getValue()), //hash
-                (Address)eventValues.get(1), //provider
-                (BigInteger)eventValues.get(3).getValue(), //amount
-                (Address)eventValues.get(2)); //currency
+            switch (eventName) {
+                case EVENT_REFUND:
+                case EVENT_WITHDRAWAL:
+                    return new SubscriptionPaymentModel(Numeric.toHexString((byte[]) eventValues.get(0).getValue()),
+                            null,
+                            (BigInteger) eventValues.get(1).getValue(), //amount
+                            (Address) eventValues.get(2)); //currency
+                case EVENT_SUBSCRIPTION_CREATED:
+                    return new SubscriptionPaymentModel(Numeric.toHexString((byte[]) eventValues.get(0).getValue()), //hash
+                            (Address) eventValues.get(1), //provider
+                            (BigInteger) eventValues.get(3).getValue(), //amount
+                            (Address) eventValues.get(2)); //currency
+                default:
+                    throw new ValidationException("Unsupported payment event " + eventName);
             }
-            else if (eventValues.size() == 3)   {
-                return new SubscriptionPaymentModel(Numeric.toHexString((byte[])eventValues.get(0).getValue()),
-                        null,
-                        (BigInteger)eventValues.get(1).getValue(), //amount
-                        (Address)eventValues.get(2)); //currency
-            }
-            throw new ValidationException("Invalid payment event values received");
         }catch(Exception e) {
             throw new ValidationException("Invalid payment event values received. " + e.getMessage(), e);
         }
