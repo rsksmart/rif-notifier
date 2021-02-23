@@ -101,7 +101,7 @@ public class SubscriptionPlanValidator extends BaseValidator    {
      */
     private void validatePlanSubscriptionPriceList(SubscriptionPlan plan) {
         if(plan.getSubscriptionPriceList() == null || plan.getSubscriptionPriceList().size() == 0)  {
-            throw new ValidationException("Subscription price(s) is required as part of the plan.");
+            throw new ValidationException("At least one Subscription Price required as part of the plan.");
         }
         plan.getSubscriptionPriceList().forEach(price->{
             if(price.getPrice() == null || price.getPrice().equals(BigInteger.ZERO))    {
