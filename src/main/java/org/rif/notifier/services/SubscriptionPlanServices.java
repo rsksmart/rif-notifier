@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SubscriptionPlanServices {
@@ -23,6 +24,10 @@ public class SubscriptionPlanServices {
 
     public SubscriptionPlan getSubscriptionPlan(int id)   {
         return dbManagerFacade.getSubscriptionPlanById(id);
+    }
+
+    public Optional<SubscriptionPlan> getActiveSubscriptionPlan(int id)   {
+        return dbManagerFacade.getActiveSubscriptionPlanById(id);
     }
 
 }

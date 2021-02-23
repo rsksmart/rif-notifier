@@ -1,5 +1,8 @@
 package org.rif.notifier.models.entities;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.util.Date;
@@ -16,6 +19,8 @@ public class SubscriptionPayment {
     @Column(name="amount")
     private BigInteger amount;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name="payment_date")
     private Date paymentDate;
 
@@ -23,14 +28,21 @@ public class SubscriptionPayment {
     @JoinColumn(name="subscription_id")
     private Subscription subscription;
 
+    @ManyToOne
+    @JoinColumn(name="currency_id")
+    private Currency currency;
+
     @Enumerated(EnumType.STRING)
     @Column(name="status")
     private SubscriptionPaymentStatus status;
 
-    public SubscriptionPayment(BigInteger amount, Subscription subscription, SubscriptionPaymentStatus status) {
+    public SubscriptionPayment()    {}
+
+    public SubscriptionPayment(BigInteger amount, Subscription subscription, Currency currency, SubscriptionPaymentStatus status) {
         this.amount = amount;
         this.subscription = subscription;
         this.status = status;
+        this.currency = currency;
     }
 
     public int getId() {
@@ -81,11 +93,29 @@ public class SubscriptionPayment {
         this.status = status;
     }
 
-    public boolean isRefunded() {
-        return status == SubscriptionPaymentStatus.REFUNDED;
+    public Currency getCurrency() {
+        return currency;
     }
 
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
+
+    /**
+     * A payment is refunded when the subscription currency and the payment currency matches, and the status is refunded.
+     * This method does not count those refunds made in different currency as refund
+     * @return
+     */
+    public boolean isRefunded() {
+        return this.subscription.getCurrency().equals(this.currency) && status == SubscriptionPaymentStatus.REFUNDED;
+    }
+
+    /**
+     * A payment is received when the subscription currency and the payment currency matches, and the status is received.
+     * This method does not count those payments made in different currency as refund
+     * @return
+     */
     public boolean isReceived() {
-        return status == SubscriptionPaymentStatus.RECEIVED;
+        return this.subscription.getCurrency().equals(this.currency) && status == SubscriptionPaymentStatus.RECEIVED;
     }
 }

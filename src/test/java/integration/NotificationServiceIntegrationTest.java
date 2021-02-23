@@ -1,7 +1,6 @@
 package integration;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
@@ -19,9 +18,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
+/**
+ * Integration tests for NotificationProcessorJob and NotificationServices
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {Application.class, IntegrationTestData.class})
 @ActiveProfiles("test")
@@ -41,7 +44,7 @@ public class NotificationServiceIntegrationTest {
 
 
     private void saveApiEndpoint(Notification notif, String endpoint)    {
-        Subscription activeSubscription = integrationTestData.getActiveSubscription();
+        Subscription activeSubscription = integrationTestData.getSubscription();
         int topicId = integrationTestData.getTopicId();
         NotificationPreference pref = notificationPreferenceRepository.findBySubscriptionAndIdTopicAndNotificationService(activeSubscription, topicId, NotificationServiceType.API);
         pref.setDestination(endpoint);
@@ -74,7 +77,7 @@ public class NotificationServiceIntegrationTest {
 
     @Test
     public void canSaveNotificationPreferences()  {
-        NotificationPreference preference = notificationPreferenceManager.getNotificationPreference(integrationTestData.getActiveSubscription(), integrationTestData.getTopicId(), NotificationServiceType.API);
+        NotificationPreference preference = notificationPreferenceManager.getNotificationPreference(integrationTestData.getSubscription(), integrationTestData.getTopicId(), NotificationServiceType.API);
         String destination = preference != null ? preference.getDestination() : "";
         if (preference == null) {
             preference = integrationTestData.newNotificationPreference(NotificationServiceType.API);
@@ -116,7 +119,6 @@ public class NotificationServiceIntegrationTest {
     @Test
     public void errorProcessingUnsentNotifications()    {
         Notification notif = integrationTestData.newNotification();
-        //integrationTestData.populateNotificationLog(notif);
         //use invalid endpoint to propagate error
         saveApiEndpoint(notif, IntegrationTestData.INVALID_API_DESTINATION);
         notif = dbManagerFacade.saveNotification(notif);
@@ -126,6 +128,31 @@ public class NotificationServiceIntegrationTest {
         notif.getNotificationLogs().forEach(l->
         {
            assertEquals(2, l.getRetryCount());
+        });
+        assertFalse(notif.isSent());
+        //set it back to valid endpoint
+        saveApiEndpoint(notif, integrationTestData.getApiEndpoint());
+
+    }
+
+    /**
+     * This needs to use invalid notification prefeence
+     */
+    @Test
+    public void errorProcessingUnsentNotificationsMaxRetries()    {
+        Notification notif = integrationTestData.newNotification();
+        //use invalid endpoint to propagate error
+        saveApiEndpoint(notif, IntegrationTestData.INVALID_API_DESTINATION);
+        notif = dbManagerFacade.saveNotification(notif);
+        //Max retry is 3
+        //Run the notifier job 5 times to verify the retry count does not exceed 3
+        IntStream.range(1,5).forEach(n->{
+            notificationProcessorJob.run();
+        });
+        notif = notificationRepository.findById(notif.getId()).get();
+        notif.getNotificationLogs().forEach(l->
+        {
+            assertEquals(3, l.getRetryCount());
         });
         assertFalse(notif.isSent());
         //set it back to valid endpoint

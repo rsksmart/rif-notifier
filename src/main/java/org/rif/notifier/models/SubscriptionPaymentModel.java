@@ -1,39 +1,47 @@
 package org.rif.notifier.models;
 
 import org.rif.notifier.exception.ValidationException;
+import org.rif.notifier.models.entities.Currency;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.List;
 
+import static org.rif.notifier.services.blockchain.payment.RskPaymentService.*;
+
 public class SubscriptionPaymentModel {
-    private static final int EXPECTED = 4;
     private BigInteger amount;
-    private String currency;
+    private Address currencyAddress;
     private String hash;
     private Address provider;
+    private Currency currency;
 
-    public SubscriptionPaymentModel(String hash, Address provider, BigInteger amount, String currency) {
+    public SubscriptionPaymentModel(String hash, Address provider, BigInteger amount, Address currencyAddress) {
         this.amount = amount;
-        this.currency = currency;
+        this.currencyAddress = currencyAddress;
         this.hash = hash;
         this.provider = provider;
     }
 
-    private SubscriptionPaymentModel(List<Type> values)   {
-        this((String)values.get(0).getValue(), //hash
-                (Address)values.get(1), //provider
-                (BigInteger)values.get(2).getValue(), //amount
-                (String)values.get(3).getValue()); //currency
-    }
-
-    public static SubscriptionPaymentModel fromEventValues(List<Type> eventValues)  {
-        if(eventValues.size() != EXPECTED)  {
-            throw new ValidationException("Invalid payment event values received");
-        }
+    public static SubscriptionPaymentModel fromEventValues(String eventName, List<Type> eventValues)  {
         try {
-            return new SubscriptionPaymentModel(eventValues);
+            switch (eventName) {
+                case EVENT_REFUND:
+                case EVENT_WITHDRAWAL:
+                    return new SubscriptionPaymentModel(Numeric.toHexString((byte[]) eventValues.get(0).getValue()),
+                            null,
+                            (BigInteger) eventValues.get(1).getValue(), //amount
+                            (Address) eventValues.get(2)); //currency
+                case EVENT_SUBSCRIPTION_CREATED:
+                    return new SubscriptionPaymentModel(Numeric.toHexString((byte[]) eventValues.get(0).getValue()), //hash
+                            (Address) eventValues.get(1), //provider
+                            (BigInteger) eventValues.get(3).getValue(), //amount
+                            (Address) eventValues.get(2)); //currency
+                default:
+                    throw new ValidationException("Unsupported payment event " + eventName);
+            }
         }catch(Exception e) {
             throw new ValidationException("Invalid payment event values received. " + e.getMessage(), e);
         }
@@ -47,12 +55,12 @@ public class SubscriptionPaymentModel {
         this.amount = amount;
     }
 
-    public String getCurrency() {
-        return currency;
+    public Address getCurrencyAddress() {
+        return currencyAddress;
     }
 
-    public void setCurrency(String currency) {
-        this.currency = currency;
+    public void setCurrencyAddress(Address currencyAddress) {
+        this.currencyAddress = currencyAddress;
     }
 
     public String getHash() {
@@ -69,5 +77,13 @@ public class SubscriptionPaymentModel {
 
     public void setProvider(Address provider) {
         this.provider = provider;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 }

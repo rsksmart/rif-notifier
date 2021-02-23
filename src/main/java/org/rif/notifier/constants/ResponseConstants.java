@@ -63,4 +63,6 @@ public interface ResponseConstants {
     String SUBSCRIPTION_NOT_FOUND_HASH = "Subscription not found for the provided hash.";
 
     String PREVIOUS_SUBSCRIPTION_INVALID_STATE = "Renewal error. Previous Subscription is not activated yet.";
+
+    String INVALID_CURRENCY = "Currency specified in the json file is not in the list of accepted currencies for the provider.";
 }

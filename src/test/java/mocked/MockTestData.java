@@ -10,6 +10,7 @@ import org.rif.notifier.models.DTO.TopicDTO;
 import org.rif.notifier.models.datafetching.FetchedBlock;
 import org.rif.notifier.models.datafetching.FetchedEvent;
 import org.rif.notifier.models.datafetching.FetchedTransaction;
+import org.rif.notifier.models.entities.Currency;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.models.listenable.EthereumBasedListenable;
 import org.rif.notifier.models.listenable.EthereumBasedListenableTypes;
@@ -19,9 +20,11 @@ import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -244,17 +247,18 @@ public class MockTestData {
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
         sub.setTopics(topics);
+        sub.setCurrency(mockCurrency().get());
         return sub;
     }
     public SubscriptionPayment mockPayment(Subscription sub)    {
         return mockPayment(sub, BigInteger.TEN);
     }
     public SubscriptionPayment mockPayment(Subscription sub, BigInteger paymentAmount)    {
-        SubscriptionPayment payment = new SubscriptionPayment(paymentAmount, sub, SubscriptionPaymentStatus.RECEIVED);
+        SubscriptionPayment payment = new SubscriptionPayment(paymentAmount, sub, mockCurrency().get(), SubscriptionPaymentStatus.RECEIVED);
         return payment;
     }
     public SubscriptionPayment mockRefund(Subscription sub, BigInteger refundAmount)    {
-        SubscriptionPayment payment = new SubscriptionPayment(refundAmount, sub, SubscriptionPaymentStatus.REFUNDED);
+        SubscriptionPayment payment = new SubscriptionPayment(refundAmount, sub, mockCurrency().get(), SubscriptionPaymentStatus.REFUNDED);
         return payment;
     }
     public Subscription mockPaidSubscription() throws IOException {
@@ -262,6 +266,7 @@ public class MockTestData {
         User user = this.mockUser();
         Subscription sub = new Subscription(new Date(), user.getAddress(), type, SubscriptionStatus.PENDING);
         sub.setPrice(BigInteger.TEN);
+        sub.setCurrency(mockCurrency().get());
         sub.setSubscriptionPayments(Stream.of(mockPayment(sub)).collect(Collectors.toList()));
         Topic topic = this.mockTopic();
         Set<Topic> topics = new HashSet<>();
@@ -277,6 +282,7 @@ public class MockTestData {
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
         sub.setTopics(topics);
+        sub.setCurrency(mockCurrency().get());
         return sub;
     }
     public Subscription mockSubscriptionWithFilters() throws IOException {
@@ -287,6 +293,7 @@ public class MockTestData {
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
         sub.setTopics(topics);
+        sub.setCurrency(mockCurrency().get());
         return sub;
     }
     public Subscription mockSubscriptionWithTopicWithoutParameters() throws IOException {
@@ -297,6 +304,7 @@ public class MockTestData {
         Set<Topic> topics = new HashSet<>();
         topics.add(topic);
         sub.setTopics(topics);
+        sub.setCurrency(mockCurrency().get());
         return sub;
     }
     public Subscription mockInactiveSubscription(){
@@ -306,6 +314,7 @@ public class MockTestData {
         sub.setStatus(SubscriptionStatus.PENDING);
         sub.setPrice(BigInteger.TEN);
         sub.setSubscriptionPayments(Arrays.asList(mockPayment(sub)));
+        sub.setCurrency(mockCurrency().get());
         return sub;
     }
     public User mockUser(){
@@ -318,7 +327,8 @@ public class MockTestData {
         return plan;
     }
     public SubscriptionPrice mockSubscriptionPrice()   {
-        SubscriptionPrice p = new SubscriptionPrice(new BigInteger("20"), "RSK");
+        Currency c = new Currency("RSK", new Address("0x0"));
+        SubscriptionPrice p = new SubscriptionPrice(new BigInteger("20"), c);
         p.setSubscriptionPlan(mockSubscriptionPlan());
         return p;
     }
@@ -479,7 +489,6 @@ public class MockTestData {
         mock.setTopics(mockTopics());
         mock.setUserAddress("0x0");
         mock.setSubscriptionPlanId(1);
-        mock.setCurrency("RIF");
         return mock;
     }
 
@@ -488,23 +497,32 @@ public class MockTestData {
        subscriptionDTO.setPrice(BigInteger.TEN);
        subscriptionDTO.setCurrency("RIF");
        subscriptionDTO.setUserAddress("0x0");
-       subscriptionDTO.setProviderAddress("0x0");
+       subscriptionDTO.setProviderAddress(new Address("0x0"));
        subscriptionDTO.setNotificationBalance(10000);
        subscriptionDTO.setStatus(SubscriptionStatus.PENDING);
        subscriptionDTO.setTopics(mockTopics());
        return subscriptionDTO;
     }
 
-    public FetchedEvent mockPaymentEvent(String eventName){
+    public FetchedEvent mockPaymentEvent(String eventName)  {
+        return mockPaymentEvent(eventName,new Address("0x0"));
+    }
+
+    public FetchedEvent mockPaymentEvent(String eventName, Address provider){
         List<Type > values = new ArrayList<>();
-        Address provider= new Address("0x0");
-        Utf8String hash = new Utf8String("testhash");
-        Utf8String currency = new Utf8String("RIF");
+        Bytes32 hash = new Bytes32(Numeric.hexStringToByteArray(Utils.generateHash("testhash")));
+        Address currencyAddress = new Address("0x0");
         Uint256 price = new Uint256(100000);
         values.add(hash);
-        values.add(provider);
-        values.add(price);
-        values.add(currency);
+        if (eventName.equals("SubscriptionCreated")) {
+            values.add(provider);
+            values.add(currencyAddress);
+            values.add(price);
+        }
+        else {
+            values.add(price);
+            values.add(currencyAddress);
+        }
         FetchedEvent fetchedEvent = new FetchedEvent
                 (eventName, values, new BigInteger("55"), "0x0", 0);
 
@@ -517,5 +535,9 @@ public class MockTestData {
         List<CompletableFuture<List<FetchedEvent>>> futures = new ArrayList<>();
         futures.add(futureEvent);
         return futures;
+    }
+
+    public Optional<Currency> mockCurrency()  {
+        return Optional.of(new Currency("RIF", new Address("0x0")));
     }
 }

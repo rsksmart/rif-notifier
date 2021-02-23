@@ -33,7 +33,6 @@ public class SubscribeController {
     private UserServices userServices;
     private LuminoEventServices luminoEventServices;
     private SubscribeValidator subscribeValidator;
-    @Autowired @Qualifier("providerAddress") private String providerAddress;
 
     @Autowired
     public SubscribeController(SubscribeServices subscribeServices, UserServices userServices, LuminoEventServices luminoEventServices, @Autowired SubscribeValidator subscribeValidator) {
@@ -131,7 +130,7 @@ public class SubscribeController {
         Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //Check if the user has a subscription otherwise throw exception
         Subscription sub = Optional.ofNullable(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subscriptionPlan)).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
-        resp.setContent(sub.toStringInfo());
+        resp.setContent(sub);
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 

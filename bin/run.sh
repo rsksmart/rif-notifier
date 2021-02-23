@@ -8,7 +8,6 @@
 #modify required properties in config.json
 #change the port number to a different port from 8080 if there is a local port conflict
 
-serverport=8180
 json=$(<config.json)
 
-$M2_HOME/bin/mvn clean spring-boot:run -Dspring-boot.run.arguments="loadSubscriptionPlan" -Dspring-boot.run.jvmArguments="-Dserverport=$serverport -Dspring.application.json='$json'"
+$M2_HOME/bin/mvn clean spring-boot:run -Dspring-boot.run.jvmArguments="-Dspring.application.json='$json'"

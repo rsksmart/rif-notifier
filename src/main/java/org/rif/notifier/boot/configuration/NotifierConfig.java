@@ -119,13 +119,12 @@ public class NotifierConfig implements SchedulingConfigurer {
      * validate the provider address and make the property available for other classes
      */
     @Bean(name="providerAddress")
-    public String providerAddress() {
+    public Address providerAddress() {
        String address = providerAddress.orElseThrow(()->new ValidationException("rif.notifier.provider.address property is mandatory. Please provide a valid address"));
        try {
            //TODO: extended validation to verify address length
            //verifies if it's a valid hex address
-           Address add = new Address(address);
-           return address;
+           return new Address(address);
        } catch(RuntimeException e)  {
            throw new ValidationException("Invalid provider address format specified in rif.notifier.provider.address property. Please provide a valid address", e);
        }

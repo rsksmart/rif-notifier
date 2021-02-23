@@ -3,6 +3,7 @@ package org.rif.notifier.models.DTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import org.rif.notifier.models.entities.SubscriptionStatus;
+import org.web3j.abi.datatypes.Address;
 
 import java.math.BigInteger;
 import java.util.Date;
@@ -22,7 +23,7 @@ public class SubscriptionDTO {
     private Date expirationDate;
     private SubscriptionStatus status;
     private List<TopicDTO> topics;
-    private String providerAddress;
+    private Address providerAddress;
     private String userAddress;
     private String apiKey;
 
@@ -74,11 +75,11 @@ public class SubscriptionDTO {
         this.topics = topics;
     }
 
-    public String getProviderAddress() {
+    public Address getProviderAddress() {
         return providerAddress;
     }
 
-    public void setProviderAddress(String providerAddress) {
+    public void setProviderAddress(Address providerAddress) {
         this.providerAddress = providerAddress;
     }
 

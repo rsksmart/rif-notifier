@@ -18,8 +18,9 @@ public class SubscriptionPrice {
     @Column(name="price")
     private BigInteger price;
 
-    @Column(name="currency")
-    private String currency;
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name="currency_id")
+    private Currency currency;
 
     @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
     @ManyToOne
@@ -28,7 +29,7 @@ public class SubscriptionPrice {
 
     public SubscriptionPrice() {}
 
-    public SubscriptionPrice(BigInteger price, String currency) {
+    public SubscriptionPrice(BigInteger price, Currency currency) {
         this.price = price;
         this.currency = currency;
     }
@@ -49,11 +50,11 @@ public class SubscriptionPrice {
         this.price = price;
     }
 
-    public String getCurrency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(Currency currency) {
         this.currency = currency;
     }
 
@@ -74,7 +75,6 @@ public class SubscriptionPrice {
         SubscriptionPrice that = (SubscriptionPrice) o;
 
         return new EqualsBuilder()
-                .append(id, that.id)
                 .append(price, that.price)
                 .append(currency, that.currency)
                 .isEquals();
@@ -83,7 +83,6 @@ public class SubscriptionPrice {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(id)
                 .append(price)
                 .append(currency)
                 .toHashCode();

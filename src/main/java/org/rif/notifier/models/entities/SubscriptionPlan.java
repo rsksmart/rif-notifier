@@ -33,7 +33,7 @@ public class SubscriptionPlan {
     @Column(name="status")
     private boolean status;
 
-    @OneToMany(mappedBy = "subscriptionPlan", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "subscriptionPlan", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<SubscriptionPrice> subscriptionPriceList;
 
     public SubscriptionPlan()   {

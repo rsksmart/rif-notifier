@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -152,7 +153,7 @@ public class SubscribeServiceTest {
     public void getSubscriptionTypeByType() {
         SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
-        doReturn(type).when(dbManagerFacade).getSubscriptionPlanById(0);
+        doReturn(Optional.of(type)).when(dbManagerFacade).getActiveSubscriptionPlanById(0);
 
         SubscriptionPlan retVal = subscribeServices.getSubscriptionPlanById(0);
 
