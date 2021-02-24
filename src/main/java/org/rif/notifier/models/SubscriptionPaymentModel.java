@@ -30,10 +30,10 @@ public class SubscriptionPaymentModel {
             switch (eventName) {
                 case EVENT_REFUND:
                 case EVENT_WITHDRAWAL:
-                    return new SubscriptionPaymentModel(Numeric.toHexString((byte[]) eventValues.get(0).getValue()),
-                            null,
-                            (BigInteger) eventValues.get(1).getValue(), //amount
-                            (Address) eventValues.get(2)); //currency
+                    return new SubscriptionPaymentModel(Numeric.toHexString((byte[]) eventValues.get(1).getValue()), //hash
+                            (Address)eventValues.get(0), //provider
+                            (BigInteger) eventValues.get(2).getValue(), //amount
+                            (Address) eventValues.get(3)); //currency
                 case EVENT_SUBSCRIPTION_CREATED:
                     return new SubscriptionPaymentModel(Numeric.toHexString((byte[]) eventValues.get(0).getValue()), //hash
                             (Address) eventValues.get(1), //provider

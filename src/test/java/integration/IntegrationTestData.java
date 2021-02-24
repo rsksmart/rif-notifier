@@ -147,13 +147,15 @@ public class IntegrationTestData {
 
     public FetchedEvent paymentEvent(String eventName, Address provider, Subscription subscription){
         List<Type> values = new ArrayList<>();
-        values.add(new Bytes32(Numeric.hexStringToByteArray(subscription.getHash())));
         if (eventName.equals("SubscriptionCreated")) {
+            values.add(new Bytes32(Numeric.hexStringToByteArray(subscription.getHash())));
             values.add(provider);
             values.add(subscription.getCurrency().getAddress());
             values.add(new Uint256(subscription.getPrice()));
         }
         else    {
+            values.add(provider);
+            values.add(new Bytes32(Numeric.hexStringToByteArray(subscription.getHash())));
             values.add(new Uint256(subscription.getPrice()));
             values.add(subscription.getCurrency().getAddress());
         }

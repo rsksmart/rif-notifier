@@ -513,13 +513,15 @@ public class MockTestData {
         Bytes32 hash = new Bytes32(Numeric.hexStringToByteArray(Utils.generateHash("testhash")));
         Address currencyAddress = new Address("0x0");
         Uint256 price = new Uint256(100000);
-        values.add(hash);
         if (eventName.equals("SubscriptionCreated")) {
+            values.add(hash);
             values.add(provider);
             values.add(currencyAddress);
             values.add(price);
         }
         else {
+            values.add(provider);
+            values.add(hash);
             values.add(price);
             values.add(currencyAddress);
         }
