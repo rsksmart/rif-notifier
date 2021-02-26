@@ -69,6 +69,8 @@ sudo apt update
 sudo apt install git
 ```
 
+**Note:** for [docker installation](#docker-installation-steps) the following steps are not required.
+
 #### 3. MySQL
 The latest version of the `mysql-server` database can be installed through:
 
@@ -119,6 +121,8 @@ The third parameter is the password for user ```notifier_user``` which will be c
 
 3. Run the command ```cd rif-notifier``` and open ```config.json``` file from the ```rif-notifier``` folder. Set the ```dbpassword``` property to the password you just entered in previous step for ```notifier_user_password```
 
+4. Navigate to [usage guide](#usage-guide) to learn more about how to run and use the application.
+
 ### Manual Installation steps
 1. Pick a directory for all the RIF Notifier code to reside in. From now on this will be called `rif-notifier`, but replace it with your own.
 2. Clone the RIF Notifier git project into its directory doing:
@@ -168,15 +172,25 @@ sudo /etc/init.d/mysql restart
 
 
 ### Docker Installation Steps
-1. Download docker image <rifnotifier.tar> from gdrive link provided
-2. Run command below - 
-```
-docker load -i rifnotifier.tar
-docker run -it --name rifn2  -p 8080:8080 rifn2 bash
-cd ~/rif-notifier
-git pull
-mvn spring-boot:run
-```
+1. Make sure you have docker installed in your machine. If not, download from https://www.docker.com/products/docker-desktop
+
+2. Open a terminal.
+
+3. Install git and rsk blockchain by following the steps in [prerequisites](#prerequisites). 
+
+4. Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
+
+5. Edit ```config-docker.json``` to update the ```rskendpoint``` to point to the rsk blockchain endpoint. In case you are running locally, set the endpoint to ```http://host.docker.internal:4444``` Update other required properties in the same file, see [config.json](#config.json)
+
+6. Modify ```subscription-plan.json``` under src/main/resources to provide the subscription plan details. See [create subscription plans](#create-subscription-plans) to change or add new subscription plans. To use the example provided, leave the file unchanged.
+
+7. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
+
+8. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans.
+
+9. Subsequently to stop and start the docker containers use```docker-compose stop``` and to start use ```docker-compose start```
+
+
 ---
 
 ## Execution
@@ -196,7 +210,8 @@ curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jso
 
 ### Start the application
 
-First modify the ```config.json``` file to setup the rsk blockchain and database properties. Note: the comments should be removed in the actual json.
+#### config.json
+First modify the ```config.json``` file to setup the rsk blockchain and database properties. Note: the comments should be removed in the actual json. The below are example values for each json property.
 ```
 {
 	"serverport":"8080",  // server port to start the server on
@@ -233,8 +248,7 @@ Run the command ```bin/run.sh``` to start rif-notifier.
 To update an already installed RIF Notifier follow these steps:
 1. Stop the RIF Notifier process.
 2. Navigate to the `rif-notifier` directory and pull the latest code by executing `git pull`. The `master` branch should still be used.
-3. Re-initialize the RIF Notifier database by following **step 4** in the [Installation steps section](#installation-steps).
-4. Start the RIF Notifier as indicated in the [Execution section](#execution).
+3. Start the RIF Notifier as indicated in the [Execution section](#execution).
 
 #### **Create Subscription Plans**
 1. One or more subscription plans can be created by modifying subscription-plan.json under resources folder with your own plan details.

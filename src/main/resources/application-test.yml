@@ -76,3 +76,7 @@ spring:
                     timeout: 5000
                     writetimeout: 5000
         username: username
+flyway:
+    url: jdbc:mysql:${dbhost:localhost}/${dbname:rif_notifier}
+    user: ${dbuser:root}
+    password: ${dbpassword:root}

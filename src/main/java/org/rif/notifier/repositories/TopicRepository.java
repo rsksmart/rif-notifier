@@ -15,7 +15,7 @@ public interface TopicRepository extends JpaRepository<Topic, String> {
     @Query(value = "SELECT * FROM topic A JOIN user_topic B ON A.id=B.id_topic WHERE A.hash = ?1 AND B.id_subscription = ?2", nativeQuery = true)
     Topic findByHashAndIdSubscription(String hash, int idSubscription);
 
-    @Query(value = "SELECT distinct * FROM topic A JOIN user_topic B ON A.id=B.id_topic JOIN subscription C ON c.id=B.id_subscription WHERE c.status='ACTIVE' and c.notification_balance > 0", nativeQuery = true)
+    @Query(value = "SELECT distinct * FROM topic A JOIN user_topic B ON A.id=B.id_topic JOIN subscription C ON C.id=B.id_subscription WHERE C.status='ACTIVE' and C.notifiCation_balance > 0", nativeQuery = true)
     Set<Topic> findAllTopicsWithActiveSubscriptionWithBalance();
 
     Topic findByHash(String hash);
