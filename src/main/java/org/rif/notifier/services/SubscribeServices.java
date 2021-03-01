@@ -108,8 +108,9 @@ public class SubscribeServices  {
         return dbManagerFacade.getSubscriptionByAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddressAndPlan(String user_address, SubscriptionPlan subscriptionPlan){
-        return dbManagerFacade.getSubscriptionByAddressAndType(user_address, subscriptionPlan);
+    public Subscription getActiveSubscriptionByHash(String hash){
+        Subscription sub = dbManagerFacade.getSubscriptionByHash(hash);
+        return sub != null && sub.isActive() ? sub : null;
     }
 
     public Subscription getSubscriptionByHash(String hash){

@@ -16,7 +16,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
 
     List<Subscription> findByUserAddress(String user_address);
 
-    Subscription findByUserAddressAndSubscriptionPlan(String user_address, SubscriptionPlan subscriptionPlan);
+    List<Subscription> findByUserAddressAndSubscriptionPlan(String user_address, SubscriptionPlan subscriptionPlan);
 
     List<Subscription> findByUserAddressAndStatus(String user_address, SubscriptionStatus status);
 

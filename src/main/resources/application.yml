@@ -29,8 +29,8 @@ notifier:
         start-from-RSK-last-block: false
     executor:
         corePoolSize: 7
-        maxPoolSize: 8
-        queueCapacity: 11
+        maxPoolSize: 14
+        queueCapacity: 14
     notifications:
         maxquerylimit: 1000
     run:
@@ -44,7 +44,9 @@ notifier:
         fixedInitialDelayNotificationJob: 2000
         fixedInitialDelayProcessJob: 2000
         fixedInitialSubscriptionProcessorJob: 3600000
-        poolSize: 3
+        poolSize: 7
+    endpoints:
+        subscribecontroller: false
 rif:
     notifier:
         account:
@@ -57,10 +59,10 @@ rif:
             currencies: ${acceptedcurrencies:RIF,RBTC}
 rsk:
     blockchain:
-        endpoint: ${rskendpoint:http://localhost:7545}
-        multichaincontract: ${multichaincontract:0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA}
+        endpoint: ${rskendpoint:http://localhost:4444}
+        multichaincontract: ${multichaincontract:0x1E3182DE4Ee25eFeA1b03C3117A01F02d000ABa1}
         notifier-smart-contract-address: ${smartcontractaddress:0xC2Cd3835d36510dc065d0f8991785DAA70a601a4}
-        tokennetworkregistry: ${tokennetworkregistry:0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA}
+        tokennetworkregistry: ${tokennetworkregistry:0x3C8345c87EE1769ab9C5aEE38b935F68850d270A}
 spring:
     datasource:
         url: jdbc:mysql://${dbhost:localhost}/${dbname:rif_notifier}?createDatabaseIfNotExist=true

@@ -102,7 +102,6 @@ public class PaymentProcessingJobTest {
     }
 
     @Test
-    @Ignore
     public void errorProcessInvalidProviderAddress() throws Exception {
         Subscription sub = mockTestData.mockSubscription();
         paymentTest("SubscriptionCreated", 1, sub, "0x1", never());

@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mocked.MockTestData;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
@@ -16,6 +17,7 @@ import org.rif.notifier.validation.SubscribeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = SubscribeController.class)
 @ContextConfiguration(classes={Application.class, NotifierConfig.class})
+@ActiveProfiles("test")
 public class SubscribeControllerTest {
 
     @Autowired
@@ -124,7 +127,8 @@ public class SubscribeControllerTest {
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(subscribeServices.getTopicById(idTopic)).thenReturn(tp);
         when(subscribeServices.unsubscribeFromTopic(sub, tp)).thenReturn(true);
 
@@ -132,7 +136,7 @@ public class SubscribeControllerTest {
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
                         .param("idTopic", String.valueOf(idTopic))
-                        .param("planId", "0")
+                        .param("subscriptionHash", "0")
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -151,14 +155,15 @@ public class SubscribeControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(subscribeServices.getTopicById(idTopic)).thenReturn(null);
 
         MvcResult result = mockMvc.perform(
                 post("/unsubscribeFromTopic")
                         .header("apiKey", apiKey)
-                        .param("planId", "0")
+                        .param("subscriptionHash", "0")
                         .param("idTopic", String.valueOf(idTopic))
         )
                 .andExpect(status().isConflict())

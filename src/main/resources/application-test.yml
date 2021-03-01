@@ -43,6 +43,8 @@ notifier:
         fixedInitialDelayFetchingJob: 2000
         fixedInitialDelayNotificationJob: 3600000
         fixedInitialDelayProcessJob: 2000
+    endpoints:
+        subscribecontroller: true
 rif:
     notifier:
         account:

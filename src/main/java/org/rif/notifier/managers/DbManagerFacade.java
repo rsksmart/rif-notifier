@@ -131,7 +131,7 @@ public class DbManagerFacade {
         return subscriptionManager.getSubscriptionByAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddressAndType(String user_address, SubscriptionPlan subscriptionPlan){
+    public List<Subscription> getSubscriptionByAddressAndType(String user_address, SubscriptionPlan subscriptionPlan){
         return subscriptionManager.getSubscriptionByAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 

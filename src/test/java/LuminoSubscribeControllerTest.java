@@ -60,7 +60,8 @@ public class LuminoSubscribeControllerTest {
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelOpenedTopicForToken("12345", null, null)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -68,7 +69,7 @@ public class LuminoSubscribeControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
-                        .param("type", "0")
+                        .param("subscriptionHash", "0")
                         .param("token", "12345")
         )
                 .andExpect(status().isOk())
@@ -88,7 +89,8 @@ public class LuminoSubscribeControllerTest {
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelOpenedTopicForToken("12345", participantOne, participantTwo)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -97,7 +99,7 @@ public class LuminoSubscribeControllerTest {
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
                         .param("token", "12345")
-                        .param("type", "0")
+                        .param("subscriptionHash", "0")
                         .param("participantone", participantOne)
                         .param("participanttwo", participantTwo)
         )
@@ -118,7 +120,8 @@ public class LuminoSubscribeControllerTest {
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelClosedTopicForToken("12345", null, null)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -126,7 +129,7 @@ public class LuminoSubscribeControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/subscribeToCloseChannel")
                         .header("apiKey", apiKey)
-                        .param("type", "0")
+                        .param("subscriptionHash", "0")
                         .param("token", token)
         )
                 .andExpect(status().isOk())
@@ -147,7 +150,8 @@ public class LuminoSubscribeControllerTest {
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(luminoEventServices.isToken(any())).thenReturn(true);
         when(luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closeParticipant)).thenReturn(tp);
         when(subscribeServices.getTopicByHashCodeAndIdSubscription(tp, sub.getId())).thenReturn(null);
@@ -156,7 +160,7 @@ public class LuminoSubscribeControllerTest {
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
                         .param("token", token)
-                        .param("type", "0")
+                        .param("subscriptionHash", "0")
                         .param("closingparticipant", closeParticipant)
                         .param("channelidentifier", String.valueOf(channelIdentifier))
         )
@@ -189,7 +193,8 @@ public class LuminoSubscribeControllerTest {
         Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(luminoEventServices.isToken(any())).thenReturn(false);
         when(luminoEventServices.getChannelOpenedTopicForToken("12345", null, null)).thenReturn(tp);
@@ -197,7 +202,7 @@ public class LuminoSubscribeControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
                         .header("apiKey", apiKey)
-                        .param("type", "0")
+                        .param("subscriptionHash", "0")
                         .param("token", "54321")
         )
                 .andExpect(status().isConflict())
@@ -232,7 +237,8 @@ public class LuminoSubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(luminoEventServices.isToken(any())).thenReturn(false);
 
@@ -240,7 +246,7 @@ public class LuminoSubscribeControllerTest {
                 post("/subscribeToCloseChannel")
                         .header("apiKey", apiKey)
                         .param("token", token)
-                        .param("type", "0")
+                        .param("subscriptionHash", "0")
                         .param("closingparticipant", closeParticipant)
                         .param("channelidentifier", String.valueOf(channelIdentifier))
         )
