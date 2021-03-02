@@ -3,7 +3,6 @@
 #
 FROM maven:3.6.3-jdk-8-slim AS build
 COPY src /home/app/src
-#COPY target /home/app/target
 COPY pom.xml /home/app
 COPY config-docker.json /home/app/config.json
 COPY bin /home/app/bin

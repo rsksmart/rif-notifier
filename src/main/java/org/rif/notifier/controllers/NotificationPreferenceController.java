@@ -104,7 +104,6 @@ public class NotificationPreferenceController {
         Subscription subscription = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
         Optional.ofNullable(subscription).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
         //allow user to register same preference and destination under different topics
-        //validator.validateNoExistingUserSubcriptionForTopicAndPreference(subscription, requestedPreference);
         //overwrite existing preference if one found, or create new
         NotificationPreference preference = Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(
                             subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))

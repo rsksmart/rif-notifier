@@ -72,7 +72,7 @@ public class LuminoSubscribeController {
             @RequestParam(name = "token") String token,
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
-            @RequestParam(name = "subscriptionHash", required = false) String subscriptionHash,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
@@ -113,7 +113,7 @@ public class LuminoSubscribeController {
             @RequestParam(name = "token") String token,
             @RequestParam(name = "channelidentifier", required = false) Integer channelIdentifier,
             @RequestParam(name = "closingparticipant", required = false) String closingParticipant,
-            @RequestParam(name = "subscriptionHash", required= false) String subscriptionHash,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
@@ -153,7 +153,7 @@ public class LuminoSubscribeController {
     public ResponseEntity<DTOResponse> subscribeToLuminoOpenChannels(
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
-            @RequestParam(name = "subscriptionHash", required= false) String subscriptionHash,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);

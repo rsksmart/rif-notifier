@@ -254,9 +254,6 @@ public class SubscriptionBatchController {
         DTOResponse resp = new DTOResponse();
         //check valid user and if not throw exception
         User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
-        //SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(planId);
-        //check valid subscription plan otherwise throw error
-        //Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //Check if the user has a subscription otherwise throw exception
         Subscription sub = Optional.ofNullable(subscribeServices.getSubscriptionByHash(subscriptionHash)).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
         resp.setContent(sub);

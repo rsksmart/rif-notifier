@@ -86,7 +86,6 @@ public class SubscriptionBatchControllerTest {
         List<TopicDTO> topics = mockTestData.mockTopics();
         when(userServices.userExists(anyString())).thenReturn(us);
         when(subscriptionPlanServices.getActiveSubscriptionPlan(anyInt())).thenReturn(Optional.of(subType));
-        //when(subscribeServices.getSubscriptionByAddressAndPlan(anyString(), any(SubscriptionPlan.class))).thenReturn(subscription);
         when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(subscription);
         when(subscribeServices.createSubscription(any(User.class), any(SubscriptionPlan.class), any(SubscriptionPrice.class))).thenReturn("");
         when(subscribeServices.getActiveSubscriptionByAddressAndPlan(anyString(), any(SubscriptionPlan.class))).thenReturn(null);
