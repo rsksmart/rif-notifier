@@ -199,7 +199,7 @@ public class DataFetcherHelper {
                 }
             } catch (IOException e) {
                 //this is not a blockchain exception
-                e.printStackTrace();
+                logger.trace(e.getMessage(), e);
             }
         });
 

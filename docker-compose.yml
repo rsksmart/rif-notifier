@@ -21,10 +21,11 @@ services:
       retries: 10
 
 
-  #regtest:
-    #image: regtest:latest
-    #networks:
-      #- rif-notifier-network
+  regtest:
+    container_name: regtest
+    image: rsksmart/rskj-standalone:latest
+    networks:
+      - rif-notifier-network
 
   rif-notifier:
     container_name: rif-notifier
@@ -33,7 +34,7 @@ services:
       context: .
     depends_on:
       - rif-mysql
-      #- regtest
+      - regtest
     restart: on-failure
     ports:
       - 8080:8080

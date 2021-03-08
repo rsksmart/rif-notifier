@@ -13,6 +13,7 @@ import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.rif.notifier.util.Utils;
+import org.rif.notifier.validation.CurrencyValidator;
 import org.rif.notifier.validation.SubscribeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -53,6 +54,9 @@ public class SubscribeControllerTest {
     private SubscribeValidator subscribeValidator;
 
     @MockBean
+    private CurrencyValidator currencyValidator;
+
+    @MockBean
     private LuminoEventServices luminoEventServices;
 
     private MockTestData mockTestData = new MockTestData();
@@ -74,8 +78,9 @@ public class SubscribeControllerTest {
                 post("/subscribe")
                         .contentType(APPLICATION_JSON_UTF8)
                         .param("planId", "0")
+                        .param("price", price.getPrice().toString())
+                        .param("currency", price.getCurrency().getName())
                         .header("apiKey", apiKey)
-                        .content(price.toString())
         )
                 .andExpect(status().isOk())
                 .andReturn();
@@ -95,7 +100,7 @@ public class SubscribeControllerTest {
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         //Need to mock with any, cause it was always returning false, maybe cause the Topic that we bring in here was not the same as in the controller
         when(subscribeServices.validateTopic(any(Topic.class))).thenReturn(true);
         when(subscribeValidator.validateTopic(any(Topic.class))).thenReturn(true);
@@ -103,7 +108,7 @@ public class SubscribeControllerTest {
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
-                        .param("planId","0")
+                        .param("subscriptionHash","0")
                         .content(tp.toString())
         )
                 .andExpect(status().isOk())
@@ -181,11 +186,12 @@ public class SubscribeControllerTest {
         String apiKey = Utils.generateNewToken();
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(null);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(null);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
-                        .param("planId", "0")
+                        .param("subscriptionHash", "0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -206,12 +212,12 @@ public class SubscribeControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(null);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
-                        .param("planId","0")
+                        .param("subscriptionHash","0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -234,13 +240,13 @@ public class SubscribeControllerTest {
         Topic tp = mockTestData.mockInvalidTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
                         .header("apiKey", apiKey)
-                        .param("planId", "0")
+                        .param("subscriptionHash", "0")
                         .content(tp.toString())
         )
                 .andExpect(status().isConflict())
@@ -263,6 +269,8 @@ public class SubscribeControllerTest {
                 post("/subscribe")
                         .contentType(APPLICATION_JSON_UTF8)
                         .param("planId", "0")
+                        .param("price", price.getPrice().toString())
+                        .param("currency", price.getCurrency().getName())
                         .header("apiKey", apiKey)
                         .content(price.toString())
         )

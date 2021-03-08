@@ -1,6 +1,7 @@
 package org.rif.notifier.validation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.re2j.Pattern;
 import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.constants.ResponseConstants;
 import org.rif.notifier.exception.SubscriptionException;
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
