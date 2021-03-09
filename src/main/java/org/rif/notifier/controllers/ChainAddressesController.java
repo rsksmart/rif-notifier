@@ -59,11 +59,9 @@ public class ChainAddressesController {
                     resp.setContent(chainAddresses);
                 }else{
                     //It may be happend that the user has no notifications cause the balance of the subscription is 0
-                    subscriptions.forEach(s-> {
-                        if (!s.isActive()) {
-                            throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-                        }
-                    });
+                    if(subscriptions.stream().noneMatch(s->s.isActive()))   {
+                        throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
+                    }
                 }
             }else{
                 //Return error, user does not exist

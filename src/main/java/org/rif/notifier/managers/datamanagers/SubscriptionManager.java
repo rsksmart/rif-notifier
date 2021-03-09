@@ -58,7 +58,7 @@ public class SubscriptionManager {
         return subscriptionRepository.findByUserAddress(user_address);
     }
 
-    public Subscription getSubscriptionByAddressAndSubscriptionPlan(String user_address, SubscriptionPlan subscriptionPlan){
+    public List<Subscription> getSubscriptionByAddressAndSubscriptionPlan(String user_address, SubscriptionPlan subscriptionPlan){
         return subscriptionRepository.findByUserAddressAndSubscriptionPlan(user_address, subscriptionPlan);
     }
 

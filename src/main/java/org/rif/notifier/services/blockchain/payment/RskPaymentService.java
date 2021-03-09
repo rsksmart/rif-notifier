@@ -87,8 +87,8 @@ public class RskPaymentService {
         TypeReference amount = RSKTypeReference.createWithIndexed(Uint256.class, false);
         TypeReference currency = RSKTypeReference.createWithIndexed(Address.class, false);
         EthereumBasedListenable subscriptionCreated = getContractListenable(EVENT_SUBSCRIPTION_CREATED, hash, provider, currency, amount);
-        EthereumBasedListenable refund = getContractListenable(EVENT_REFUND, hash, amount, currency);
-        EthereumBasedListenable withdrawal = getContractListenable(EVENT_WITHDRAWAL, hash, amount, currency);
+        EthereumBasedListenable refund = getContractListenable(EVENT_REFUND, provider, hash, amount, currency);
+        EthereumBasedListenable withdrawal = getContractListenable(EVENT_WITHDRAWAL, provider, hash, amount, currency);
         return Arrays.asList(subscriptionCreated, refund, withdrawal);
     }
 
@@ -128,27 +128,28 @@ public class RskPaymentService {
     */
     private void savePayment(FetchedEvent fetchedEvent)  {
         SubscriptionPaymentModel paymentModel = SubscriptionPaymentModel.fromEventValues(fetchedEvent.getEventName(), fetchedEvent.getValues());
-        //get the currency instance associated with the given currency address from db
-        Optional<Currency> currency = currencyValidator.validate(paymentModel.getCurrencyAddress());
-        paymentModel.setCurrency(currency.orElse(null));
-        SubscriptionPaymentStatus type = events.get(fetchedEvent.getEventName());
         //only process payment if provider address matches
-        //if (paymentModel.getProvider() == null || providerAddress.equals(paymentModel.getProvider()))    {
-        Subscription subscription = dbManagerFacade.getSubscriptionByHash(paymentModel.getHash());
-        if(subscription != null)    {
-        //find the subscription based on the hash received as part of the payment event
-            SubscriptionPayment subPayment = new SubscriptionPayment(paymentModel.getAmount(),
-                    subscription, currency.orElse(null), type);
-            //set payment reference to the invalid currency address received.
-            if(!currency.isPresent()) {
-               subPayment.setPaymentReference(paymentModel.getCurrencyAddress().toString());
+        if (providerAddress.equals(paymentModel.getProvider())) {
+            //get the currency instance associated with the given currency address from db
+            Optional<Currency> currency = currencyValidator.validate(paymentModel.getCurrencyAddress());
+            paymentModel.setCurrency(currency.orElse(null));
+            SubscriptionPaymentStatus type = events.get(fetchedEvent.getEventName());
+            //find the subscription based on the hash received as part of the payment event
+            Subscription subscription = dbManagerFacade.getSubscriptionByHash(paymentModel.getHash());
+            if (subscription != null) {
+                SubscriptionPayment subPayment = new SubscriptionPayment(paymentModel.getAmount(),
+                        subscription, currency.orElse(null), type);
+                //set payment reference to the invalid currency address received.
+                if (!currency.isPresent()) {
+                    subPayment.setPaymentReference(paymentModel.getCurrencyAddress().toString());
+                }
+                Optional<List<SubscriptionPayment>> subPayments = Optional.ofNullable(subscription.getSubscriptionPayments());
+                if (!subPayments.map(p -> p.add(subPayment)).isPresent()) {
+                    subscription.setSubscriptionPayments(Stream.of(subPayment).collect(Collectors.toList()));
+                }
+                //call the corresponding payment method - saveSubscriptionPayment or saveRefund or saveWithdrawal
+                payments.get(type).accept(paymentModel, subscription);
             }
-            Optional<List<SubscriptionPayment>> subPayments = Optional.ofNullable(subscription.getSubscriptionPayments());
-            if(!subPayments.map(p->p.add(subPayment)).isPresent())  {
-                subscription.setSubscriptionPayments(Stream.of(subPayment).collect(Collectors.toList()));
-            }
-            //call the corresponding payment method - saveSubscriptionPayment or saveRefund or saveWithdrawal
-            payments.get(type).accept(paymentModel, subscription);
         }
     }
 

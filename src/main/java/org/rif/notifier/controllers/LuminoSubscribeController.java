@@ -8,7 +8,9 @@ import org.rif.notifier.exception.SubscriptionException;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
-import org.rif.notifier.models.entities.*;
+import org.rif.notifier.models.entities.Subscription;
+import org.rif.notifier.models.entities.Topic;
+import org.rif.notifier.models.entities.User;
 import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
@@ -20,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Api(tags = {"Lumino Onboarding Resource"})
 @RestController
@@ -44,20 +45,17 @@ public class LuminoSubscribeController {
     @RequestMapping(value = "/getLuminoTokens", method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> getLuminoTokens(
-            @RequestParam(name = "type", defaultValue= "0") Integer type,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
-            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
-            if (sub != null) {
+            if(subscribeServices.getActiveSubscriptionByHash(subscriptionHash) != null) {
                 resp.setContent(luminoEventServices.getTokens());
             } else {
                 //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
+                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
             }
         } else {
             throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
@@ -74,15 +72,13 @@ public class LuminoSubscribeController {
             @RequestParam(name = "token") String token,
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
-            @RequestParam(name = "type", defaultValue= "0") Integer type,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
-            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
+            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
             if (sub != null) {
                 token = token.toLowerCase();
                 if(luminoEventServices.isToken(token)){
@@ -100,7 +96,7 @@ public class LuminoSubscribeController {
                 }
             } else {
                 //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
+                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
             }
         } else {
             throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
@@ -117,15 +113,13 @@ public class LuminoSubscribeController {
             @RequestParam(name = "token") String token,
             @RequestParam(name = "channelidentifier", required = false) Integer channelIdentifier,
             @RequestParam(name = "closingparticipant", required = false) String closingParticipant,
-            @RequestParam(name = "type", defaultValue= "0") Integer type,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
-            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
+            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
             if (sub != null) {
                 token = token.toLowerCase();
                 if(luminoEventServices.isToken(token)){
@@ -143,7 +137,7 @@ public class LuminoSubscribeController {
                 }
             } else {
                 //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
+                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
             }
         } else {
             throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
@@ -159,15 +153,13 @@ public class LuminoSubscribeController {
     public ResponseEntity<DTOResponse> subscribeToLuminoOpenChannels(
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
-            @RequestParam(name = "type", defaultValue= "0") Integer type,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestHeader(value="apiKey") String apiKey) {
         DTOResponse resp = new DTOResponse();
         User us = userServices.getUserByApiKey(apiKey);
         if (us != null) {
             //Check if the user did subscribe
-            SubscriptionPlan subType = subscribeServices.getSubscriptionPlanById(type);
-            Optional.ofNullable(subType).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType);
+            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
             if (sub != null) {
                 List<SubscriptionResponse> lstTopicId = new ArrayList<>();
                 luminoEventServices.getTokens().forEach(token -> {
@@ -184,7 +176,7 @@ public class LuminoSubscribeController {
                 resp.setContent(lstTopicId);
             } else {
                 //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND);
+                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
             }
         } else {
             throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);

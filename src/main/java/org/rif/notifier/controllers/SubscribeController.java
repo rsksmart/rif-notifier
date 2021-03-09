@@ -10,49 +10,48 @@ import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.DTO.SubscriptionResponse;
 import org.rif.notifier.models.entities.*;
-import org.rif.notifier.services.LuminoEventServices;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
+import org.rif.notifier.validation.CurrencyValidator;
 import org.rif.notifier.validation.SubscribeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Optional;
 
 @Api(tags = {"Onboarding Resource"})
 @RestController
+@ConditionalOnProperty(value = "notifier.endpoints.subscribecontroller",havingValue = "true")
 public class SubscribeController {
     private static final Logger logger = LoggerFactory.getLogger(SubscribeController.class);
 
     private SubscribeServices subscribeServices;
     private UserServices userServices;
-    private LuminoEventServices luminoEventServices;
     private SubscribeValidator subscribeValidator;
+    private CurrencyValidator currencyValidator;
 
     @Autowired
-    public SubscribeController(SubscribeServices subscribeServices, UserServices userServices, LuminoEventServices luminoEventServices, @Autowired SubscribeValidator subscribeValidator) {
+    public SubscribeController(SubscribeServices subscribeServices, UserServices userServices,
+                               @Autowired SubscribeValidator subscribeValidator,
+                               @Autowired CurrencyValidator currencyValidator) {
         this.subscribeServices = subscribeServices;
         this.userServices = userServices;
-        this.luminoEventServices = luminoEventServices;
         this.subscribeValidator = subscribeValidator;
+        this.currencyValidator = currencyValidator;
     }
 
     /**
      *
      * @param apiKey
-     * @param subscriptionPrice the structure of subscriptionPrice as below
-     *                              {
-     *                                  "currency":"RSK",
-        *                              "price":100,
-     *                                  "subscriptionPlan":{
-     *                                      "id":1
-     *                                  }
-     *                              }
+     * @param price - price of the subscription
+     * @param currency - the currency for subscription
      * @return
      */
     @ApiOperation(value = "Generate a subscription with an Apikey",
@@ -61,10 +60,13 @@ public class SubscribeController {
     @ResponseBody
     public ResponseEntity<DTOResponse> subscribe(
             @RequestHeader(value="apiKey") String apiKey,
-            @RequestBody SubscriptionPrice subscriptionPrice) {
+            @RequestParam int planId,
+            @RequestParam BigInteger price,
+            @RequestParam String currency) {
         DTOResponse resp = new DTOResponse();
         User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
-        SubscriptionPlan subscriptionPlan = subscriptionPrice.getSubscriptionPlan();
+        SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(planId);
+        SubscriptionPrice subscriptionPrice = new SubscriptionPrice(price, currencyValidator.validate(currency));
         //validate if this subscription plan actually exists in the database
         subscriptionPlan = subscribeServices.getSubscriptionPlanById(subscriptionPlan.getId());
         Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
@@ -85,7 +87,7 @@ public class SubscribeController {
     @ResponseBody
     public ResponseEntity<DTOResponse> subscribeToTopic(
             @RequestHeader(value="apiKey") String apiKey,
-            @RequestParam(name = "planId") Integer planId,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestBody String userTopic) {
         ObjectMapper mapper = new ObjectMapper();
         Topic userSentTopic = null;
@@ -94,11 +96,12 @@ public class SubscribeController {
             userSentTopic = mapper.readValue(userTopic, Topic.class);
             //check valid user and if not throw exception
             User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
-            SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(planId);
             //check valid subscription type otherwise throw error
-            Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
             //if no active subscription is found for type and user address then throw exception
-            Subscription sub = Optional.ofNullable(subscribeServices.getActiveSubscriptionByAddressAndPlan(us.getAddress(), subscriptionPlan)).orElseThrow(()->new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION));
+            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+            if (sub == null)    {
+                throw new ValidationException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
+            }
             //validate the user sent topic
             if(subscribeValidator.validateTopic(userSentTopic)){
                 //Return an error if the user sent topic is already subscribed
@@ -115,24 +118,6 @@ public class SubscribeController {
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 
-    @ApiOperation(value = "Gets the subscription info",
-            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
-    @RequestMapping(value = "/getSubscriptionInfo", method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
-    @ResponseBody
-    public ResponseEntity<DTOResponse> getSubscriptionInfo(
-            @RequestParam(name = "planId") Integer planId,
-            @RequestHeader(value="apiKey") String apiKey) {
-        DTOResponse resp = new DTOResponse();
-        //check valid user and if not throw exception
-        User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
-        SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(planId);
-        //check valid subscription plan otherwise throw error
-        Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-        //Check if the user has a subscription otherwise throw exception
-        Subscription sub = Optional.ofNullable(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subscriptionPlan)).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
-        resp.setContent(sub);
-        return new ResponseEntity<>(resp, resp.getStatus());
-    }
 
     @ApiOperation(value = "Unsubscribes from a topic given an id",
             response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
@@ -140,15 +125,13 @@ public class SubscribeController {
     @ResponseBody
     public ResponseEntity<DTOResponse> unsubscribeFromTopic(
             @RequestHeader(value="apiKey") String apiKey,
-            @RequestParam(name = "planId") Integer planId,
+            @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestParam(value="idTopic") int idTopic) {
         DTOResponse resp = new DTOResponse();
          User us = userServices.getUserByApiKey(apiKey);
         if(us != null){
             //Check if the user did subscribe
-            SubscriptionPlan subscriptionPlan = subscribeServices.getSubscriptionPlanById(planId);
-            Optional.ofNullable(subscriptionPlan).orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
-            Subscription sub = subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subscriptionPlan);
+            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
             if(sub != null) {
                 Topic tp = subscribeServices.getTopicById(idTopic);
                 if(tp != null){

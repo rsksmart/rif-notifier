@@ -1,0 +1,45 @@
+version: '2.2'
+
+services:
+
+  rif-mysql:
+    container_name: rif-mysql
+    image: mysql:8.0
+    command: --init-file /data/application/setup.sql
+    volumes:
+      - ./bin/docker-mysql.sql:/data/application/setup.sql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=rif-notifier
+    ports:
+      - 3308:3306
+    networks:
+      - rif-notifier-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" , "--user", "root", "--password=root", "ping", "-h", "localhost"]
+      timeout: 120s
+      retries: 10
+
+
+  regtest:
+    container_name: regtest
+    image: rsksmart/rskj-standalone:latest
+    networks:
+      - rif-notifier-network
+
+  rif-notifier:
+    container_name: rif-notifier
+    build:
+      dockerfile: Dockerfile
+      context: .
+    depends_on:
+      - rif-mysql
+      - regtest
+    restart: on-failure
+    ports:
+      - 8080:8080
+    networks:
+      - rif-notifier-network
+
+networks:
+  rif-notifier-network:

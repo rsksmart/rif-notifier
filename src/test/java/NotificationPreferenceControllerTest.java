@@ -70,7 +70,8 @@ public class NotificationPreferenceControllerTest {
         dto.setContent(pref);
         when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
@@ -79,7 +80,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("planId", String.valueOf(subType.getId()))
+                        .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isOk())
@@ -103,7 +104,8 @@ public class NotificationPreferenceControllerTest {
         dto.setContent(pref);
         when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         //save notification
         when(notificationPreferenceManager.getNotificationPreference(any(Subscription.class), any(Integer.class), any(NotificationServiceType.class))).thenReturn(pref);
@@ -111,7 +113,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/removeNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("planId", String.valueOf(subType.getId()))
+                        .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isOk())
@@ -136,7 +138,8 @@ public class NotificationPreferenceControllerTest {
         dto.setContent(pref);
         when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref);
         //save notification
@@ -145,7 +148,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("planId", String.valueOf(subType.getId()))
+                        .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref))
         )
                 .andExpect(status().isConflict())
@@ -169,7 +172,8 @@ public class NotificationPreferenceControllerTest {
         dto.setContent(pref);
         when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref);
         //when(validator.validateRequestNotificationPreference(any(NotificationPreference.class))).thenTh
@@ -179,7 +183,7 @@ public class NotificationPreferenceControllerTest {
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
                         .header("apiKey", apiKey)
-                        .param("planId", String.valueOf(subType.getId()))
+                        .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref).replace("EMAIL", "INVALID"))
         )
                 .andExpect(status().isConflict())
