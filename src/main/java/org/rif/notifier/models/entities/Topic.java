@@ -1,6 +1,7 @@
 package org.rif.notifier.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -31,6 +32,7 @@ public class Topic {
             inverseJoinColumns = @JoinColumn(name = "id_subscription", referencedColumnName = "id"))
     private Set<Subscription> subscriptions;
 
+    @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
     @OneToMany(mappedBy = "topic")
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<TopicParams> topicParams;
