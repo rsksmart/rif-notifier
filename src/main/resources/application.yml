@@ -69,6 +69,11 @@ spring:
         initialization-mode: never
         username: ${dbuser:root}
         password: ${dbpassword:root}
+        hikari:
+          connectionTimeout: 100000
+          idleTimeout: 600000
+          maxlifetime: 1800000
+          maximumPoolSize: 10
     mail:
         host: smtp.gmail.com
         password: ''

@@ -28,6 +28,7 @@ public class Notification implements Serializable  {
     @Column(name = "id_topic")
     private int idTopic;
 
+    @JsonIgnore
     @OneToMany(fetch=FetchType.EAGER, mappedBy="notification", cascade=CascadeType.ALL)
     private List<NotificationLog> notificationLogs;
 
