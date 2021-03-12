@@ -20,9 +20,6 @@ jobs:
             MYSQL_DATABASE: rif-notifier
             MYSQL_USER: notifier_user
             MYSQL_PASSWORD: Password1@
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
     working_directory: ~/rif-notifier
     environment:
       MAVEN_OPTS: -Xmx3200m
@@ -51,4 +48,6 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
+      - run: mvn clean compile
+      - run: mvn install
       - run: mvn test

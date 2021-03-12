@@ -24,9 +24,9 @@ public class DataFetcherIntegrationTest {
 
     @Test
     public void canGetLastConfirmedBlock()    throws Exception   {
-        BigInteger blockConfirmationCount = BigInteger.valueOf(20);
-        BigInteger lastConfirmedBlock = rskBlockchainService.getLastConfirmedBlock(blockConfirmationCount);
         BigInteger lastBlock = rskBlockchainService.getLastBlock();
+        BigInteger blockConfirmationCount = lastBlock.intValue() >= 20 ? BigInteger.valueOf(20) : BigInteger.ZERO;
+        BigInteger lastConfirmedBlock = rskBlockchainService.getLastConfirmedBlock(blockConfirmationCount);
         assertEquals(lastBlock.subtract(blockConfirmationCount), lastConfirmedBlock);
     }
 
