@@ -5,9 +5,9 @@
 1. [Quick start](#quick-start) 
 2. [Installation](#installation-guide)
    1. [Prerequisites](#prerequisites)
-   2. [Automatic Installation](#automatic-installation-steps)
-   3. [Manual Installation](#manual-installation-steps)
-   4. [Docker Installation](#docker-installation-steps)
+   2. [Docker Installation](#docker-installation-steps)
+   3. [Automatic Installation](#automatic-installation-steps)
+   4. [Manual Installation](#manual-installation-steps)
 3. [Usage Guide](#usage-guide)   
     1. [Preconditions](#preconditions)
     2. [Start the application](#start-the-application)  
@@ -176,7 +176,7 @@ sudo /etc/init.d/mysql restart
 
 2. Open a terminal.
 
-3. Install git and rsk blockchain by following the steps in [prerequisites](#prerequisites). 
+3. Install git by following the steps in [prerequisites](#prerequisites). 
 
 4. Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
 
@@ -219,7 +219,7 @@ First modify the ```config.json``` file to setup the rsk blockchain and database
 	"dbhost":"localhost",  //database host name
 	"dbname":"rif_notifier",  //database name
 	"dbuser":"notifier_user",  //database user with privileges
-	"dbpassword":"##password##",  //database password
+	"dbpassword":"***********",  //database password
 
 	"rskendpoint":"http://localhost:7545",  //rsk blockchain endpoint
 	"blockconfirmationcount":"20",  // number of blocks to wait for confirmation
@@ -228,7 +228,7 @@ First modify the ```config.json``` file to setup the rsk blockchain and database
 	"multichaincontract":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
 
 	"provideraddress":"0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9",  // provider address
-	"providerprivatekey":"b1ed36c7f7e02edeaacfd7b485cc857e3051e94a73195a6c96c88dd74d22744a", //provider privatekey without hex prefix
+	"providerprivatekey":"***************************************", //provider privatekey without hex prefix
 
 	"notificationpreferences":"API,EMAIL",  // supported notifications comma separated
 
@@ -525,7 +525,7 @@ Header param:
           "destinationParams":{
               "apiKey":"test",
               "username":"test",
-              "password":"test"
+              "password":"*****"
             }
         }
 ```

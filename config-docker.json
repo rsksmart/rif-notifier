@@ -4,18 +4,18 @@
 	"dbhost":"rif-mysql:3306",
 	"dbname":"rif_notifier",
 	"dbuser":"root",
-	"dbpassword":"root",
+	"dbpassword":"*****",
 
 	"rskendpoint":"http://regtest:4444",
 	"blockconfirmationcount":"0",
-	"smartcontractaddress":"0x152135a81780C293B105A326d892fe1C003Eb0a5",
-	"tokennetworkregistry":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
+	"smartcontractaddress":"",
+	"tokennetworkregistry":"0x1d18D195677416fF7E9De30816980B69EFe4676A",
 	"multichaincontract":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
 
 	"provideraddress":"0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9",
-	"providerprivatekey":"b1ed36c7f7e02edeaacfd7b485cc857e3051e94a73195a6c96c88dd74d22744a",
+	"providerprivatekey":"***************************************",
 
-	"notificationpreferences":"API,EMAIL",
+	"notificationpreferences":"API",
 
 	"acceptedcurrencies":"RIF,RBTC"
 }
