@@ -55,7 +55,7 @@ rif:
             privatekey: a392604efc2fad9c0b3da43b5f698a2e3f270f170d859912be0d54742275c5f6
 rsk:
     blockchain:
-        endpoint: http://localhost:7545
+        endpoint: http://host.docker.internal:4444
         multichaincontract: '0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA'
         tokennetworkregistry: '0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA'
 spring:

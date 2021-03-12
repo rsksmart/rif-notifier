@@ -1,0 +1,53 @@
+version: 2.1
+
+commands:
+  run-rsk:
+    steps:
+      - run:
+          name: 'Install and Run RSK Node'
+          command: |
+            sudo docker stop regtest-node-01 && sudo docker rm regtest-node-01 || true
+            sudo docker pull rsksmart/rskj-standalone:latest
+            sudo docker run --rm -d --name regtest-node-01  -p 4444:4444 -p 30305:30305 rsksmart/rskj-standalone:latest
+
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+      - image: circleci/mysql:latest
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: rif-notifier
+            MYSQL_USER: notifier_user
+            MYSQL_PASSWORD: Password1@
+    working_directory: ~/rif-notifier
+    environment:
+      MAVEN_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+      - run: mvn dependency:go-offline
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: false
+      - run-rsk
+      - run:
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+      - run: mvn clean compile
+      - run: mvn install
+      - run: mvn test
