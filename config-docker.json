@@ -8,7 +8,7 @@
 
 	"rskendpoint":"http://regtest:4444",
 	"blockconfirmationcount":"0",
-	"smartcontractaddress":"",
+	"notificationmanagercontract":"",
 	"tokennetworkregistry":"0x1d18D195677416fF7E9De30816980B69EFe4676A",
 	"multichaincontract":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
 

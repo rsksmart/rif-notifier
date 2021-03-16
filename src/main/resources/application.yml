@@ -61,7 +61,7 @@ rsk:
     blockchain:
         endpoint: ${rskendpoint:http://localhost:4444}
         multichaincontract: ${multichaincontract:0x1E3182DE4Ee25eFeA1b03C3117A01F02d000ABa1}
-        notifier-smart-contract-address: ${smartcontractaddress:0xC2Cd3835d36510dc065d0f8991785DAA70a601a4}
+        notification-manager-contract: ${notificationmanagercontract:0x1d18D195677416fF7E9De30816980B69EFe4676A}
         tokennetworkregistry: ${tokennetworkregistry:0x3C8345c87EE1769ab9C5aEE38b935F68850d270A}
 spring:
     datasource:
