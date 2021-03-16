@@ -1,5 +1,6 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -24,6 +25,7 @@ public class SubscriptionPayment {
     @Column(name="payment_date")
     private Date paymentDate;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="subscription_id")
     private Subscription subscription;

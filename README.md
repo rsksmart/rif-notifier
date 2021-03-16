@@ -5,9 +5,9 @@
 1. [Quick start](#quick-start) 
 2. [Installation](#installation-guide)
    1. [Prerequisites](#prerequisites)
-   2. [Automatic Installation](#automatic-installation-steps)
-   3. [Manual Installation](#manual-installation-steps)
-   4. [Docker Installation](#docker-installation-steps)
+   2. [Docker Installation](#docker-installation-steps)
+   3. [Automatic Installation](#automatic-installation-steps)
+   4. [Manual Installation](#manual-installation-steps)
 3. [Usage Guide](#usage-guide)   
     1. [Preconditions](#preconditions)
     2. [Start the application](#start-the-application)  
@@ -56,12 +56,7 @@
 ## Setup
 
 ### Prerequisites
-#### 1. RSK Blockchain (Mainnet)
-The first requirement is an RSK node which can be run using the **JAR file** method. Use the latest RSKj version avaiable and have it sync with mainnet.
-
-This node should be accessible through `localhost:4444`. For more information on how to achieve this, please consult the [_Setup node on Java_ section on the Developer Portal](https://developers.rsk.co/rsk/node/install/java/).
-
-#### 2. git
+#### 1. git
 The latest version of the `git` client can be installed through:
 
 ```shell
@@ -70,6 +65,13 @@ sudo apt install git
 ```
 
 **Note:** for [docker installation](#docker-installation-steps) the following steps are not required.
+
+#### 2. RSK Blockchain (Mainnet)
+The first requirement is an RSK node which can be run using the **JAR file** method. Use the latest RSKj version avaiable and have it sync with mainnet.
+
+This node should be accessible through `localhost:4444`. For more information on how to achieve this, please consult the [_Setup node on Java_ section on the Developer Portal](https://developers.rsk.co/rsk/node/install/java/).
+
+
 
 #### 3. MySQL
 The latest version of the `mysql-server` database can be installed through:
@@ -176,7 +178,7 @@ sudo /etc/init.d/mysql restart
 
 2. Open a terminal.
 
-3. Install git and rsk blockchain by following the steps in [prerequisites](#prerequisites). 
+3. Install git by following the steps in [prerequisites](#prerequisites). 
 
 4. Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
 
@@ -186,9 +188,9 @@ sudo /etc/init.d/mysql restart
 
 7. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
 
-8. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans.
+8. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
 
-9. Subsequently to stop and start the docker containers use```docker-compose stop``` and to start use ```docker-compose start```
+9. Subsequently to stop and start the docker containers use ```docker-compose stop``` and to start use ```docker-compose start```
 
 
 ---
@@ -219,7 +221,7 @@ First modify the ```config.json``` file to setup the rsk blockchain and database
 	"dbhost":"localhost",  //database host name
 	"dbname":"rif_notifier",  //database name
 	"dbuser":"notifier_user",  //database user with privileges
-	"dbpassword":"##password##",  //database password
+	"dbpassword":"***********",  //database password
 
 	"rskendpoint":"http://localhost:7545",  //rsk blockchain endpoint
 	"blockconfirmationcount":"20",  // number of blocks to wait for confirmation
@@ -228,7 +230,7 @@ First modify the ```config.json``` file to setup the rsk blockchain and database
 	"multichaincontract":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
 
 	"provideraddress":"0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9",  // provider address
-	"providerprivatekey":"b1ed36c7f7e02edeaacfd7b485cc857e3051e94a73195a6c96c88dd74d22744a", //provider privatekey without hex prefix
+	"providerprivatekey":"***************************************", //provider privatekey without hex prefix
 
 	"notificationpreferences":"API,EMAIL",  // supported notifications comma separated
 
@@ -525,7 +527,7 @@ Header param:
           "destinationParams":{
               "apiKey":"test",
               "username":"test",
-              "password":"test"
+              "password":"*****"
             }
         }
 ```
