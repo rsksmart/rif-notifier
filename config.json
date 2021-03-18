@@ -4,16 +4,16 @@
 	"dbhost":"localhost",
 	"dbname":"rif_notifier",
 	"dbuser":"notifier_user",
-	"dbpassword":"Password1$",
+	"dbpassword":"*******",
 
-	"rskendpoint":"http://localhost:7545",
-	"blockconfirmationcount":"0",
-	"smartcontractaddress":"0xC2Cd3835d36510dc065d0f8991785DAA70a601a4",
+	"rskendpoint":"http://localhost:4444",
+	"blockconfirmationcount":"20",
+	"notificationmanagercontract":"0xC2Cd3835d36510dc065d0f8991785DAA70a601a4",
 	"tokennetworkregistry":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
 	"multichaincontract":"0xFEC354973ca22697BC5Cd1E7F372609574e2AfcA",
 
 	"provideraddress":"0x882bf23c4a7E73cA96AF14CACfA2CC006F6781A9",
-	"providerprivatekey":"b1ed36c7f7e02edeaacfd7b485cc857e3051e94a73195a6c96c88dd74d22744a",
+	"providerprivatekey":"************************************",
 
 	"notificationpreferences":"API,EMAIL",
 
