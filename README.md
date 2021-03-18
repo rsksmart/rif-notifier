@@ -67,7 +67,7 @@ sudo apt install git
 **Note:** for [docker installation](#docker-installation-steps) the following steps are not required.
 
 #### 2. RSK Blockchain (Mainnet)
-The first requirement is an RSK node which can be run using the **JAR file** method. Use the latest RSKj version avaiable and have it sync with mainnet.
+The next requirement is an RSK node which can be run using the **JAR file** method. Use the latest RSKj version avaiable and have it sync with mainnet.
 
 This node should be accessible through `localhost:4444`. For more information on how to achieve this, please consult the [_Setup node on Java_ section on the Developer Portal](https://developers.rsk.co/rsk/node/install/java/).
 
@@ -182,15 +182,13 @@ sudo /etc/init.d/mysql restart
 
 4. Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
 
-5. Edit ```config-docker.json``` to update the ```rskendpoint``` to point to the rsk blockchain endpoint. In case you are running locally, set the endpoint to ```http://host.docker.internal:4444``` Update other required properties in the same file, see [config.json](#config.json)
+5. Modify ```subscription-plan.json``` under src/main/resources to provide the subscription plan details. See [create subscription plans](#create-subscription-plans) to change or add new subscription plans. To use the example provided, leave the file unchanged.
 
-6. Modify ```subscription-plan.json``` under src/main/resources to provide the subscription plan details. See [create subscription plans](#create-subscription-plans) to change or add new subscription plans. To use the example provided, leave the file unchanged.
+6. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
 
-7. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
+7. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
 
-8. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
-
-9. Subsequently to stop and start the docker containers use ```docker-compose stop``` and to start use ```docker-compose start```
+8. Subsequently to stop and start the docker containers use ```docker-compose stop``` and to start use ```docker-compose start```
 
 
 ---
@@ -211,6 +209,9 @@ curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jso
 ```
 
 ### Start the application
+
+**Note:** for [docker installation](#docker-installation-steps) you can skip [start the application](#start-the-application) and [run the application](#run-the-application) sections and go to [update subscription plans](#update-subscription-plans) section.
+
 
 #### config.json
 First modify the ```config.json``` file to setup the rsk blockchain and database properties. Note: the comments should be removed in the actual json. The below are example values for each json property.
