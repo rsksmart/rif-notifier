@@ -3,7 +3,7 @@
     "name": "RIF-10k",
     "notificationQuantity": 10000,
     "validity": 100,
-    "notificationPreferences": "API,EMAIL",
+    "notificationPreferences": "API",
     "status": true,
     "subscriptionPriceList": [
       {
@@ -26,7 +26,7 @@
     "name": "RIF-20k",
     "notificationQuantity": 20000,
     "validity": 100,
-    "notificationPreferences": "API,EMAIL",
+    "notificationPreferences": "API",
     "status": true,
     "subscriptionPriceList": [
       {
