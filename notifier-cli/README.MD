@@ -6,11 +6,9 @@ Python3.6 or later
 Pip
 
 ### Configure
-```cd notifier-cli```
-
-```pip install -r requirements.txt```
+```notifier-cli/install.sh```
 
 ### Run
 
- ```python notifier-cli/run.py```
+ ```notifier-cli/cli.sh```
 

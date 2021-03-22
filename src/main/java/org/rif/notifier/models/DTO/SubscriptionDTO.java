@@ -1,8 +1,10 @@
 package org.rif.notifier.models.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
 import org.rif.notifier.models.entities.SubscriptionStatus;
+import org.rif.notifier.models.serializer.BigIntegerSerializer;
 import org.web3j.abi.datatypes.Address;
 
 import java.math.BigInteger;
@@ -27,6 +29,7 @@ public class SubscriptionDTO {
     private String userAddress;
     private String apiKey;
 
+    @JsonSerialize(using= BigIntegerSerializer.class)
     public BigInteger getPrice() {
         return price;
     }
