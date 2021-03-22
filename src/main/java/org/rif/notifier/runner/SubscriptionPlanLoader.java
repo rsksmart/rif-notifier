@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 @Component
 public class SubscriptionPlanLoader implements CommandLineRunner {
     String LOAD_SUBSCRIPTION_PLAN = "loadSubscriptionPlan";
+    String DISABLE_SUBSCRIPTION_PLAN = "disableSubscriptionPlan";
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionPlanLoader.class);
 
     SubscriptionPlanValidator subscriptionPlanValidator;
@@ -40,6 +41,15 @@ public class SubscriptionPlanLoader implements CommandLineRunner {
                 List<SubscriptionPlan> plans = subscriptionPlanValidator.validate();
                 //ensure only enabled plans are being added and that subscription price specified
                 saveSubscriptionPlans(plans);
+                System.exit(0);
+            }
+            else if (argsList.stream().anyMatch(s->s.equalsIgnoreCase(DISABLE_SUBSCRIPTION_PLAN)))  {
+                if(argsList.size() > 1) {
+                    int id = Integer.parseInt(argsList.get(1));
+                    SubscriptionPlan plan = dbManagerFacade.getSubscriptionPlanById(id);
+                    plan.setStatus(false);
+                    dbManagerFacade.saveSubscriptionPlan(plan);
+                }
                 System.exit(0);
             }
         }

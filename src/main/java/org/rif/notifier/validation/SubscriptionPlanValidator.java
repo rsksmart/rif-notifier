@@ -12,6 +12,8 @@ import org.rif.notifier.models.entities.SubscriptionPrice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +27,10 @@ import java.util.stream.Collectors;
 @Component
 public class SubscriptionPlanValidator extends BaseValidator    {
 
+    private static final String SUBSCRIPTION_PLAN_JSON = "rif-notifier/subscription-plan.json";
+    private static final String SUBSCRIPTION_PLAN_LOCATION = "file:" + System.getProperty("user.home") + "/" + SUBSCRIPTION_PLAN_JSON;
+    private static final String SUBSCRIPTION_PLAN_CURRENT_LOCATION = "file:" + SUBSCRIPTION_PLAN_JSON;
+
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionPlanValidator.class);
 
     private Resource subscriptionPlanJson;
@@ -35,7 +41,12 @@ public class SubscriptionPlanValidator extends BaseValidator    {
 
     SubscriptionPlanValidator(@Value("classpath:subscription-plan.json") Resource subscriptionPlanJson,
                               NotifierConfig nottifierConfig, DbManagerFacade dbManagerFacade) {
-        this.subscriptionPlanJson = subscriptionPlanJson;
+        FileSystemResourceLoader resourceLoader = new FileSystemResourceLoader();
+        Resource resource = resourceLoader.getResource(SUBSCRIPTION_PLAN_LOCATION);
+        if (!resource.exists()) {
+            resource = resourceLoader.getResource(SUBSCRIPTION_PLAN_CURRENT_LOCATION);
+        }
+        this.subscriptionPlanJson = resource.exists() ? resource : subscriptionPlanJson;
         this.notifierConfig = nottifierConfig;
         this.dbManagerFacade = dbManagerFacade;
     }

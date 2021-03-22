@@ -4,6 +4,7 @@ import org.rif.notifier.boot.configuration.WebConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -25,5 +26,11 @@ public class Application extends SpringBootServletInitializer {
         return application.sources(Application.class);
     }
 
-    public static void main(String[] args) { SpringApplication.run(Application.class, args); }
+    public static void main(String[] args) {
+        SpringApplication application = new SpringApplication(Application.class);
+        if (args.length == 0) {
+            application.addListeners(new ApplicationPidFileWriter());
+        }
+        application.run(args);
+    }
 }
