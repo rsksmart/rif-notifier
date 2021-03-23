@@ -12,6 +12,7 @@ class Notifier:
     def __init__(self):
         self.config = Config()
         self.mvn = "mvn"
+        self.host = "http://127.0.0.1:" + str(self.config.get("serverport"))
 
     def check(self):
         if not shutil.which("java"):
@@ -69,7 +70,7 @@ class Notifier:
 
     def healthCheck(self):
         try:
-            response = requests.get("http://127.0.0.1:8080/actuator/health", verify=False)
+            response = requests.get(self.host + "/actuator/health", verify=False)
             if response.status_code == 200:
                 print("Server is running ", response)
             else:
@@ -82,7 +83,7 @@ class Notifier:
 
     def getSubscriptionPlan(self, id):
         try:
-            response = requests.get("http://127.0.0.1:8080/getSubscriptionPlan/"+id, verify=False)
+            response = requests.get(self.host + "/getSubscriptionPlan/"+id, verify=False)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -92,7 +93,7 @@ class Notifier:
 
     def getSubscriptionPlans(self):
         try:
-            response = requests.get("http://127.0.0.1:8080/getSubscriptionPlans", verify=False)
+            response = requests.get(self.host +"/getSubscriptionPlans", verify=False)
             if response.status_code == 200:
                 return response.json()
             else:

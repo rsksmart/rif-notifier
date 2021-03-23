@@ -10,5 +10,10 @@ Pip
 
 ### Run
 
- ```notifier-cli/cli.sh```
+ ```notifier-cli``` or ```notifier-cli --help```
+
+### Usage
+
+   To set multiple values for same option (for ex. notificationPreferences) use
+```notifier-cli configure --notificationpreferences API --notificationpreferences SMS```
 
