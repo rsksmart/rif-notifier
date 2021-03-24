@@ -8,6 +8,10 @@ public interface ResponseConstants {
 
     String INCORRECT_APIKEY = "Apikey not found, first register the user to the notifier service";
 
+    String INCORRECT_USER_ADDRESS = "User address not found, first register the user to the notifier service";
+
+    String INCORRECT_APIKEY_USER = "Incorrect apikey provided for the user";
+
     String APIKEY_ALREADY_ADDED = "The user is already registered";
 
     String ADDRESS_NOT_PROVIDED = "Address is a required param, please insert a correct address";

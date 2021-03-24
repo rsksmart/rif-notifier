@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.PersistenceException;
+import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -86,17 +87,16 @@ public class NotificationPreferenceController {
     @RequestMapping(value = "/saveNotificationPreference", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> saveNotificationPreference   (
+            @RequestHeader(value="userAddress") String userAddress,
             @RequestHeader(value="apiKey") String apiKey,
             @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestBody String notificationPreference
 
-    ) {
+    ) throws LoginException {
         DTOResponse resp = new DTOResponse();
         NotificationPreference requestedPreference;
-        User apiUser;
-
-        //validate apikey
-        apiUser = validator.validateApiKeyAndGetUser(apiKey);
+        //authenticate user
+        User apiUser = userServices.authenticate(userAddress, apiKey);
         //validate request json
         requestedPreference = validator.validateRequestJson(notificationPreference);
         //validate containing data
@@ -135,17 +135,16 @@ public class NotificationPreferenceController {
     @RequestMapping(value = "/removeNotificationPreference", method = RequestMethod.POST, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> removeNotificationPreference(
+            @RequestHeader(value="userAddress") String userAddress,
             @RequestHeader(value="apiKey") String apiKey,
             @RequestParam(name = "subscriptionHash") String subscriptionHash,
             @RequestBody String notificationPreference
 
-    ) {
+    ) throws LoginException {
         DTOResponse resp = new DTOResponse();
         NotificationPreference requestedPreference;
-        User apiUser;
-
-        //validate apikey
-        apiUser = validator.validateApiKeyAndGetUser(apiKey);
+        //authenticate user
+        User apiUser = userServices.authenticate(userAddress, apiKey);
         //validate request json
         requestedPreference = validator.validateRequestJson(notificationPreference);
 

@@ -2,6 +2,7 @@ package org.rif.notifier.managers.datamanagers;
 
 import org.rif.notifier.models.entities.User;
 import org.rif.notifier.repositories.UserRepository;
+import org.rif.notifier.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,8 @@ public class UserManager {
     private UserRepository userRepository;
 
     public User insert(String address, String apiKey){
-        User rd = new User(address, apiKey);
+        String hashedKey = Utils.hashPassword(apiKey);
+        User rd = new User(address, hashedKey);
         User result = userRepository.save(rd);
         return result;
     }

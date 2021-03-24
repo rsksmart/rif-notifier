@@ -1,9 +1,6 @@
 package org.rif.notifier.models.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "notif_users")
@@ -14,6 +11,9 @@ public class User {
 
     @Column(name = "api_key")
     private String apiKey;
+
+    @Transient
+    private String plainTextKey;
 
     public User() {}
 
@@ -38,11 +38,18 @@ public class User {
         this.apiKey = apiKey;
     }
 
+    public String getPlainTextKey() {
+        return plainTextKey;
+    }
+
+    public void setPlainTextKey(String plainTextKey) {
+        this.plainTextKey = plainTextKey;
+    }
+
     @Override
     public String toString() {
         return "{" +
                 "address=" + address +
-                ", apiKey=" + apiKey +
                 '}';
     }
 }

@@ -57,7 +57,7 @@ public class LuminoSubscribeControllerTest {
         SubscriptionPlan subType = new SubscriptionPlan(1000);
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
@@ -86,7 +86,7 @@ public class LuminoSubscribeControllerTest {
         SubscriptionPlan subType = new SubscriptionPlan(1000);
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
@@ -117,7 +117,7 @@ public class LuminoSubscribeControllerTest {
         SubscriptionPlan subType = new SubscriptionPlan(1000);
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         Topic tp = luminoEventServices.getChannelClosedTopicForToken(token, null, null);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
@@ -148,7 +148,7 @@ public class LuminoSubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         Topic tp = luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closeParticipant);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
@@ -192,7 +192,7 @@ public class LuminoSubscribeControllerTest {
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         Topic tp = mockTestData.mockTopicOpenChannelWithoutFilters();
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
@@ -236,7 +236,7 @@ public class LuminoSubscribeControllerTest {
         SubscriptionPlan subType = new SubscriptionPlan(1000);
         Subscription sub = new Subscription(new Date(), us.getAddress(), subType, SubscriptionStatus.ACTIVE);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(),subType)).thenReturn(sub);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));

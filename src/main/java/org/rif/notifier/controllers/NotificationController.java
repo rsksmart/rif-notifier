@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.login.LoginException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,35 +45,31 @@ public class NotificationController {
     @RequestMapping(value = "/getNotifications", method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> GetNotifications(
+            @RequestHeader(value="userAddress") String userAddress,
             @RequestHeader(value="apiKey") String apiKey,
             @RequestParam(name = "fromId", required = false) Integer id,
             @RequestParam(name = "lastRows", required = false) Integer lastRows,
             @RequestParam(name = "idTopic", required = false) Set<Integer> idTopic
-    ) {
+    ) throws LoginException {
         DTOResponse resp = new DTOResponse();
         List<Notification> notifications = new ArrayList<>();
         if(apiKey != null && !apiKey.isEmpty()){
-            User us = userServices.getUserByApiKey(apiKey);
-            if(us != null){
-                List<Subscription> subscriptions = Optional.ofNullable(subscribeServices.getSubscriptionByAddress(us.getAddress())).orElseThrow(
-                        ()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND)
-                );
-                subscriptions.forEach(s-> {
-                    notifications.addAll(notificationServices.getNotificationsForSubscription(s, id, lastRows, idTopic));
-                });
-                if(notifications.size() > 0) {
-                    resp.setContent(notifications);
-                }else{
-                    //It may be happend that the user has no notifications cause the balance of the subscription is 0
-                    subscriptions.forEach(s-> {
-                        if (s.getNotificationBalance() == 0) {
-                            throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_OUT_OF_BALANCE);
-                        }
-                    });
-                }
+            User us = userServices.authenticate(userAddress,apiKey);
+            List<Subscription> subscriptions = Optional.ofNullable(subscribeServices.getSubscriptionByAddress(us.getAddress())).orElseThrow(
+                    ()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND)
+            );
+            subscriptions.forEach(s-> {
+                notifications.addAll(notificationServices.getNotificationsForSubscription(s, id, lastRows, idTopic));
+            });
+            if(notifications.size() > 0) {
+                resp.setContent(notifications);
             }else{
-                //Return error, user does not exist
-                throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+                //It may be happend that the user has no notifications cause the balance of the subscription is 0
+                subscriptions.forEach(s-> {
+                    if (s.getNotificationBalance() == 0) {
+                        throw new SubscriptionException(ResponseConstants.SUBSCRIPTION_OUT_OF_BALANCE);
+                    }
+                });
             }
         }else{
             //Return error, user does not exist

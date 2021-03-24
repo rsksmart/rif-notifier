@@ -19,7 +19,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sun.rmi.runtime.Log;
 
+import javax.security.auth.login.LoginException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,21 +48,17 @@ public class LuminoSubscribeController {
     @ResponseBody
     public ResponseEntity<DTOResponse> getLuminoTokens(
             @RequestParam(name = "subscriptionHash") String subscriptionHash,
-            @RequestHeader(value="apiKey") String apiKey) {
+            @RequestHeader(value="userAddress") String userAddress,
+            @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
-        User us = userServices.getUserByApiKey(apiKey);
-        if (us != null) {
-            //Check if the user did subscribe
-            if(subscribeServices.getActiveSubscriptionByHash(subscriptionHash) != null) {
-                resp.setContent(luminoEventServices.getTokens());
-            } else {
-                //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-            }
+        User us = userServices.authenticate(userAddress, apiKey);
+        //Check if the user did subscribe
+        if(subscribeServices.getActiveSubscriptionByHash(subscriptionHash) != null) {
+            resp.setContent(luminoEventServices.getTokens());
         } else {
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+            //Return an error because the user still did not create the subscription
+            throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
         }
-
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 
@@ -73,35 +71,31 @@ public class LuminoSubscribeController {
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
             @RequestParam(name = "subscriptionHash") String subscriptionHash,
-            @RequestHeader(value="apiKey") String apiKey) {
+            @RequestHeader(value="userAddress") String userAddress,
+            @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
-        User us = userServices.getUserByApiKey(apiKey);
-        if (us != null) {
-            //Check if the user did subscribe
-            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
-            if (sub != null) {
-                token = token.toLowerCase();
-                if(luminoEventServices.isToken(token)){
-                    Topic openChannelTopic = luminoEventServices.getChannelOpenedTopicForToken(token, participantOne, participantTwo);
-                    Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(openChannelTopic, sub.getId());
-                    if(topic == null) {
-                        resp.setContent(subscribeServices.subscribeToTopic(openChannelTopic, sub));
-                    }else{
-                        //Return an error because the user is sending a topic that he's already subscribed
-                        throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
-                    }
+        User us = userServices.authenticate(userAddress,apiKey);
+        //Check if the user did subscribe
+        Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        if (sub != null) {
+            token = token.toLowerCase();
+            if(luminoEventServices.isToken(token)){
+                Topic openChannelTopic = luminoEventServices.getChannelOpenedTopicForToken(token, participantOne, participantTwo);
+                Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(openChannelTopic, sub.getId());
+                if(topic == null) {
+                    resp.setContent(subscribeServices.subscribeToTopic(openChannelTopic, sub));
                 }else{
-                    //Return an error because the user send a incorrect token
-                    throw new SubscriptionException(ResponseConstants.INCORRECT_TOKEN);
+                    //Return an error because the user is sending a topic that he's already subscribed
+                    throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
                 }
-            } else {
-                //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
+            }else{
+                //Return an error because the user send a incorrect token
+                throw new SubscriptionException(ResponseConstants.INCORRECT_TOKEN);
             }
         } else {
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+            //Return an error because the user still did not create the subscription
+            throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
         }
-
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 
@@ -114,35 +108,31 @@ public class LuminoSubscribeController {
             @RequestParam(name = "channelidentifier", required = false) Integer channelIdentifier,
             @RequestParam(name = "closingparticipant", required = false) String closingParticipant,
             @RequestParam(name = "subscriptionHash") String subscriptionHash,
-            @RequestHeader(value="apiKey") String apiKey) {
+            @RequestHeader(value="userAddress") String userAddress,
+            @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
-        User us = userServices.getUserByApiKey(apiKey);
-        if (us != null) {
-            //Check if the user did subscribe
-            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
-            if (sub != null) {
-                token = token.toLowerCase();
-                if(luminoEventServices.isToken(token)){
-                    Topic closeChannelTopic = luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closingParticipant);
-                    Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(closeChannelTopic, sub.getId());
-                    if(topic == null) {
-                        resp.setContent(subscribeServices.subscribeToTopic(closeChannelTopic, sub));
-                    }else{
-                        //Return an error because the user is sending a topic that he's already subscribed
-                        throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
-                    }
+        User us = userServices.authenticate(userAddress, apiKey);
+        //Check if the user did subscribe
+        Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        if (sub != null) {
+            token = token.toLowerCase();
+            if(luminoEventServices.isToken(token)){
+                Topic closeChannelTopic = luminoEventServices.getChannelClosedTopicForToken(token, channelIdentifier, closingParticipant);
+                Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(closeChannelTopic, sub.getId());
+                if(topic == null) {
+                    resp.setContent(subscribeServices.subscribeToTopic(closeChannelTopic, sub));
                 }else{
-                    //Return an error because the user send a incorrect token
-                    throw new SubscriptionException(ResponseConstants.INCORRECT_TOKEN);
+                    //Return an error because the user is sending a topic that he's already subscribed
+                    throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC, new SubscriptionResponse(topic.getId()), null);
                 }
-            } else {
-                //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
+            }else{
+                //Return an error because the user send a incorrect token
+                throw new SubscriptionException(ResponseConstants.INCORRECT_TOKEN);
             }
         } else {
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+            //Return an error because the user still did not create the subscription
+            throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
         }
-
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 
@@ -154,34 +144,30 @@ public class LuminoSubscribeController {
             @RequestParam(name = "participantone", required = false) String participantOne,
             @RequestParam(name = "participanttwo", required = false) String participantTwo,
             @RequestParam(name = "subscriptionHash") String subscriptionHash,
-            @RequestHeader(value="apiKey") String apiKey) {
+            @RequestHeader(value="userAddress") String userAddress,
+            @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
-        User us = userServices.getUserByApiKey(apiKey);
-        if (us != null) {
-            //Check if the user did subscribe
-            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
-            if (sub != null) {
-                List<SubscriptionResponse> lstTopicId = new ArrayList<>();
-                luminoEventServices.getTokens().forEach(token -> {
-                    Topic openChannelTopic = luminoEventServices.getChannelOpenedTopicForToken(token, participantOne, participantTwo);
-                    Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(openChannelTopic, sub.getId());
-                    if(topic == null) {
-                        lstTopicId.add(subscribeServices.subscribeToTopic(openChannelTopic, sub));
-                    }else{
-                        //Return an error because the user is sending a topic that he's already subscribed
-                        lstTopicId.add(new SubscriptionResponse(topic.getId()));
-                        throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_SOME_TOPICS, lstTopicId, null);
-                    }
-                });
-                resp.setContent(lstTopicId);
-            } else {
-                //Return an error because the user still did not create the subscription
-                throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-            }
+        User us = userServices.authenticate(userAddress, apiKey);
+        //Check if the user did subscribe
+        Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        if (sub != null) {
+            List<SubscriptionResponse> lstTopicId = new ArrayList<>();
+            luminoEventServices.getTokens().forEach(token -> {
+                Topic openChannelTopic = luminoEventServices.getChannelOpenedTopicForToken(token, participantOne, participantTwo);
+                Topic topic = subscribeServices.getTopicByHashCodeAndIdSubscription(openChannelTopic, sub.getId());
+                if(topic == null) {
+                    lstTopicId.add(subscribeServices.subscribeToTopic(openChannelTopic, sub));
+                }else{
+                    //Return an error because the user is sending a topic that he's already subscribed
+                    lstTopicId.add(new SubscriptionResponse(topic.getId()));
+                    throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_SOME_TOPICS, lstTopicId, null);
+                }
+            });
+            resp.setContent(lstTopicId);
         } else {
-            throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+            //Return an error because the user still did not create the subscription
+            throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
         }
-
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 }

@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -62,7 +63,7 @@ public class NotificationControllerTest {
         Subscription subscription = mockTestData.mockSubscription();
         List<Notification> notifs = mockTestData.mockNotifications();
         dto.setContent(notifs);
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(subscription).collect(Collectors.toList()));
         //Return notifications
         when(notificationServices.getNotificationsForSubscription(subscription, null, null, null)).thenReturn(notifs);
@@ -80,7 +81,7 @@ public class NotificationControllerTest {
         dto.setMessage(ResponseConstants.INCORRECT_APIKEY);
         String apiKey = Utils.generateNewToken();
         Topic tp = mockTestData.mockTopic();
-        when(userServices.getUserByApiKey(apiKey)).thenReturn(null);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(null);
         MvcResult result = mockMvc.perform(
                 get("/getNotifications")
                         .contentType(APPLICATION_JSON_UTF8)

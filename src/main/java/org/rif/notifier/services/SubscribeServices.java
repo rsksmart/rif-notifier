@@ -117,6 +117,10 @@ public class SubscribeServices  {
         return dbManagerFacade.getSubscriptionByHash(hash);
     }
 
+    public Subscription getSubscriptionByHashAndUserAddress(String hash, String userAddress){
+        return dbManagerFacade.getSubscriptionByHashAndUserAddress(hash, userAddress);
+    }
+
     /**
      * Makes the relation between subscription and topic.
      * First checks if the Topic is already created, so if it is, it creates only the relation, in other case it applies logic to the topic sent
@@ -251,7 +255,7 @@ public class SubscribeServices  {
         subscriptionDTO.setStatus(subscription.getStatus());
         subscriptionDTO.setCurrency(subscription.getCurrency().getName());
         subscriptionDTO.setTopics(subscriptionBatchDTO.getTopics());
-        subscriptionDTO.setApiKey(user.getApiKey());
+        subscriptionDTO.setApiKey(user.getPlainTextKey());
         return subscriptionDTO;
     }
 
