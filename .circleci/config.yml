@@ -6,9 +6,9 @@ commands:
       - run:
           name: 'Install and Run RSK Node'
           command: |
-            sudo docker stop regtest-node-01 && sudo docker rm regtest-node-01 || true
-            sudo docker pull rsksmart/rskj-standalone:latest
-            sudo docker run --rm -d --name regtest-node-01  -p 4444:4444 -p 30305:30305 rsksmart/rskj-standalone:latest
+            docker stop regtest-node-01 && sudo docker rm regtest-node-01 || true
+            docker pull rsksmart/rskj-standalone:latest
+            docker run --rm -d --name regtest-node-01  -p 4444:4444 -p 30305:30305 rsksmart/rskj-standalone:latest
 
 jobs:
   build:
