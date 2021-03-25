@@ -68,6 +68,7 @@ public class LuminoSubscribeControllerTest {
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("subscriptionHash", "0")
                         .param("token", "12345")
@@ -97,6 +98,7 @@ public class LuminoSubscribeControllerTest {
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("token", "12345")
                         .param("subscriptionHash", "0")
@@ -128,6 +130,7 @@ public class LuminoSubscribeControllerTest {
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToCloseChannel")
+                        .header("userAddress", address)
                         .header("apiKey", apiKey)
                         .param("subscriptionHash", "0")
                         .param("token", token)
@@ -158,6 +161,7 @@ public class LuminoSubscribeControllerTest {
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
+                        .header("userAddress", closeParticipant)
                         .header("apiKey", apiKey)
                         .param("token", token)
                         .param("subscriptionHash", "0")
@@ -201,6 +205,7 @@ public class LuminoSubscribeControllerTest {
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToOpenChannel")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("subscriptionHash", "0")
                         .param("token", "54321")
@@ -244,6 +249,7 @@ public class LuminoSubscribeControllerTest {
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToCloseChannel")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("token", token)
                         .param("subscriptionHash", "0")

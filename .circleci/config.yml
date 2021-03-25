@@ -16,15 +16,18 @@ jobs:
       - image: circleci/openjdk:8-jdk
       - image: circleci/mysql:latest
         environment:
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: rif-notifier
+            MYSQL_ROOT_PASSWORD: $dbrootpassword
+            MYSQL_DATABASE: rif_notifier
             MYSQL_USER: notifier_user
-            MYSQL_PASSWORD: Password1@
+            MYSQL_PASSWORD: $dbuserpassword
     working_directory: ~/rif-notifier
     environment:
       MAVEN_OPTS: -Xmx3200m
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: true
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "pom.xml" }}
@@ -34,10 +37,6 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
-      - setup_remote_docker:
-          version: 19.03.13
-          docker_layer_caching: false
-      - run-rsk
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -49,5 +48,6 @@ jobs:
             done
             echo Failed waiting for MySQL && exit 1
       - run: mvn clean compile
-      - run: mvn install
-      - run: mvn test
+      - run: mvn  -Dserverport=$serverport -Ddbhost=$dbhost -Dnotificationpreferences=$notificationpreferences -Dacceptedcurrencies=$acceptedcurrencies -Ddbname=rif_notifier -Ddbuser=$dbuser -Ddbpassword=$dbpassword -Drskendpoint=http://localhost:4444 -Dblockconfirmationcount=0 -Dnotificationmanagercontract=0x0 -Dtokennetworkregistry=0x0 -Dmultichaincontract=0x0 -Dprovideraddress=0x0 -Dproviderprivatekey=$providerprivatekey install -DskipTests=true
+      - run-rsk
+      - run: mvn  -Dserverport=$serverport -Ddbhost=$dbhost -Dnotificationpreferences=$notificationpreferences -Dacceptedcurrencies=$acceptedcurrencies -Ddbname=rif_notifier -Ddbuser=$dbuser -Ddbpassword=$dbpassword -Drskendpoint=http://localhost:4444 -Dblockconfirmationcount=0 -Dnotificationmanagercontract=0x0 -Dtokennetworkregistry=0x0 -Dmultichaincontract=0x0 -Dprovideraddress=0x0 -Dproviderprivatekey=$providerprivatekey test

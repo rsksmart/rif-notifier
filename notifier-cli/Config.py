@@ -5,7 +5,7 @@ from pathlib import Path
 
 class Config:
     PROPS = ["serverport", "dbhost", "dbname", "dbuser", "dbpassword", "rskendpoint", "blockconfirmationcount", "notificationmanagercontract",
-             "tokennetworkregistry", "multichaincontract", "provideraddress", "notificationpreferences", "acceptedcurrencies"]
+             "tokennetworkregistry", "multichaincontract", "provideraddress", "providerprivatekey", "notificationpreferences", "acceptedcurrencies"]
     def __init__(self):
         self.configJson = {}
         self.configLocation = str(Path.home()) + "/" + self.configFile()

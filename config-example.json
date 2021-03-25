@@ -1,12 +1,12 @@
 {
 	"serverport":"8080",
 
-	"dbhost":"rif-mysql:3306",
+	"dbhost":"localhost",
 	"dbname":"rif_notifier",
 	"dbuser":"notifier_user",
 	"dbpassword":"",
 
-	"rskendpoint":"http://regtest:4444",
+	"rskendpoint":"http://localhost:7545",
 	"blockconfirmationcount":"20",
 	"notificationmanagercontract":"",
 	"tokennetworkregistry":"",
@@ -15,7 +15,7 @@
 	"provideraddress":"",
 	"providerprivatekey":"",
 
-	"notificationpreferences":"API",
+	"notificationpreferences":"API,EMAIL",
 
 	"acceptedcurrencies":"RIF,RBTC"
 }

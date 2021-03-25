@@ -5,8 +5,9 @@ FROM maven:3.6.3-jdk-8-slim AS build
 COPY src /home/app/src
 COPY pom.xml /home/app
 COPY config-docker.json /home/app/config.json
+COPY target/rif-notifier-0.1.0.jar /home/app/target/rif-notifier-0.1.0.jar
 COPY bin /home/app/bin
-RUN mvn -f /home/app/pom.xml clean package -DskipTests=true
+#RUN mvn -f /home/app/pom.xml clean package -DskipTests=true
 #
 # Package stage
 #
