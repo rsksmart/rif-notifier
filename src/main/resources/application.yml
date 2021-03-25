@@ -96,3 +96,5 @@ flyway:
     url: jdbc:mysql:${dbhost:localhost}/${dbname:rif_notifier}
     user: ${dbuser:root}
     password: ${dbpassword:root}
+server:
+    port: ${serverport:8080}

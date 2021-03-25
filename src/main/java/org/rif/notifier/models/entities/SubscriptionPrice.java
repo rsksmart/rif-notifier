@@ -1,8 +1,10 @@
 package org.rif.notifier.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.rif.notifier.models.serializer.BigIntegerSerializer;
 
 import javax.persistence.*;
 import java.math.BigInteger;
@@ -42,6 +44,7 @@ public class SubscriptionPrice {
         this.id = id;
     }
 
+    @JsonSerialize(using= BigIntegerSerializer.class)
     public BigInteger getPrice() {
         return price;
     }

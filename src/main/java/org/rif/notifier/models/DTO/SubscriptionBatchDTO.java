@@ -1,9 +1,11 @@
 package org.rif.notifier.models.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.rif.notifier.models.entities.Subscription;
+import org.rif.notifier.models.serializer.BigIntegerSerializer;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -51,6 +53,7 @@ public class SubscriptionBatchDTO {
         this.userAddress = userAddress;
     }
 
+    @JsonSerialize(using= BigIntegerSerializer.class)
     public BigInteger getPrice() {
         return price;
     }

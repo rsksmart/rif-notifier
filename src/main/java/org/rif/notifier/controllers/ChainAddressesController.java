@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.login.LoginException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
@@ -44,28 +45,24 @@ public class ChainAddressesController {
     @RequestMapping(value = "/getRnsEvents", method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
     @ResponseBody
     public ResponseEntity<DTOResponse> getRnsEvents(
+            @RequestHeader(name = "userAddress") String userAddress,
             @RequestHeader(value="apiKey") String apiKey,
             @RequestParam(name = "nodehash", required = false) String nodehash,
             @RequestParam(name = "eventName", required = false) Set<String> eventName
-    ) {
+    ) throws LoginException  {
         DTOResponse resp = new DTOResponse();
         List<ChainAddressEvent> chainAddresses;
         if(apiKey != null && !apiKey.isEmpty()){
-            User us = userServices.getUserByApiKey(apiKey);
-            if(us != null){
-                List<Subscription> subscriptions = subscribeServices.getSubscriptionByAddress(us.getAddress());
-                chainAddresses = chainAddressesServices.getChainAddresses(us.getAddress(), nodehash, eventName);
-                if(chainAddresses.size() > 0) {
-                    resp.setContent(chainAddresses);
-                }else{
-                    //It may be happend that the user has no notifications cause the balance of the subscription is 0
-                    if(subscriptions.stream().noneMatch(s->s.isActive()))   {
-                        throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
-                    }
-                }
+            User us = userServices.authenticate(userAddress, apiKey);
+            List<Subscription> subscriptions = subscribeServices.getSubscriptionByAddress(us.getAddress());
+            chainAddresses = chainAddressesServices.getChainAddresses(us.getAddress(), nodehash, eventName);
+            if(chainAddresses.size() > 0) {
+                resp.setContent(chainAddresses);
             }else{
-                //Return error, user does not exist
-                throw new ValidationException(ResponseConstants.INCORRECT_APIKEY);
+                //It may be happend that the user has no notifications cause the balance of the subscription is 0
+                if(subscriptions.stream().noneMatch(s->s.isActive()))   {
+                    throw new SubscriptionException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
+                }
             }
         }else{
             //Return error, user does not exist

@@ -1,5 +1,6 @@
 package org.rif.notifier.util;
 
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.web3j.crypto.*;
 import org.web3j.utils.Numeric;
 
@@ -164,5 +165,25 @@ public class Utils {
             //If it enters here is because the user send incorrect params
         }
         return false;
+    }
+
+    /**
+     * hash a password using bcrypt with 10 log rounds of salt
+     */
+    public static String hashPassword(String plainText)   {
+        if (plainText == null || plainText.isEmpty())   {
+            throw new IllegalArgumentException("text cannot be null or empty");
+        }
+        return BCrypt.hashpw(plainText, BCrypt.gensalt());
+    }
+
+    public static boolean checkPassword(String plainText, String hashed)  {
+        if (plainText == null || plainText.isEmpty())   {
+            throw new IllegalArgumentException("text cannot be null or empty");
+        }
+        else if (hashed == null || hashed.isEmpty())   {
+            throw new IllegalArgumentException("hashed password cannot be null or empty");
+        }
+        return BCrypt.checkpw(plainText,hashed);
     }
 }

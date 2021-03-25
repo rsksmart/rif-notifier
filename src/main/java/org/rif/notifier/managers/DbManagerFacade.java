@@ -139,6 +139,10 @@ public class DbManagerFacade {
         return subscriptionManager.getSubscriptionByHash(hash);
     }
 
+    public Subscription getSubscriptionByHashAndUserAddress(String hash, String userAddress){
+        return subscriptionManager.getSubscriptionByHashAndUserAddress(hash, userAddress);
+    }
+
     public Subscription getSubscriptionByPreviousSubscription(Subscription prev){
         return subscriptionManager.getSubscriptionByPreviousSubscription(prev);
     }

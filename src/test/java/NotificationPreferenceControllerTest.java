@@ -68,7 +68,7 @@ public class NotificationPreferenceControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
-        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
@@ -102,7 +102,7 @@ public class NotificationPreferenceControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
-        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
@@ -136,7 +136,7 @@ public class NotificationPreferenceControllerTest {
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         pref.setDestination("test.com");
         dto.setContent(pref);
-        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
@@ -170,7 +170,7 @@ public class NotificationPreferenceControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         NotificationPreference pref = mockTestData.mockNotificationPreference(subscription);
         dto.setContent(pref);
-        when(validator.validateApiKeyAndGetUser(apiKey)).thenReturn(us);
+        when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);

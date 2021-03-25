@@ -1,10 +1,16 @@
 package org.rif.notifier.services;
 
+import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.entities.User;
 import org.rif.notifier.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.security.auth.login.CredentialException;
+import javax.security.auth.login.CredentialNotFoundException;
+import javax.security.auth.login.LoginException;
 
 @Service
 public class UserServices {
@@ -35,7 +41,31 @@ public class UserServices {
      * @return User stored in the DB
      */
     public User saveUser(String address){
+        if (address ==null) {
+            return null;
+        }
         String apiKey = Utils.generateNewToken();
-        return dbManagerFacade.saveUser(address, apiKey);
+        User user = dbManagerFacade.saveUser(address, apiKey);
+        user.setPlainTextKey(apiKey);
+        return user;
+    }
+
+
+    /**
+     * Authenticates a given user using address and apikey
+     * @param userAddress
+     * @param apiKey
+     * @return user - authenticated user, or throw exception if no user
+     * @throws ValidationException if address or apikey is incorrect
+     */
+    public User authenticate(String userAddress, String apiKey) throws LoginException {
+        User user = userExists(userAddress);
+        if(user == null) {
+            throw new CredentialNotFoundException(ResponseConstants.INCORRECT_USER_ADDRESS);
+        }
+        if(!Utils.checkPassword(apiKey, user.getApiKey()))   {
+            throw new CredentialException(ResponseConstants.INCORRECT_APIKEY_USER);
+        }
+        return user;
     }
 }

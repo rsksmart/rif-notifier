@@ -22,4 +22,6 @@ abstract public class BaseValidator {
         Optional.ofNullable(apiKey).orElseThrow(()->new ValidationException(ResponseConstants.MISSING_APIKEY));
         return Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
     }
+
+
 }
