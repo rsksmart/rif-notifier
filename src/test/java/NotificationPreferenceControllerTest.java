@@ -79,6 +79,7 @@ public class NotificationPreferenceControllerTest {
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref))
@@ -112,6 +113,7 @@ public class NotificationPreferenceControllerTest {
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/removeNotificationPreference")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref))
@@ -147,6 +149,7 @@ public class NotificationPreferenceControllerTest {
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref))
@@ -182,6 +185,7 @@ public class NotificationPreferenceControllerTest {
         ObjectMapper mapper = new ObjectMapper();
         MvcResult result = mockMvc.perform(
                 post("/saveNotificationPreference")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
                         .param("subscriptionHash", "0")
                         .content(mapper.writeValueAsString(pref).replace("EMAIL", "INVALID"))

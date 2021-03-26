@@ -13,7 +13,7 @@ import org.web3j.crypto.WalletUtils;
 @Component
 public class RskAccountService {
 
-  @Value("${rif.notifier.account.paassword}")
+  @Value("${rif.notifier.account.password}")
   private String notifierAccountPassword;
 
   @Value("${rif.notifier.account.file}")

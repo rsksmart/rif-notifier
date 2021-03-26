@@ -15,6 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.persistence.PersistenceException;
+import javax.security.auth.login.LoginException;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +51,12 @@ public class GlobalControllerExceptionHandler {
     public DTOResponse badRequest(Exception e) {
         Object content = e instanceof SubscriptionException ? ((SubscriptionException)e).getContent() : null;
         return newErrorResponse(e.getMessage(), content, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(value = {LoginException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public DTOResponse unauthorizedRequest(Exception e) {
+        return newErrorResponse(e.getMessage(), null, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(value = {ResourceNotFoundException.class})

@@ -22,6 +22,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import javax.security.auth.login.CredentialException;
+import javax.security.auth.login.LoginException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,6 +71,7 @@ public class NotificationControllerTest {
         when(notificationServices.getNotificationsForSubscription(subscription, null, null, null)).thenReturn(notifs);
         mockMvc.perform(
                 get("/getNotifications")
+                        .header("userAddress", us.getAddress())
                         .header("apiKey", apiKey)
         )
                 .andExpect(status().isOk())
@@ -81,14 +84,15 @@ public class NotificationControllerTest {
         dto.setMessage(ResponseConstants.INCORRECT_APIKEY);
         String apiKey = Utils.generateNewToken();
         Topic tp = mockTestData.mockTopic();
-        when(userServices.authenticate(anyString(), anyString())).thenReturn(null);
+        when(userServices.authenticate(anyString(), anyString())).thenThrow(new CredentialException(ResponseConstants.INCORRECT_APIKEY));
         MvcResult result = mockMvc.perform(
                 get("/getNotifications")
                         .contentType(APPLICATION_JSON_UTF8)
+                        .header("userAddress", "0x0")
                         .header("apiKey", apiKey)
                         .content(tp.toString())
         )
-                .andExpect(status().isConflict())
+                .andExpect(status().isUnauthorized())
                 .andReturn();
         DTOResponse dtResponse = new ObjectMapper().readValue(
                 result.getResponse().getContentAsByteArray(),
