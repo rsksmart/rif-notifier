@@ -184,11 +184,15 @@ sudo /etc/init.d/mysql restart
 
 5. Modify ```subscription-plan.json``` under src/main/resources to provide the subscription plan details. See [create subscription plans](#create-subscription-plans) to change or add new subscription plans. To use the example provided, leave the file unchanged.
 
-6. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
+6. Modify config-docker.json to set the ```dbpasword, notificationmanagercontract, tokennetworkregistry, multichaincontract, provideraddress, providerprivatekey``` application properties.
 
-7. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
+7. Modify .env file to specify the ```dbpassword``` for mysql docker container. This should be same password as used in previous step.
 
-8. Subsequently to stop and start the docker containers use ```docker-compose stop``` and to start use ```docker-compose start```
+8. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
+
+9. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
+
+10. Subsequently to stop and start the docker containers use ```docker-compose stop``` and to start use ```docker-compose start```
 
 
 ---
