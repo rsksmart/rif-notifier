@@ -63,7 +63,7 @@ spring:
         url: jdbc:mysql://localhost:3306/rif_notifier?createDatabaseIfNotExist=true
         initialization-mode: never
         username: ${dbuser}
-        password: ${dbpassword}
+        password:
     mail:
         host: smtp.gmail.com
         password:
@@ -81,4 +81,4 @@ spring:
 flyway:
     url: jdbc:mysql:${dbhost:localhost}/${dbname:rif_notifier}
     user: ${dbuser}
-    password: ${dbpassword}
+    password:
