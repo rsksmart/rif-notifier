@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
+import org.rif.notifier.helpers.EncryptHelper;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.entities.*;
@@ -32,6 +33,7 @@ public class NotificationServiceIntegrationTest {
     @Value("${notificationservice.maxretries}") private int maxRetries;
 
     @Autowired DbManagerFacade dbManagerFacade;
+    @Autowired EncryptHelper encryptHelper;
 
     @Autowired NotificationPreferenceManager notificationPreferenceManager;
 
@@ -86,11 +88,11 @@ public class NotificationServiceIntegrationTest {
         String millis = String.valueOf(System.currentTimeMillis());
         preference.getDestinationParams().setPassword(millis);
         NotificationPreference saved = notificationPreferenceManager.saveNotificationPreference(preference);
-        assertEquals(millis, saved.getDestinationParams().getPassword());
+        assertEquals(millis, encryptHelper.decrypt(saved.getDestinationParams().getPassword()));
         //set the password back to original
         saved.getDestinationParams().setPassword(integrationTestData.getPassword());
         saved = notificationPreferenceManager.saveNotificationPreference(saved);
-        assertEquals(integrationTestData.getPassword(), saved.getDestinationParams().getPassword());
+        assertEquals(integrationTestData.getPassword(), encryptHelper.decrypt(saved.getDestinationParams().getPassword()));
     }
 
     /**
