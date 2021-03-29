@@ -11,7 +11,7 @@
 #wait for mysql to start
 sleep 60
 
-json=$(</home/app/config.json)
+json=$(</home/rif-user/config.json)
 
 #load subscription plan to db
 java -Dspring.application.json="$json" -jar rif-notifier-0.1.0.jar loadSubscriptionPlan
