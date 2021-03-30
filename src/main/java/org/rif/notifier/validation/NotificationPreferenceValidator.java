@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +85,12 @@ public class NotificationPreferenceValidator extends BaseValidator  {
     }
 
     private void validateAPI(NotificationPreference preference) {
-        //validate that api has destination params
+        //validate api destination url
+        try {
+            URL url = new URL(preference.getDestination());
+        } catch(MalformedURLException e)    {
+            throw new ValidationException(ResponseConstants.INVALID_DESTINATION_URL);
+        }        //validate that api has destination params
         Optional.ofNullable(preference.getDestinationParams())
                 .orElseThrow(()->new ValidationException(ResponseConstants.DESTINATION_PARAMS_REQUIRED));
     }
