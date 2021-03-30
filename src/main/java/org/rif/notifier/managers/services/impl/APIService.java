@@ -54,6 +54,7 @@ public class APIService implements NotificationService {
             URL url = new URL(destination);
             https = "https".equals(url.getProtocol());
         } catch(MalformedURLException e)    {
+            logger.error(e.getMessage(), e);
         }
         //send auth data only thru https
         if(https) {
