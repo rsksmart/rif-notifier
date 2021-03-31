@@ -4,8 +4,10 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.rif.notifier.constants.TopicParamTypes;
+import org.rif.notifier.util.JsonUtil;
 
 import javax.persistence.*;
+import java.util.HashMap;
 
 @Entity
 @Table(name = "topic_params")
@@ -137,28 +139,26 @@ public class TopicParams {
                 .toHashCode();
     }
 
+    private HashMap<String, Object> fieldMap()  {
+        HashMap<String, Object> map = new HashMap<>(6);
+        map.put("type", type);
+        map.put("value", value);
+        map.put("order", order);
+        map.put("valueType", valueType);
+        map.put("indexed", indexed);
+        map.put("filter", filter);
+        return map;
+    }
+
     @Override
     public String toString() {
-        return "{" +
-                "\"id\":" + id +
-                ", \"topic\":" + topic +
-                ", \"type\":\"" + type + "\"" +
-                ", \"value\":\"" + value + "\"" +
-                ", \"order\":" + order +
-                ", \"valueType\":\"" + valueType + "\"" +
-                ", \"indexed\":" + indexed +
-                ", \"filter\":\"" + filter + "\"" +
-                '}';
+        HashMap<String, Object> map = fieldMap();
+        map.put("id", id);
+        map.put("topic", topic);
+        return JsonUtil.writeValueAsString(map);
     }
 
     public String toStringInfo() {
-        return "{" +
-                "\"type\":\"" + type + "\"" +
-                ", \"value\":\"" + value + "\"" +
-                ", \"order\":" + order +
-                ", \"valueType\":\"" + valueType + "\"" +
-                ", \"indexed\":" + indexed +
-                ", \"filter\":\"" + filter + "\"" +
-                '}';
+       return JsonUtil.writeValueAsString(fieldMap());
     }
 }

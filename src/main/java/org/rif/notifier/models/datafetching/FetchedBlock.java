@@ -1,9 +1,12 @@
 package org.rif.notifier.models.datafetching;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.rif.notifier.util.JsonUtil;
 import org.web3j.protocol.core.methods.response.EthBlock.Block;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class FetchedBlock extends FetchedData {
     private Block block;
@@ -28,47 +31,39 @@ public class FetchedBlock extends FetchedData {
 
     @Override
     public String toString() {
-        StringBuilder transactionJson = new StringBuilder("[");
+        ArrayList<Object> transactions = new ArrayList<>();
         if(block.getTransactions() != null && block.getTransactions().size() > 0){
-            AtomicInteger counter = new AtomicInteger(1);
             block.getTransactions().forEach(transactionResult -> {
-                int index = Integer.parseInt(counter.toString())- 1;
-                transactionJson.append("{ \"hash\": \"").append(transactionResult.get().toString()).append("\"}");
-                if(counter.get() < block.getTransactions().size())
-                    transactionJson.append(",");
-                counter.getAndIncrement();
+                transactions.add(new ImmutablePair<String, String>("hash",transactionResult.get().toString()));
             });
         }
-        transactionJson.append("]");
         BigInteger nonce = new BigInteger("0");
         try {
             nonce = block.getNonce();
         }catch (Exception ignored){
-
         }
-
-        return "{" +
-                "\"block\": {" +
-                "\"number\": " + block.getNumber() + "," +
-                "\"hash\": \"" + block.getHash() + "\"," +
-                "\"parentHash\": \"" + block.getParentHash() + "\"," +
-                "\"nonce\": " + nonce.toString() + "," +
-                "\"sha3Uncles\": \"" + block.getSha3Uncles() + "\"," +
-                "\"transactionsRoot\": \"" + block.getTransactionsRoot() + "\"," +
-                "\"stateRoot\": \"" + block.getStateRoot() + "\"," +
-                "\"receiptsRoot\": \"" + block.getReceiptsRoot() + "\"," +
-                "\"miner\": \"" + block.getMiner() + "\"," +
-                "\"mixHash\": \"" + block.getMixHash() + "\"," +
-                "\"difficulty\": " + block.getDifficulty() + "," +
-                "\"totalDificulty\": " + block.getTotalDifficulty() + "," +
-                "\"extraData\": \"" + block.getExtraData() + "\"," +
-                "\"size\": " + block.getSize() + "," +
-                "\"gasLimit\": " + block.getGasLimit() + "," +
-                "\"gasUsed\": " + block.getGasUsed() + "," +
-                "\"timestamp\": " + block.getTimestamp() + "," +
-                "\"transactions\": " + transactionJson +
-                "}," +
-                "\"topicId\": " + super.getTopicId() +
-                '}';
+        HashMap<String, Object> map = new HashMap<>(3);
+        HashMap<String, Object> blockMap = new HashMap<>(13);
+        blockMap.put("number", block.getNumber());
+        blockMap.put("hash" , block.getHash());
+        blockMap.put("parentHash" , block.getParentHash());
+        blockMap.put("nonce", nonce.toString());
+        blockMap.put("sha3Uncles" , block.getSha3Uncles());
+        blockMap.put("transactionsRoot" , block.getTransactionsRoot());
+        blockMap.put("stateRoot", block.getStateRoot());
+        blockMap.put("receiptsRoot" , block.getReceiptsRoot());
+        blockMap.put("miner" , block.getMiner());
+        blockMap.put("mixHash" , block.getMixHash());
+        blockMap.put("difficulty", block.getDifficulty());
+        blockMap.put("totalDificulty", block.getTotalDifficulty());
+        blockMap.put("extraData" , block.getExtraData());
+        blockMap.put("size", block.getSize());
+        blockMap.put("gasLimit", block.getGasLimit());
+        blockMap.put("gasUsed", block.getGasUsed());
+        blockMap.put("timestamp", block.getTimestamp());
+        blockMap.put("transactions", transactions);
+        map.put("block", blockMap);
+        map.put("topicId", super.getTopicId());
+        return JsonUtil.writeValueAsString(map);
     }
 }

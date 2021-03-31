@@ -1,6 +1,9 @@
 package org.rif.notifier.models.entities;
 
+import org.rif.notifier.util.JsonUtil;
+
 import javax.persistence.*;
+import java.util.HashMap;
 
 @Entity
 @Table(name = "notif_users")
@@ -48,8 +51,8 @@ public class User {
 
     @Override
     public String toString() {
-        return "{" +
-                "address=" + address +
-                '}';
+        HashMap<String, String> map = new HashMap<>(1);
+        map.put("address", address);
+        return JsonUtil.writeValueAsString(map);
     }
 }

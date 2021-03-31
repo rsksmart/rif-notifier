@@ -7,10 +7,12 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.rif.notifier.util.JsonUtil;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 
 
 @Entity
@@ -142,8 +144,8 @@ public class NotificationPreference {
 
     @Override
     public String toString() {
-        return "{" +
-                ", \"notificationService\"=\"" + notificationService + '\"' +
-                '}';
+        HashMap<String, Object> map = new HashMap<>(1);
+        map.put("notificationService", notificationService);
+        return JsonUtil.writeValueAsString(map) ;
     }
 }
