@@ -2,11 +2,13 @@ package org.rif.notifier.models.entities;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.rif.notifier.util.JsonUtil;
 import org.web3j.abi.datatypes.Address;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 
 @Entity
 @Table(name = "currency")
@@ -75,9 +77,9 @@ public class Currency {
 
     @Override
     public String toString() {
-        return "{" +
-                "address=" + address +
-                ",name=" + name+
-                '}';
+        HashMap<String, Object> map = new HashMap<>(2);
+        map.put("name", name);
+        map.put("address", address);
+        return JsonUtil.writeValueAsString(map) ;
     }
 }

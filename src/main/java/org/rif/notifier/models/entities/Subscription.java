@@ -5,6 +5,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.rif.notifier.util.JsonUtil;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -270,15 +271,19 @@ public class Subscription implements Serializable {
 
     @Override
     public String toString() {
-        return "{" +
-                "\"id\":" + id +
-                ", \"activeSince\":" + activeSince +
-                ", \"status\":" + status +
-                ", \"userAddress\":'" + userAddress + '\'' +
-                ", \"type\":" + subscriptionPlan.toString() +
-                ", \"notificationPreferences\":" + notificationPreferences +
-                ", \"notificationBalance\":" + notificationBalance +
-                '}';
+        return JsonUtil.writeValueAsString(fieldMap());
+    }
+
+    private HashMap<String, Object> fieldMap()  {
+        HashMap<String, Object> map = new HashMap<>(7);
+        map.put("id", id);
+        map.put("activeSince", activeSince);
+        map.put("status", status);
+        map.put("userAddress", userAddress);
+        map.put("type", subscriptionPlan.toString());
+        map.put("notificationPreferences", notificationPreferences);
+        map.put("notificationBalance", notificationBalance);
+        return map;
     }
 
     public String toStringInfo() {
@@ -291,15 +296,8 @@ public class Subscription implements Serializable {
             counter++;
         }
         tps.append("]");
-        return "{" +
-                "\"id\":" + id +
-                ", \"activeSince\":\"" + activeSince + "\"" +
-                ", \"status\":" + status+
-                ", \"userAddress\":\"" + userAddress + '\"' +
-                ", \"type\":" + subscriptionPlan+
-                ", \"topics\":" + tps +
-                ", \"notificationPreferences\":" + notificationPreferences +
-                ", \"notificationBalance\":" + notificationBalance +
-                '}';
+        HashMap<String, Object> map = fieldMap();
+        map.put("topics", tps);
+        return JsonUtil.writeValueAsString(map) ;
     }
 }

@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.rif.notifier.models.serializer.BigIntegerSerializer;
+import org.rif.notifier.util.JsonUtil;
 
 import javax.persistence.*;
 import java.math.BigInteger;
+import java.util.HashMap;
 
 @Entity
 @Table(name = "SUBSCRIPTION_PRICE")
@@ -93,11 +95,11 @@ public class SubscriptionPrice {
 
     @Override
     public String toString() {
-        return "{" +
-                "\"id\":" + id+
-                ",\"price\":" + price+
-                ",\"currency\":" + "\""+currency+"\""+
-                ",\"subscriptionPlan\":" + subscriptionPlan+
-                '}';
+        HashMap<String, Object> map = new HashMap<>(4);
+        map.put("id", id);
+        map.put("price", price);
+        map.put("currency", currency);
+        map.put("subscriptionPlan", subscriptionPlan);
+        return JsonUtil.writeValueAsString(map);
     }
 }

@@ -3,8 +3,11 @@ package org.rif.notifier.models.listenable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.rif.notifier.models.entities.Topic;
+import org.rif.notifier.util.JsonUtil;
 import org.web3j.abi.TypeReference;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class EthereumBasedListenable extends Listenable {
@@ -94,24 +97,18 @@ public class EthereumBasedListenable extends Listenable {
 
     @Override
     public String toString() {
-        StringBuilder fields = new StringBuilder("[");
-        int counter = 1;
+        ArrayList<String> fields = new ArrayList<>();
         if(eventFields != null) {
             for (TypeReference tr : eventFields) {
-                fields.append(tr.getType().getTypeName());
-                if (counter < eventFields.size())
-                    fields.append(",");
-                counter++;
+                fields.add(tr.getType().getTypeName());
             }
         }
-        fields.append("]");
-
-        return "{" +
-                "eventFields:" + fields +
-                ", eventName:\"" + eventName + '\"' +
-                ", kind:\"" + kind +
-                ", address:\"" + address + '\"' +
-                ", topicId:\"" + topicId + '\"' +
-                '}';
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("eventFields", fields);
+        map.put("eventName", eventName);
+        map.put("kind", kind);
+        map.put("address", address);
+        map.put("topicId", topicId);
+        return JsonUtil.writeValueAsString(map);
     }
 }

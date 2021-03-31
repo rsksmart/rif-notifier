@@ -1,7 +1,10 @@
 package org.rif.notifier.models.datafetching;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.rif.notifier.util.JsonUtil;
 import org.web3j.abi.datatypes.Type;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -42,16 +45,12 @@ public class FetchedEvent extends FetchedData {
 
     @Override
     public String toString() {
-        return "FetchedEvent{"
-                + "values="
-                + values.toString()
-                + ", blockNumber="
-                + blockNumber
-                + ", eventName="
-                + eventName
-                + ", topicId="
-                + super.getTopicId()
-                + '}';
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("values", values.toString());
+        map.put("blockNumber", blockNumber);
+        map.put("eventName", eventName);
+        map.put("topicId", super.getTopicId());
+        return JsonUtil.writeValueAsString(new ImmutablePair<String, Object>("FetchedEvent", map));
     }
 
     @Override

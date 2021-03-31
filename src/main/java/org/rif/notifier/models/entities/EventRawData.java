@@ -1,6 +1,9 @@
 package org.rif.notifier.models.entities;
 
+import org.rif.notifier.util.JsonUtil;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class EventRawData {
@@ -53,13 +56,13 @@ public class EventRawData {
 
     @Override
     public String toString() {
-        return "{" +
-                "\"topicId\":" + topicId +
-                ",\"values\":" + values +
-                ",\"blockNumber\":" + blockNumber +
-                ",\"eventName\":\"" + eventName + "\"" +
-                ",\"contractAddress\":\"" + contractAddress + "\"" +
-                '}';
+        HashMap<String, Object> map = new HashMap<>(5);
+        map.put("topicId", topicId);
+        map.put("value", values);
+        map.put("blockNumber", blockNumber);
+        map.put("eventName", eventName);
+        map.put("contractAddress", contractAddress);
+        return JsonUtil.writeValueAsString(map);
     }
 }
 

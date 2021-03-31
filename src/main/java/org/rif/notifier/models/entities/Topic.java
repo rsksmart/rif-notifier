@@ -3,14 +3,14 @@ package org.rif.notifier.models.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.rif.notifier.constants.TopicTypes;
+import org.rif.notifier.util.JsonUtil;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,31 +106,27 @@ public class Topic {
                 .toHashCode();
     }
 
+
     @Override
     public String toString() {
-        return "{" +
-                "\"id\":" + id +
-                ", \"type\":\"" + type + "\"" +
-                ", \"hash\":\"" + hash + "\"" +
-                ", \"subscriptions\":" + subscriptions +
-                ", \"topicParams\":" + topicParams +
-                '}';
+        HashMap<String, Object> map = new HashMap<>(5);
+        map.put("id", id);
+        map.put("type", type);
+        map.put("hash", hash);
+        map.put("subscriptions", subscriptions);
+        map.put("topicParams", topicParams);
+        return JsonUtil.writeValueAsString(map);
     }
 
     public String toStringInfo() {
-        StringBuilder params = new StringBuilder("\"topicParams\":[");
-        int counter = 1;
+        List<String> params = new ArrayList<>();
         for(TopicParams param : topicParams){
-            params.append(param.toStringInfo());
-            if(counter < topicParams.size())
-                params.append(",");
-            counter++;
+            params.add(param.toStringInfo());
         }
-        params.append("]");
-        return "{" +
-                "\"id\":\"" + id + "\"" +
-                ",\"type\":\"" + type + "\"" +
-                "," + params +
-                "}";
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("id", id);
+        map.put("type", type);
+        map.put("params", new ImmutablePair<String, Object>("topicParams", params));
+        return JsonUtil.writeValueAsString(map) ;
     }
 }
