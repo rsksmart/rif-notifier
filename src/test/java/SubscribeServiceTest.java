@@ -38,6 +38,9 @@ public class SubscribeServiceTest {
     @Mock
     private DbManagerFacade dbManagerFacade;
 
+    @Mock
+    private LuminoInvoice luminoInvoice;
+
     private MockTestData mockTestData = new MockTestData();
 
     @Test
@@ -46,7 +49,7 @@ public class SubscribeServiceTest {
         User user = mockTestData.mockUser();
         SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
         Subscription sub = mockTestData.mockSubscription();
-        String luminoVal = LuminoInvoice.generateInvoice(user.getAddress());
+        String luminoVal = luminoInvoice.generateInvoice(user.getAddress());
 
         //doReturn(type).when(dbManagerFacade).getSubscriptionTypeByType(0);
 
@@ -222,17 +225,18 @@ public class SubscribeServiceTest {
     @Test
     public void canAddBalanceToSubscription() throws IOException {
         // given
-        String luminoInvoice = "123457A90123457B901234C579012345D79012E345790F12345G790123H45790I";
+        String luminoInvoiceStr = "123457A90123457B901234C579012345D79012E345790F12345G790123H45790I";
         Subscription subscription = mockTestData.mockSubscription();
         SubscriptionPlan type = mockTestData.mockSubscriptionPlan();
 
         doReturn(subscription).when(dbManagerFacade).updateSubscription(subscription);
+        doReturn(luminoInvoiceStr).when(luminoInvoice).generateInvoice(anyString());
 
         // when
         String retVal = subscribeServices.addBalanceToSubscription(subscription, type);
 
         // then
-        assertEquals(luminoInvoice, retVal);
+        assertEquals(luminoInvoiceStr, retVal);
     }
     @Test
     public void errorAddBalanceToSubscriptionNotProvidingSubscription(){

@@ -25,13 +25,15 @@ import static java.time.LocalDate.now;
 public class SubscribeServices  {
     private DbManagerFacade dbManagerFacade;
     private SubscribeValidator subscribeValidator;
+    private LuminoInvoice luminoInvoice;
     @Value("${notificationservice.maxretries}")
     private int maxRetries;
 
 
-    public SubscribeServices(DbManagerFacade dbManagerFacade, SubscribeValidator subscribeValidator)    {
+    public SubscribeServices(DbManagerFacade dbManagerFacade, SubscribeValidator subscribeValidator, LuminoInvoice luminoInvoice)    {
         this.dbManagerFacade = dbManagerFacade;
         this.subscribeValidator = subscribeValidator;
+        this.luminoInvoice = luminoInvoice;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(SubscribeServices.class);
@@ -50,7 +52,7 @@ public class SubscribeServices  {
         if(user != null && plan!= null) {
             Subscription sub = dbManagerFacade.createSubscription(new Date(), user.getAddress(), plan, SubscriptionStatus.ACTIVE, subscriptionPrice);
             //Pending to generate a lumino-invoice
-            retVal = LuminoInvoice.generateInvoice(user.getAddress());
+            retVal = luminoInvoice.generateInvoice(user.getAddress());
         }
         return retVal;
     }
@@ -88,7 +90,7 @@ public class SubscribeServices  {
         if(subscription != null && type != null) {
             subscription.setStatus(SubscriptionStatus.PENDING);
             subscription.setNotificationBalance(subscription.getNotificationBalance() + type.getNotificationQuantity());
-            retVal = LuminoInvoice.generateInvoice(subscription.getUserAddress());
+            retVal = luminoInvoice.generateInvoice(subscription.getUserAddress());
             if(!retVal.isEmpty()) {
                 Subscription sub = dbManagerFacade.updateSubscription(subscription);
             }
