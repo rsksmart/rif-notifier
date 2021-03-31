@@ -69,4 +69,6 @@ public interface ResponseConstants {
     String PREVIOUS_SUBSCRIPTION_INVALID_STATE = "Renewal error. Previous Subscription is not activated yet.";
 
     String INVALID_CURRENCY = "Currency specified in the json file is not in the list of accepted currencies for the provider.";
+
+    String INVALID_DESTINATION_URL = "Invalid url found in destination field of json. Please provide a valid url.";
 }

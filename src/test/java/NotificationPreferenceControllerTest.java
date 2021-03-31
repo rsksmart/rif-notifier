@@ -6,6 +6,7 @@ import org.rif.notifier.Application;
 import org.rif.notifier.boot.configuration.NotifierConfig;
 import org.rif.notifier.controllers.NotificationPreferenceController;
 import org.rif.notifier.exception.ValidationException;
+import org.rif.notifier.helpers.EncryptHelper;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.DTO.DTOResponse;
 import org.rif.notifier.models.entities.*;
@@ -55,6 +56,9 @@ public class NotificationPreferenceControllerTest {
 
     @MockBean
     private NotificationPreferenceValidator validator;
+
+    @MockBean
+    private EncryptHelper encryptHelper;
 
     private MockTestData mockTestData = new MockTestData();
 
