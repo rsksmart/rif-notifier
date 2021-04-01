@@ -63,6 +63,7 @@ rsk:
         multichaincontract: ${multichaincontract}
         notification-manager-contract: ${notificationmanagercontract}
         tokennetworkregistry: ${tokennetworkregistry}
+        luminoinvoice: ${luminoinvoice:}
 spring:
     datasource:
         url: jdbc:mysql://${dbhost:localhost}/${dbname:rif_notifier}?createDatabaseIfNotExist=true
