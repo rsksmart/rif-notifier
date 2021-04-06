@@ -10,13 +10,14 @@
    4. [Manual Installation](#manual-installation-steps)
 3. [Usage Guide](#usage-guide)   
     1. [Preconditions](#preconditions)
-    2. [Start the application](#start-the-application)  
-    3. [Create Subscription Plans](#create-subscription-plans)
-    4. [Update Subscription Plans](#update-subscription-plans)
-    5. [Enable or Disable Subscription Plans](#enable-or-disable-subscription-plans)
-    6. [Subscribe to Plan](#subscribe-to-plan)
-    7. [Renew Subscription](#renew-subscription)
-    8. [Subscription and Renewal Response](#subscription-and-renewal-response)
+    2. [Notifier CLI](#notifier-cli)
+    3. [Start the application](#start-the-application)
+    4. [Create Subscription Plans](#create-subscription-plans)
+    5. [Update Subscription Plans](#update-subscription-plans)
+    6. [Disable Subscription Plans](#disable-subscription-plans)
+    7. [Subscribe to Plan](#subscribe-to-plan)
+    8. [Renew Subscription](#renew-subscription)
+    9. [Subscription and Renewal Response](#subscription-and-renewal-response)
 4. [Other available endpoints](#other-available-endpoints)   
 	1. [Retrieve notifications](#getting-notifications)
 	2. [Unsubscribe from topic](#unsubscribing-from-a-topic)
@@ -36,9 +37,13 @@
 
 (This steps you can follow if you're already familiar with the notifier, otherwise jump to the [Installation](#installation-guide) guide first)
 
--Open ```config.json``` and set the correct values for each property. To view details on each property refer to [Start the application](#start-the-application)
+-Configure Notifier CLI, if not already configured, by following the steps in https://github.com/rsksmart/rif-notifier/notifier-cli
 
--Ensure that the blockchain endpoint property  ```rskendpoint:``` for ex. ```http://localhost:4444``` in the config.json found in home directory of this project is correctly set
+-Run the command ```notifier-cli start``` to start the rif-notifier local instance or ```docker-compose start``` if you are running rif-notifier as docker container.
+
+-For local instance, as an alternative to ```notifier-cli```, the configuration file ```config.json``` can be edited to set correct values. See [Start the application](#start-the-application) section to view details of each property.
+
+-Ensure that the blockchain endpoint property ```rskendpoint``` is correctly set (for ex. ```http://localhost:4444```)
 
 -To view all endpoints use http://localhost:8080/swagger-ui.html
 
@@ -53,6 +58,8 @@
 -Get started with the following steps for a fresh install
 
 ## Installation guide
+RIF Notifier can be installed to run locally or in a docker container. Local installation can be performed by following the steps in [Automatic Installation](#automatic-installation-steps) or 
+[Manual Installation](#manual-installation-steps). Alternatively to run rif-notifier in a docker container, follow the instructions in [Docker Installation Steps](#docker-installation-steps).
 ## Setup
 
 ### Prerequisites
@@ -110,24 +117,50 @@ The latest version of maven can be installed through:
 ```shell
 sudo apt install maven
 ```
-### Automatic Installation steps
+### Docker Installation Steps
+1. Make sure you have docker installed in your machine. If not, download from https://www.docker.com/products/docker-desktop
+
+2. Open a terminal.
+
+3. Install git by following the steps in [prerequisites](#prerequisites).
+
+4. Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
+
+5. Modify ```subscription-plan.json``` under src/main/resources to provide the subscription plan details. See [create subscription plans](#create-subscription-plans) to change or add new subscription plans. To use the example provided, leave the file unchanged.
+
+6. Modify config-docker.json to set the ```dbpasword, notificationmanagercontract, tokennetworkregistry, multichaincontract, provideraddress, providerprivatekey``` application properties.
+
+7. Modify .env file to specify the ```dbpassword``` for mysql docker container. This should be same password as used in previous step.
+
+8. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
+
+9. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
+
+#### docker stop
+
+10. Subsequently to stop and start the docker containers use ```docker-compose stop``` and to start use ```docker-compose start```
+
+
+### Automatic Installation Steps
+
+The steps in this section will help you configure mysql database in local environment.
 
 1. Ensure [prerequisites](#prerequisites) are met.
    
-2. Run bin/install.sh with 3 parameters as below, this will clone the rif-notifier repo from github and create the mysql user notifier_user with
-required permissions
+2. Run the script bin/install.sh with 3 parameters as below, this will create the mysql user notifier_user with required permissions
 ```
 bin/install.sh <database root user> <database root password> <notifier_user password>
 ```
 The third parameter is the password for user ```notifier_user``` which will be created by this script
 
-3. Run the command ```cd rif-notifier``` and open ```config.json``` file from the ```rif-notifier``` folder. Set the ```dbpassword``` property to the password you just entered in previous step for ```notifier_user_password```
 
-4. Navigate to [usage guide](#usage-guide) to learn more about how to run and use the application.
+### Manual Installation Steps
 
-### Manual Installation steps
-1. Pick a directory for all the RIF Notifier code to reside in. From now on this will be called `rif-notifier`, but replace it with your own.
-2. Clone the RIF Notifier git project into its directory doing:
+**Note:** the steps in this section are an alternative way to configure mysql database in local environment, and can be skipped if you already followed the steps in [Automatic Installation](#automatic-installation-steps) above. The
+
+1. Ensure [prerequisites](#prerequisites) are met.
+2. Pick a directory for all the RIF Notifier code to reside in. From now on this will be called `rif-notifier`, but replace it with your own.
+3. Clone the RIF Notifier git project into its directory doing:
 
 ```shell
 git clone https://github.com/rsksmart/rif-notifier rif-notifier
@@ -171,29 +204,11 @@ Restart the MySQL service by executing:
 ```shell
 sudo /etc/init.d/mysql restart
 ```
+### Setup notifier database password
 
+Run the command ```notifier-cli configure --dbpassword ```  to set the dbpassword property the password you just entered in previous steps for ```notifier_user_password```.
 
-### Docker Installation Steps
-1. Make sure you have docker installed in your machine. If not, download from https://www.docker.com/products/docker-desktop
-
-2. Open a terminal.
-
-3. Install git by following the steps in [prerequisites](#prerequisites). 
-
-4. Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
-
-5. Modify ```subscription-plan.json``` under src/main/resources to provide the subscription plan details. See [create subscription plans](#create-subscription-plans) to change or add new subscription plans. To use the example provided, leave the file unchanged.
-
-6. Modify config-docker.json to set the ```dbpasword, notificationmanagercontract, tokennetworkregistry, multichaincontract, provideraddress, providerprivatekey``` application properties.
-
-7. Modify .env file to specify the ```dbpassword``` for mysql docker container. This should be same password as used in previous step.
-
-8. Run ```docker-compose up --build```  This command will build the mysql, and rif-notifier docker images and run it.
-
-9. Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
-
-10. Subsequently to stop and start the docker containers use ```docker-compose stop``` and to start use ```docker-compose start```
-
+Navigate to [usage guide](#usage-guide) to learn more about how to run and use the application.
 
 ---
 
@@ -212,12 +227,22 @@ Use this curl to test the `eth_getLogs` response:
 curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"eth_getLogs","params":[{"address":"0xde2D53e8d0E673A4b1D9054cE83091777F2fd8Ce","fromBlock":"0x0","toBlock":"latest"}],"id":74}'
 ```
 
+## Notifier CLI
+
+Notifier CLI is a command line tool to configure and run the rif-notifier. 
+
+To install and use notifier cli see https://github.com/rsksmart/rif-notifier/notifier-cli
+To see list of options type the command ```notifier-cli --help```
+
 ### Start the application
 
 **Note:** for [docker installation](#docker-installation-steps) you can skip [start the application](#start-the-application) and [run the application](#run-the-application) sections and go to [update subscription plans](#update-subscription-plans) section.
 
 
 #### config.json
+
+You can skip this section if you are using ```notifier-cli```
+
 First modify the ```config.json``` file to setup the rsk blockchain and database properties. Note: the comments should be removed in the actual json. The below are example values for each json property.
 ```
 {
@@ -248,8 +273,12 @@ To run the RIF Notifier start a terminal in `rif-notifier` directory and run:
 Then run the command ```bin/subscriptionplans.sh```  to create the subscription plans. Refer to [create subscription plans](#create-subscription-plans) and [update subscription plans](#update-subscription-plans)  
 
 #### Run the application  
+Run the command ```notifier-cli start``` to start rif-notifier, if you have ```notifier-cli``` installed
 
-Run the command ```bin/run.sh``` to start rif-notifier.
+ or
+
+Run the script ```bin/run.sh``` to start rif-notifier without using ```notifier-cli```
+
 
 ## Update
 To update an already installed RIF Notifier follow these steps:
@@ -258,9 +287,11 @@ To update an already installed RIF Notifier follow these steps:
 3. Start the RIF Notifier as indicated in the [Execution section](#execution).
 
 #### **Create Subscription Plans**
+Run the command ```notifier-cli create subscriptionplan``` to create one or more subscription plans. Alternatively, a subscription plan can be created manually without using notifier-cli by following the steps below
+##### To create subscription plan manually
 1. One or more subscription plans can be created by modifying subscription-plan.json under resources folder with your own plan details.
 2. All the json attributes are required. The notificationPreferences should only contain preferences that are enabled in application.yml
-3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
+3. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml
 4. Run bin/subscriptionplans.sh from the home directory of this project
 5. If the json is correct, the plans will be created in the database.
 6. A sample json structure is given below
@@ -313,72 +344,15 @@ To update an already installed RIF Notifier follow these steps:
     ]
   }
 ]
-
 ```
+
 #### **Update Subscription Plans**
-1. A subscription plan that already exists can be updated. In order to update, the "id" attribute must be specified as part of the subscription-plan.json for the plan to be updated. 
-2. All json attributes are required as given in subscription-plan.json. The notificationPreferences should only contain enabled preferences in application.yml
-2. Modify subscription-plan.json under resources folder with your own plan details.
-5. ```currency``` field in subscriptionPrice should be one of those currencies specified in rif.notifier.subscription.currencies property of application.yml 
-6. Run bin/subscriptionplans.sh from the home directory of this project
-7. If the json is correct, the plans will be created in the database.
-8. A sample json structure for update operation is given below
-```
-[
-  {
-    "id":1,
-    "name": "RIF-10k",
-    "notificationQuantity": 10000,
-    "validity": 150,
-    "notificationPreferences": "API,EMAIL",
-    "status": true,
-    "subscriptionPriceList": [
-      {
-        "price": "10",
-        "currency": {
-          "name":"RBTC",
-          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
-        }
-      },
-      {
-        "price": "20",
-        "currency": {
-          "name":"RIF",
-          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
-        }
-      }
-    ]
-  },
-  {
-    "id":"2"
-    "name": "RIF-20k",
-    "notificationQuantity": 20000,
-    "validity": 200,
-    "notificationPreferences": "API,EMAIL",
-    "status": true,
-    "subscriptionPriceList": [
-      {
-        "price": "20",
-        "currency": {
-          "name":"RBTC",
-          "address": "0xD9F3C552704B716EB2b825F20178181aB28F9eD8"
-        }
-      },
-      {
-        "price": "40",
-        "currency": {
-          "name":"RIF",
-          "address": "0x2C51B7bed742689D13F8DFb74487410cFa0ccAF4"
-        }
-      }
-    ]
-  }
-]
+Run the command ```notifier-cli edit subscriptionplan``` to update a subscription plan. Alternatively a subscription can be updated manually. In order to update without notifier-cli, the "id" property must be specified as part of the subscription-plan.json for the plan to be updated.
 
-```
 
-#### Enable or disable subscription plans
-A subscription plan can be enabled or disabled by setting the "status" property to true or false in subscription-plan.json
+#### Disable subscription plans
+Run the command ```notifier-cli disable subscriptionplan``` to disable a subscription plan. Alternatively a subscription plan can be disabled manually. In order to disable without notifier-cli, the "status" property must be set to false as part of the subscription-plan.json for the plan to be updated. 
+
 
 ### **Subscribe to Plan**
 
@@ -467,13 +441,13 @@ As an example for `NEW_BLOCKS` or `NEW_TRANSACTIONS`
 
 ```json
 {
-    "type": "NEW_BLOCK", 
+    "type": "NEW_BLOCK" 
 }
 ```
 Or
 ```json
 {
-    "type": "NEW_TRANSACTION", 
+    "type": "NEW_TRANSACTION" 
 }
 ```
 
