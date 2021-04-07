@@ -48,13 +48,13 @@ class SubscriptionPlan:
         try:
             os.makedirs(os.path.dirname(self.planLocation), exist_ok=True)
             with open(self.planLocation, "w", encoding='utf-8') as f:
-                json.dump(self.subscriptionPlans, f)
+                json.dump(self.subscriptionPlans, f, indent=4)
         except Exception as e:
             try:
                 self.planLocation = self.planFile()
                 os.makedirs(os.path.dirname(self.planLocation), exist_ok=True)
                 with open(self.planLocation, "w") as f:
-                    json.dump(self.subscriptionPlans, f)
+                    json.dump(self.subscriptionPlans, f, indent=4)
             except Exception as e1:
                 print(str(e1))
 

@@ -270,7 +270,7 @@ First modify the ```config.json``` file to setup the rsk blockchain and database
 To run the RIF Notifier start a terminal in `rif-notifier` directory and run:
 
 ```
-Then run the command ```bin/subscriptionplans.sh```  to create the subscription plans. Refer to [create subscription plans](#create-subscription-plans) and [update subscription plans](#update-subscription-plans)  
+Then run the script```bin/subscriptionplans.sh```  to create the subscription plans. Refer to [create subscription plans](#create-subscription-plans) and [update subscription plans](#update-subscription-plans)  
 
 #### Run the application  
 Run the command ```notifier-cli start``` to start rif-notifier, if you have ```notifier-cli``` installed
