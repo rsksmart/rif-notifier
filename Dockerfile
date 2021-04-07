@@ -13,7 +13,27 @@ RUN mvn -f /home/rif-user/pom.xml clean package -DskipTests=true
 #
 # Package stage
 #
-FROM openjdk:8
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.6 \
+    python3-pip \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y openjdk-8-jdk && \
+    apt-get install -y ant && \
+    apt-get clean;
+
+# Fix certificate issues
+RUN apt-get update && \
+    apt-get install ca-certificates-java && \
+    apt-get clean && \
+    update-ca-certificates -f;
+
+# create rif-user
 RUN groupadd --gid 5000 rif-user \
     && useradd --home-dir /home/rif-user --create-home --uid 5000 \
         --gid 5000 --shell /bin/sh --skel /dev/null rif-user
@@ -24,4 +44,5 @@ COPY --from=build /home/rif-user/target/rif-notifier-0.1.0.jar /home/rif-user/ri
 COPY --from=build /home/rif-user/bin /home/rif-user/
 WORKDIR /home/rif-user
 USER rif-user
+RUN mkdir /home/rif-user/rif-notifier
 ENTRYPOINT ["./rundocker.sh"]
