@@ -116,10 +116,10 @@ class Notifier:
             except Exception as e:
                 print("failed to create subscription plans.")
 
-    def disableDocker(self, plan):
+    def disableDocker(self, id):
         if self.checkDocker():
             try:
-                os.system('docker exec rif-notifier /home/rif-user/sp-docker.sh disableSubscriptionPlan')
+                os.system('docker exec rif-notifier /home/rif-user/sp-docker.sh disableSubscriptionPlan ' + id)
             except Exception as e:
                 print("failed to disable subscription plan.")
 
