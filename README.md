@@ -10,7 +10,7 @@
    4. [Manual Installation](#manual-installation-steps)
 3. [Usage Guide](#usage-guide)   
     1. [Preconditions](#preconditions)
-    2. [Notifier CLI](#notifier-cli)
+    2. [Notifier Provider CLI](#notifier-provider-cli)
     3. [Start the application](#start-the-application)
     4. [Create Subscription Plans](#create-subscription-plans)
     5. [Update Subscription Plans](#update-subscription-plans)
@@ -31,17 +31,18 @@
 	10. [Get chain addresses events](#get-rns-events)
 5. [Verify blockchain events are processed](#verify-blockchain-events)
 6. [Health Check](#health-check)
+7. [Notifier Consumer CLI](#notifier-consumer-cli)
 
 
 ## Quick Start
 
 (This steps you can follow if you're already familiar with the notifier, otherwise jump to the [Installation](#installation-guide) guide first)
 
--Configure Notifier CLI, if not already configured, by following the steps in https://github.com/rsksmart/rif-notifier/notifier-cli
+-Configure Notifier Provider CLI, if not already configured, by following the steps in https://github.com/rsksmart/rif-notifier/notifier-prov-cli
 
--Run the command ```notifier-cli start``` to start the rif-notifier local instance or ```docker-compose start``` if you are running rif-notifier as docker container.
+-Run the command ```notifier-prov-cli start``` to start the rif-notifier local instance or ```docker-compose start``` if you are running rif-notifier as docker container.
 
--For local instance, as an alternative to ```notifier-cli```, the configuration file ```config.json``` can be edited to set correct values. See [Start the application](#start-the-application) section to view details of each property.
+-For local instance, as an alternative to ```notifier-prov-cli```, the configuration file ```config.json``` can be edited to set correct values. See [Start the application](#start-the-application) section to view details of each property.
 
 -Ensure that the blockchain endpoint property ```rskendpoint``` is correctly set (for ex. ```http://localhost:4444```)
 
@@ -206,7 +207,7 @@ sudo /etc/init.d/mysql restart
 ```
 ### Setup notifier database password
 
-Run the command ```notifier-cli configure --dbpassword ```  to set the dbpassword property the password you just entered in previous steps for ```notifier_user_password```.
+Run the command ```notifier-prov-cli configure --dbpassword ```  to set the dbpassword property the password you just entered in previous steps for ```notifier_user_password```.
 
 Navigate to [usage guide](#usage-guide) to learn more about how to run and use the application.
 
@@ -227,12 +228,12 @@ Use this curl to test the `eth_getLogs` response:
 curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"eth_getLogs","params":[{"address":"0xde2D53e8d0E673A4b1D9054cE83091777F2fd8Ce","fromBlock":"0x0","toBlock":"latest"}],"id":74}'
 ```
 
-## Notifier CLI
+## Notifier Provider CLI
 
-Notifier CLI is a command line tool to configure and run the rif-notifier. 
+Notifier Provider CLI is a command line tool to configure and run the rif-notifier. 
 
-To install and use notifier cli see https://github.com/rsksmart/rif-notifier/notifier-cli
-To see list of options type the command ```notifier-cli --help```
+To install and use notifier provider cli see https://github.com/rsksmart/rif-notifier/notifier-prov-cli
+To see list of options type the command ```notifier-prov-cli --help```
 
 ### Start the application
 
@@ -241,7 +242,7 @@ To see list of options type the command ```notifier-cli --help```
 
 #### config.json
 
-You can skip this section if you are using ```notifier-cli```
+You can skip this section if you are using ```notifier-prov-cli```
 
 First modify the ```config.json``` file to setup the rsk blockchain and database properties. Note: the comments should be removed in the actual json. The below are example values for each json property.
 ```
@@ -273,11 +274,11 @@ To run the RIF Notifier start a terminal in `rif-notifier` directory and run:
 Then run the script```bin/subscriptionplans.sh```  to create the subscription plans. Refer to [create subscription plans](#create-subscription-plans) and [update subscription plans](#update-subscription-plans)  
 
 #### Run the application  
-Run the command ```notifier-cli start``` to start rif-notifier, if you have ```notifier-cli``` installed
+Run the command ```notifier-prov-cli start``` to start rif-notifier, if you have ```notifier-prov-cli``` installed
 
  or
 
-Run the script ```bin/run.sh``` to start rif-notifier without using ```notifier-cli```
+Run the script ```bin/run.sh``` to start rif-notifier without using ```notifier-prov-cli```
 
 
 ## Update
@@ -287,7 +288,7 @@ To update an already installed RIF Notifier follow these steps:
 3. Start the RIF Notifier as indicated in the [Execution section](#execution).
 
 #### **Create Subscription Plans**
-Run the command ```notifier-cli create subscriptionplan``` to create one or more subscription plans. Alternatively, a subscription plan can be created manually without using notifier-cli by following the steps below
+Run the command ```notifier-prov-cli create subscriptionplan``` to create one or more subscription plans. Alternatively, a subscription plan can be created manually without using notifier-prov-cli by following the steps below
 ##### To create subscription plan manually
 1. One or more subscription plans can be created by modifying subscription-plan.json under resources folder with your own plan details.
 2. All the json attributes are required. The notificationPreferences should only contain preferences that are enabled in application.yml
@@ -347,11 +348,11 @@ Run the command ```notifier-cli create subscriptionplan``` to create one or more
 ```
 
 #### **Update Subscription Plans**
-Run the command ```notifier-cli edit subscriptionplan``` to update a subscription plan. Alternatively a subscription can be updated manually. In order to update without notifier-cli, the "id" property must be specified as part of the subscription-plan.json for the plan to be updated.
+Run the command ```notifier-prov-cli edit subscriptionplan``` to update a subscription plan. Alternatively a subscription can be updated manually. In order to update without notifier-prov-cli, the "id" property must be specified as part of the subscription-plan.json for the plan to be updated.
 
 
 #### Disable subscription plans
-Run the command ```notifier-cli disable subscriptionplan``` to disable a subscription plan. Alternatively a subscription plan can be disabled manually. In order to disable without notifier-cli, the "status" property must be set to false as part of the subscription-plan.json for the plan to be updated. 
+Run the command ```notifier-prov-cli disable subscriptionplan``` to disable a subscription plan. Alternatively a subscription plan can be disabled manually. In order to disable without notifier-prov-cli, the "status" property must be set to false as part of the subscription-plan.json for the plan to be updated. 
 
 
 ### **Subscribe to Plan**
@@ -784,3 +785,9 @@ service is shown as disabled.
     }
 }
 ```
+
+## Notifier Consumer CLI
+
+Notifier Consumer CLI is a command line tool that allows notifier user to perform operations like subscribe, list subscriptions, subscriptionplans.
+
+To install and use notifier consumer cli see https://github.com/rsksmart/rif-notifier/notifier-cons-cli To see list of options type the command notifier-cons-cli --help
