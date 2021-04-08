@@ -34,7 +34,7 @@ class Notifier:
                 ret = False
                 missing.append(x)
         if not ret:
-            print(",".join(missing) + " not configured.\n See 'notifier-cli " + ("dockerconfigure" if docker else "configure") + " --help'")
+            print(",".join(missing) + " not configured.\n See 'notifier-prov-cli " + ("dockerconfigure" if docker else "configure") + " --help'")
         return ret
 
     def checkDocker(self):
@@ -58,7 +58,7 @@ class Notifier:
                 resp = subprocess.run(['kill', pid])
                 print("server stopped successfully " if resp.returncode==0 else "could not gracefully stop the server")
             else:
-                print("server is not running or run notifier-cli from home directory of rif-notifier")
+                print("server is not running or run notifier-prov-cli from home directory of rif-notifier")
         except Exception as e:
             print("Error stopping application ", e)
 
@@ -85,7 +85,8 @@ class Notifier:
             print ("Health check error. ",err)
 
     def listSubscriptionPlans(self):
-        print(self.getSubscriptionPlans())
+        if self.checkConfig():
+            print(self.getSubscriptionPlans())
 
     def getSubscriptionPlan(self, id):
         try:
@@ -167,7 +168,7 @@ class Notifier:
                     return
                 ret = os.system("docker ps -a | grep rif-notifier")
                 if ret != 0:
-                    print('rif-notifier container does not exist. run notifier-cli dockerbuild')
+                    print('rif-notifier container does not exist. run notifier-prov-cli dockerbuild')
                     return
                 os.system("docker-compose start")
             except Exception as e:
@@ -183,7 +184,7 @@ class Notifier:
                     return
                 ret = os.system("docker ps -a | grep rif-notifier")
                 if ret == 0:
-                    print('rif-notifier container already exists . run notifier-cli dockerstart')
+                    print('rif-notifier container already exists . run notifier-prov-cli dockerstart')
                     return
                 os.system("docker-compose up --build")
             except Exception as e:
