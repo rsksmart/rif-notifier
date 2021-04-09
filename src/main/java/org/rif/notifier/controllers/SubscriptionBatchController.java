@@ -262,4 +262,19 @@ public class SubscriptionBatchController {
         resp.setContent(sub);
         return new ResponseEntity<>(resp, resp.getStatus());
     }
+
+    @ApiOperation(value = "Gets all the subscriptions for the user",
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @RequestMapping(value = "/getSubscriptions", method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
+    @ResponseBody
+    public ResponseEntity<DTOResponse> getSubscriptions(
+            @RequestHeader(name = "userAddress") String userAddress,
+            @RequestHeader(value="apiKey") String apiKey)   throws LoginException  {
+        DTOResponse resp = new DTOResponse();
+        //check valid user and if not throw exception
+        userServices.authenticate(userAddress, apiKey);
+        List<Subscription> subs = subscribeServices.getSubscriptionByAddress(userAddress);
+        resp.setContent(subs);
+        return new ResponseEntity<>(resp, resp.getStatus());
+    }
 }
