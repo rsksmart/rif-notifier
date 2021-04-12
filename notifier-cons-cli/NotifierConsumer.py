@@ -24,13 +24,25 @@ class NotifierConsumer:
         return ret
 
     def listSubscriptionPlans(self):
-        print(self.getSubscriptionPlans())
+        print(json.dumps(self.getSubscriptionPlans(), indent=4))
+
+    def getSubscriptions(self):
+        if self.checkConfig(Config.PROPS):
+            try:
+                headers = {'apiKey': self.config.get("apikey"), 'userAddress': self.config.get("useraddress")}
+                response = requests.get(urljoin(self.host, "/getSubscriptions"), headers=headers, verify=True)
+                if response.status_code == 200:
+                    print(json.dumps(response.json(), indent=4))
+                else:
+                    print("Failed to get subscriptions . ", response)
+            except requests.exceptions.RequestException as err:
+                print ("Error getting subscriptions. Is the server accessible?",err)
 
 
     def getSubscriptionPlans(self):
         if self.checkConfig(["notifierurl"]):
             try:
-                response = requests.get(self.host + "/getSubscriptionPlans", verify=False)
+                response = requests.get(urljoin(self.host ,"/getSubscriptionPlans"), verify=True)
                 if response.status_code == 200:
                     return response.json()
                 else:
@@ -60,7 +72,7 @@ class NotifierConsumer:
 
     def subscribeToPlan(self, subscriptionJson):
         headers = {'Content-Type': 'application/json'}
-        subscribeurl = urljoin(self.config.get("notifierurl"), "/subscribeToPlan")
+        subscribeurl = urljoin(self.host, "/subscribeToPlan")
         response = requests.post(subscribeurl, headers=headers, data=subscriptionJson)
         subscriptionResponse = response.json()
         if response.status_code == 200:

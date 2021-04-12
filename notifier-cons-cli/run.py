@@ -24,11 +24,15 @@ def configure(**kwargs):
 
 @main.group(context_settings=CONTEXT_SETTINGS)
 def list():
-    """list subscription plans"""
+    """list subscription and subscription plans"""
 
 @list.command('subscriptionplan', context_settings=CONTEXT_SETTINGS)
 def listSubscriptionPlan():
     NotifierConsumer().listSubscriptionPlans()
+
+@list.command('subscription', context_settings=CONTEXT_SETTINGS)
+def listSubscriptions():
+    NotifierConsumer().getSubscriptions()
 
 def setConfig(**kwargs):
     c = Config()
