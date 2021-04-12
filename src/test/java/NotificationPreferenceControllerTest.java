@@ -147,7 +147,7 @@ public class NotificationPreferenceControllerTest {
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
-        doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref);
+        doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref, subType);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
         ObjectMapper mapper = new ObjectMapper();
@@ -182,7 +182,7 @@ public class NotificationPreferenceControllerTest {
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
         when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
-        doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref);
+        doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref, subType);
         //when(validator.validateRequestNotificationPreference(any(NotificationPreference.class))).thenTh
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);

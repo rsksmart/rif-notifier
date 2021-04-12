@@ -152,7 +152,7 @@ public class SubscriptionBatchControllerTest {
     public void errorInvalidNotificationPreference() throws Exception {
         SubscriptionBatchDTO subscriptionBatch = mockTestData.mockSubscriptionBatch();
         DTOResponse dto = new DTOResponse();
-        doThrow(ValidationException.class).when(notificationPreferenceValidator).validate(anyList());
+        doThrow(ValidationException.class).when(notificationPreferenceValidator).validate(anyList(), any(SubscriptionPlan.class));
         MvcResult result = mockMvc.perform(
                 post("/subscribeToPlan")
                         .contentType(APPLICATION_JSON_UTF8)
