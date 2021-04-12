@@ -1,4 +1,5 @@
 import click
+import json
 from NotifierConsumer import NotifierConsumer
 from Config import Config
 
@@ -18,7 +19,7 @@ def main():
 @click.option("--useraddress", required=False, help="Consumer user address")
 @click.option("--apikey", required=False, help="Consumer api key")
 def configure(**kwargs):
-    """Configure RIF-Notifier"""
+    """Configure RIF-Notifier access"""
     setConfig(**kwargs)
 
 @main.group(context_settings=CONTEXT_SETTINGS)
@@ -37,6 +38,18 @@ def setConfig(**kwargs):
             c.set(x,y)
             propSize = propSize+1
     print_help() if propSize == 0 else c.configWrite()
+
+
+
+@main.command(context_settings=CONTEXT_SETTINGS)
+@click.option("--planid", required=False, prompt="Enter subscription plan id", help="subscription plan id:")
+@click.option("--currency", required=False, prompt="Enter subscription plan currency", help="subscription plan currency:")
+@click.option("--price", required=False, type=int, prompt="Enter subscription price", help="subscription plan price:")
+@click.option("--apikey", required=False, help="Consumer api key")
+def subscribe(planid, price, currency, apikey):
+    """Subscribe to a RIF Notifier plan"""
+    NotifierConsumer().subscribe(planid, currency, price, apikey)
+
 
 if __name__ == "__main__":
     main()
