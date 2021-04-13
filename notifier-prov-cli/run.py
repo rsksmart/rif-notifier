@@ -5,6 +5,12 @@ import click
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
+class AliasedGroup(click.Group):
+    def get_command(self, ctx, cmd_name):
+        if cmd_name == 'sp':
+            cmd_name = 'subscriptionplan'
+        return super().get_command(ctx, cmd_name)
+
 def print_help():
     ctx = click.get_current_context()
     click.echo(ctx.get_help())
@@ -71,15 +77,15 @@ def healthcheck():
     """RIF-Notifier health check"""
     Notifier().healthCheck()
 
-@main.group(context_settings=CONTEXT_SETTINGS)
+@main.group(context_settings=CONTEXT_SETTINGS, cls=AliasedGroup)
 def create():
     """create subscription plan"""
 
-@main.group(context_settings=CONTEXT_SETTINGS)
+@main.group(context_settings=CONTEXT_SETTINGS, cls=AliasedGroup)
 def list():
     """list subscription plans"""
 
-@list.command('subscriptionplan', context_settings=CONTEXT_SETTINGS)
+@list.command('subscriptionplan', context_settings=CONTEXT_SETTINGS, help="sp - list subscription plans")
 def listSubscriptionPlan():
     Notifier().listSubscriptionPlans()
 
@@ -99,11 +105,11 @@ def validatePlanId(ctx, param, value):
     else:
         raise click.BadParameter('Invalid plan id or the plan cannot be read from the server.')
 
-@main.group(context_settings=CONTEXT_SETTINGS)
+@main.group(context_settings=CONTEXT_SETTINGS, cls=AliasedGroup)
 def disable():
     """disable subscription plan"""
 
-@disable.command('subscriptionplan', context_settings=CONTEXT_SETTINGS)
+@disable.command('subscriptionplan', context_settings=CONTEXT_SETTINGS, help="sp - disable subscription plan")
 @click.option("--docker/--local", '-d/-l', is_flag=True, help="Specifies whether the plan should be disabled in a docker container or in the local machine", default=False, show_default=True)
 @click.option("--id", callback=validatePlanId, prompt="Enter subscription plan id", help="Id of existing subscription plan")
 def disableSubscriptionPlan(docker, id,**kwargs):
@@ -151,7 +157,7 @@ def subscriptionplan(id, **kwargs):
 
 
 
-@create.command('subscriptionplan', context_settings=CONTEXT_SETTINGS)
+@create.command('subscriptionplan', context_settings=CONTEXT_SETTINGS, help="sp - create subscription plan")
 @click.option("--docker/--local", '-d/-l', is_flag=True, help="Specifies whether the plan should be created in a docker container or in the local machine", default=False, show_default=True)
 @click.option("--name", prompt="Enter subscription plan name", help="name of subscription plan")
 @click.option("--notificationQuantity", type=int, prompt="Enter notification quantity", help="Total quantity of notifications offered")

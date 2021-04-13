@@ -137,12 +137,15 @@ public class SubscriptionBatchController {
     protected ResponseEntity<DTOResponse> subscribeBatch(SubscriptionBatchDTO subscriptionBatchDTO, String previousSubscriptionHash)  {
         DTOResponse resp = new DTOResponse();
         User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
+        //validate if this subscription plan actually exists in the database
+        SubscriptionPlan subscriptionPlan = subscriptionPlanServices.getActiveSubscriptionPlan(subscriptionBatchDTO.getSubscriptionPlanId())
+                .orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //first validate if the topic and preferences are in correct format
-        validate(subscriptionBatchDTO);
+        validate(subscriptionBatchDTO, subscriptionPlan);
         Optional<Subscription> previousSubscription = validateAndGetPreviousSubscription(previousSubscriptionHash);
         //proceed to create subscription
         SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), currencyValidator.validate(subscriptionBatchDTO.getCurrency()));
-        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionBatchDTO.getSubscriptionPlanId(), previousSubscription.isPresent());
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionPlan, previousSubscription.isPresent());
         previousSubscription.ifPresent(prev->subscription.setPreviousSubscription(prev));
         subscribeToTopic(subscription, subscriptionBatchDTO.getTopics());
         SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscriptionBatchDTO, subscription, providerAddress, user);
@@ -178,7 +181,7 @@ public class SubscriptionBatchController {
     /*
      * throws ValidationException in case of validation failure
      */
-    private void validate(SubscriptionBatchDTO subscriptionBatchDTO) {
+    private void validate(SubscriptionBatchDTO subscriptionBatchDTO, SubscriptionPlan subscriptionPlan) {
         List<TopicDTO> topicDTOs = subscriptionBatchDTO.getTopics();
         if (topicDTOs.size() > topicDTOs.stream().distinct().count())   {
             throw new ValidationException("Duplicate topics found, please correct your json.");
@@ -191,7 +194,7 @@ public class SubscriptionBatchController {
                 throw new ValidationException(ResponseConstants.TOPIC_VALIDATION_FAILED);
             }
             //validate all the notification preferences for the given topic
-            notificationPreferenceValidator.validate(topicDTO.getNotificationPreferences());
+            notificationPreferenceValidator.validate(topicDTO.getNotificationPreferences(), subscriptionPlan);
         });
     }
 
@@ -219,10 +222,7 @@ public class SubscriptionBatchController {
         notificationPreferenceManager.saveNotificationPreferences(preferences);
     }
 
-    private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, int subscriptionPlanId, boolean renewal)   {
-        //validate if this subscription plan actually exists in the database
-        SubscriptionPlan subscriptionPlan = subscriptionPlanServices.getActiveSubscriptionPlan(subscriptionPlanId)
-                .orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+    private Subscription createSubscription(User user, SubscriptionPrice subscriptionPrice, SubscriptionPlan subscriptionPlan, boolean renewal)   {
         //validate if the provided price exists for this plan
         subscribeValidator.validateSubscriptionPrice(subscriptionPrice, subscriptionPlan);
         //throw exception if subscription already added

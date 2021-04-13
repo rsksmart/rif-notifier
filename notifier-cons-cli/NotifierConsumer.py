@@ -23,9 +23,6 @@ class NotifierConsumer:
             print(",".join(missing) + " not configured.\n See 'notifier-cons-cli  configure --help'")
         return ret
 
-    def listSubscriptionPlans(self):
-        print(json.dumps(self.getSubscriptionPlans(), indent=4))
-
     def getSubscriptions(self):
         if self.checkConfig(Config.PROPS):
             try:
@@ -44,14 +41,14 @@ class NotifierConsumer:
             try:
                 response = requests.get(urljoin(self.host ,"/getSubscriptionPlans"), verify=True)
                 if response.status_code == 200:
-                    return response.json()
+                    print(json.dumps(response.json(), indent=4))
                 else:
                     print("Failed to get subscription plans. ", response)
             except requests.exceptions.RequestException as err:
                 print ("Error getting subscription plans. Is the server running?",err)
 
 
-    def subscribe(self, planid, currency, price, apikey):
+    def subscribeOrRenew(self, planid, currency, price, previousSubscriptionHash=None):
         if not self.checkConfig(["notifierurl", "useraddress"]):
             return
         subscription = {}
@@ -68,11 +65,11 @@ class NotifierConsumer:
         print(subscriptionJson)
         confirm = click.confirm("Do you want to subscribe with the above json?")
         if confirm:
-            self.subscribeToPlan(subscriptionJson)
+            self.subscribeToOrRenewPlan(subscriptionJson, previousSubscriptionHash)
 
-    def subscribeToPlan(self, subscriptionJson):
+    def subscribeToOrRenewPlan(self, subscriptionJson, previousSubscriptionHash=None):
         headers = {'Content-Type': 'application/json'}
-        subscribeurl = urljoin(self.host, "/subscribeToPlan")
+        subscribeurl = urljoin(self.host, "/subscribeToPlan" if not previousSubscriptionHash else "/renewSubscription?previousSubscriptionHash=" + previousSubscriptionHash)
         response = requests.post(subscribeurl, headers=headers, data=subscriptionJson)
         subscriptionResponse = response.json()
         if response.status_code == 200:

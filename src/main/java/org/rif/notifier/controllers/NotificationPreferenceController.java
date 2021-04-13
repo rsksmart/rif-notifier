@@ -99,9 +99,9 @@ public class NotificationPreferenceController {
         User apiUser = userServices.authenticate(userAddress, apiKey);
         //validate request json
         requestedPreference = validator.validateRequestJson(notificationPreference);
-        //validate containing data
-        validator.validateRequestNotificationPreference(requestedPreference);
         Subscription subscription = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        //validate containing data
+        validator.validateRequestNotificationPreference(requestedPreference, subscription.getSubscriptionPlan());
         Optional.ofNullable(subscription).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
         //allow user to register same preference and destination under different topics
         //overwrite existing preference if one found, or create new

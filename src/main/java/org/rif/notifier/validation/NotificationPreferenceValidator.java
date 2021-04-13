@@ -10,6 +10,7 @@ import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.entities.NotificationPreference;
 import org.rif.notifier.models.entities.NotificationServiceType;
 import org.rif.notifier.models.entities.Subscription;
+import org.rif.notifier.models.entities.SubscriptionPlan;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,19 +44,22 @@ public class NotificationPreferenceValidator extends BaseValidator  {
         this.subscribeServices = subscribeServices;
     }
 
-    public void validate(List<NotificationPreference> preferences)  {
+    public void validate(List<NotificationPreference> preferences, SubscriptionPlan subscriptionPlan)  {
         //validate each notification preference for the topic
         if(preferences.size() > preferences.stream().distinct().count())    {
             throw new ValidationException("Duplicate notification preferences found, please correct your json.");
         }
         preferences.forEach(preference-> {
-            validateRequestNotificationPreference(preference);
+            validateRequestNotificationPreference(preference, subscriptionPlan);
         });
     }
 
-    public void validateRequestNotificationPreference(NotificationPreference preference)   throws ValidationException {
+    public void validateRequestNotificationPreference(NotificationPreference preference, SubscriptionPlan subscriptionPlan)   throws ValidationException {
         boolean enabled = notifierConfig.getEnabledServices().stream().anyMatch(p->preference.getNotificationService() == p);
         if (!enabled)   throw new ValidationException(ResponseConstants.SERVICE_NOT_ENABLED);
+        if (subscriptionPlan.getNotificationPreferences().stream().noneMatch(p->p.equals(preference.getNotificationService().name())))    {
+            throw new ValidationException(ResponseConstants.SERVICE_NOT_ENABLED_PLAN);
+        }
         if (preference.getNotificationService() == NotificationServiceType.EMAIL) {
             validateEmail(preference);
         }
