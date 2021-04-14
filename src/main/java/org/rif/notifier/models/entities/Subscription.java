@@ -288,7 +288,9 @@ public class Subscription implements Serializable {
 
     public String toStringInfo() {
         List<Map> topicJson = new ArrayList<>(topics!=null ? topics.size() : 0);
-        topics.forEach(tp->topicJson.add(tp.fieldMap()));
+        if (topics !=null)  {
+            topics.forEach(tp->topicJson.add(tp.fieldMap()));
+        }
         HashMap<String, Object> map = fieldMap();
         map.put("topics", topicJson);
         return JsonUtil.writeValueAsString(map) ;
