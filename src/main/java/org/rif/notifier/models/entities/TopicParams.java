@@ -139,7 +139,7 @@ public class TopicParams {
                 .toHashCode();
     }
 
-    private HashMap<String, Object> fieldMap()  {
+    protected HashMap<String, Object> fieldMap()  {
         HashMap<String, Object> map = new HashMap<>(6);
         map.put("type", type);
         map.put("value", value);

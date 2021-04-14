@@ -119,14 +119,18 @@ public class Topic {
     }
 
     public String toStringInfo() {
-        List<String> params = new ArrayList<>();
+        return JsonUtil.writeValueAsString(fieldMap()) ;
+    }
+
+    protected Map fieldMap() {
+        List<Map> params = new ArrayList<>();
         for(TopicParams param : topicParams){
-            params.add(param.toStringInfo());
+            params.add(param.fieldMap());
         }
         HashMap<String, Object> map = new HashMap<>();
         map.put("id", id);
         map.put("type", type);
         map.put("params", new ImmutablePair<String, Object>("topicParams", params));
-        return JsonUtil.writeValueAsString(map) ;
+        return map;
     }
 }
