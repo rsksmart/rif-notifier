@@ -105,6 +105,7 @@ public class SubscriptionBatchControllerTest {
         SubscriptionDTO subscriptionDTO = mockTestData.mockSubscriptionDTO();
         SubscriptionBatchResponse response = new SubscriptionBatchResponse("test", "testsignature", subscriptionDTO);
         when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(prev);
+        when(subscribeServices.getSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(prev);
         when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), any(Address.class), any(User.class))).thenReturn(subscriptionDTO);
         when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
         when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(response);
@@ -223,7 +224,7 @@ public class SubscriptionBatchControllerTest {
     public void errorRenewBatchHashNotFound() throws Exception {
         DTOResponse dto = new DTOResponse();
         SubscriptionBatchDTO batchDTO = prepareBatchTest();
-        when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(null);
+        when(subscribeServices.getSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(null);
         MvcResult result = mockMvc.perform(
                 post("/renewSubscription")
                         .contentType(APPLICATION_JSON_UTF8)

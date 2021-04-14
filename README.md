@@ -76,7 +76,7 @@ sudo apt install git
 
 * Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
 
-* Modify .env file to specify the ```dbpassword``` for mysql docker container. This should be same password as used in previous step.
+* Modify .env file to specify the ```dbuserpassword``` for mysql docker container. Set the same password to rif-notifier by running command `notifier-prov-cli dockerconfigure --dbpassword`.
 
 * Install notifier provider cli by following steps in [notifier provider cli](#notifier-provider-cli)
 
@@ -239,13 +239,29 @@ Query params:
 ###### Other available endpoints
 
 ----------------
+###### Get Subscriptions
+```
+GET Request: http://localhost:8080/getSubscriptions
+Header param: 
+	key: userAddress
+	value: USER_ADDRESS
+	key: apiKey
+	value: API_KEY 
+Short description: Lists all user subscriptions and details(Notification_Balance, Topics subscribed with params, etc)
+```
 ###### Get Subscription info
 ```
 GET Request: http://localhost:8080/getSubscriptionInfo
 Header param: 
+    Header param: 
+	key: userAddress
+	value: USER_ADDRESS
 	key: apiKey
 	value: API_KEY 
-Short description: Brings the data associated with your subscription (Notification_Balance, Topics subscribed with params, etc)
+	Request param:
+	name: subscriptionHash
+	value: SUBSCRIPTION_HASH
+Short description: Brings the data associated with your subscription (Notification_Balance, Topics subscribed with params, etc) for the given hash
 ```
 Return example:
 ```json
@@ -328,6 +344,8 @@ Return example:
 ```
 GET Request: http://localhost:8080/getLuminoTokens
 Header param: 
+	key: userAddress
+	value: USER_ADDRESS
 	key: apiKey
 	value: API_KEY 
 Short description: Brings an array of Token Network Address for the tokens registered in the blockchain, it can be used in other endpoints to subscribe to OpenChannels for the token or Close Channel events.
@@ -345,6 +363,8 @@ Return example:
 ```
 GET Request: http://localhost:8080/subscribeToOpenChannel
 Header param: 
+	key: userAddress
+	value: USER_ADDRESS
 	key: apiKey
 	value: API_KEY 
 Query params: 
@@ -366,6 +386,8 @@ Return example:
 ```
 GET Request: http://localhost:8080/subscribeToCloseChannel
 Header param: 
+	key: userAddress
+	value: USER_ADDRESS
 	key: apiKey
 	value: API_KEY 
 Query params: 
@@ -387,6 +409,8 @@ Return example:
 ```
 GET Request: http://localhost:8080/subscribeToLuminoOpenChannels
 Header param: 
+	key: userAddress
+	value: USER_ADDRESS
 	key: apiKey
 	value: API_KEY 
 Query params: 
@@ -407,6 +431,8 @@ Return example:
 ```
 GET Request: http://localhost:8080/getRnsEvents
 Header param: 
+	key: userAddress
+	value: USER_ADDRESS
 	key: apiKey
 	value: API_KEY 
 Query params: 

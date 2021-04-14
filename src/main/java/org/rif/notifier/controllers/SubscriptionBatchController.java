@@ -142,7 +142,7 @@ public class SubscriptionBatchController {
                 .orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
         //first validate if the topic and preferences are in correct format
         validate(subscriptionBatchDTO, subscriptionPlan);
-        Optional<Subscription> previousSubscription = validateAndGetPreviousSubscription(previousSubscriptionHash);
+        Optional<Subscription> previousSubscription = validateAndGetPreviousSubscription(previousSubscriptionHash, subscriptionBatchDTO.getUserAddress());
         //proceed to create subscription
         SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), currencyValidator.validate(subscriptionBatchDTO.getCurrency()));
         Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionPlan, previousSubscription.isPresent());
@@ -164,11 +164,12 @@ public class SubscriptionBatchController {
      * Only active, completed or expired subscriptions can be renewed.
      * @param previousSubscriptionHash
      */
-    private Optional<Subscription> validateAndGetPreviousSubscription(String previousSubscriptionHash)  {
+    private Optional<Subscription> validateAndGetPreviousSubscription(String previousSubscriptionHash, String userAddress)  {
         if(previousSubscriptionHash == null)    {
             return Optional.empty();
         }
-        Optional<Subscription> subscription = Optional.ofNullable(subscribeServices.getSubscriptionByHash(previousSubscriptionHash));
+        //Check if the user has a subscription for the given hash, and is the owner of the subscription otherwise throw exception
+        Optional<Subscription> subscription = Optional.ofNullable(subscribeServices.getSubscriptionByHashAndUserAddress(previousSubscriptionHash, userAddress));
         subscription.orElseThrow(()->new ValidationException(ResponseConstants.SUBSCRIPTION_NOT_FOUND_HASH));
         if(subscription.get().isPending())    {
             throw new ValidationException(ResponseConstants.PREVIOUS_SUBSCRIPTION_INVALID_STATE);
@@ -256,7 +257,7 @@ public class SubscriptionBatchController {
         DTOResponse resp = new DTOResponse();
         //check valid user and if not throw exception
         userServices.authenticate(userAddress, apiKey);
-        //Check if the user has a subscription, and is the owner of the subscription otherwise throw exception
+        //Check if the user has a subscription for the given hash, and is the owner of the subscription otherwise throw exception
         Subscription sub = Optional.ofNullable(subscribeServices.getSubscriptionByHashAndUserAddress(subscriptionHash,userAddress)).
                 orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
         resp.setContent(sub);
