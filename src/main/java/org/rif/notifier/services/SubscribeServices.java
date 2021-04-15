@@ -123,6 +123,14 @@ public class SubscribeServices  {
         return dbManagerFacade.getSubscriptionByHashAndUserAddress(hash, userAddress);
     }
 
+    public Subscription getActiveSubscriptionByHashAndUserAddress(String hash, String userAddress)  {
+        Subscription subscription = getSubscriptionByHashAndUserAddress(hash, userAddress);
+        if (subscription == null || subscription.getStatus() != SubscriptionStatus.ACTIVE)  {
+            return null;
+        }
+        return subscription;
+    }
+
     /**
      * Makes the relation between subscription and topic.
      * First checks if the Topic is already created, so if it is, it creates only the relation, in other case it applies logic to the topic sent

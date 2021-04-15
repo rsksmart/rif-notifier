@@ -47,6 +47,7 @@ notifier:
         poolSize: 7
     endpoints:
         subscribecontroller: false
+        notificationPreferenceController: false
 rif:
     notifier:
         account:

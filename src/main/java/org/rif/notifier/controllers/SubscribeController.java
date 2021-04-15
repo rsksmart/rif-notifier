@@ -97,8 +97,8 @@ public class SubscribeController {
             //check valid user and if not throw exception
             User us = Optional.ofNullable(userServices.getUserByApiKey(apiKey)).orElseThrow(()->new ValidationException(ResponseConstants.INCORRECT_APIKEY));
             //check valid subscription type otherwise throw error
-            //if no active subscription is found for type and user address then throw exception
-            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+            //if no active subscription is found for hash and user address then throw exception
+            Subscription sub = subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, us.getAddress());
             if (sub == null)    {
                 throw new ValidationException(ResponseConstants.NO_ACTIVE_SUBSCRIPTION);
             }
@@ -130,8 +130,8 @@ public class SubscribeController {
         DTOResponse resp = new DTOResponse();
          User us = userServices.getUserByApiKey(apiKey);
         if(us != null){
-            //Check if the user did subscribe
-            Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+            //Check if the user has active subscription and is owner of the given subscription hash
+            Subscription sub = subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, us.getAddress());
             if(sub != null) {
                 Topic tp = subscribeServices.getTopicById(idTopic);
                 if(tp != null){

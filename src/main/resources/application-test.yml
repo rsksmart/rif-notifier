@@ -45,6 +45,7 @@ notifier:
         fixedInitialDelayProcessJob: 2000
     endpoints:
         subscribecontroller: true
+        notificationPreferenceController: true
 rif:
     notifier:
         account:

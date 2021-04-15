@@ -37,8 +37,8 @@ Configure the RIF notifier local instance. Available options are
 * `--rskendpoint` -  the url of rsk blockchain (ex. http://localhost:4444)
 * `--blockconfirmationcount` -  the number of blocks to wait for confirmation before RIF notifier can read the block.
 * `--notificationmanagercontract` -  deployed contract address of Notificationmanager contract in rsk blockchain
-* `--tokennetworkregistry` -  the address of the token network registry
-* `--multichaincontract` -  the address of the token network registry where tokens can be read in rsk blockchain
+* `--tokennetworkregistry` -  the address of the token network registry where tokens can be read in rsk blockchain
+* `--multichaincontract` -  address of rns resolver that emits addrChanged and chainAddrChanged events
 * `--provideraddress` -  provider address of the provider
 * `--providerprivatekey` -  private key that corresponds to the provider address
 * `--notificationpreferences` -  notification preferences supported by the provider (API/SMS/EMAIL) (accepts multiple values)
@@ -72,8 +72,8 @@ This command is used to configure RIF notifier docker instance. Available option
 * `--rskendpoint` -  the url of rsk blockchain, default is http://regtest:4444
 * `--blockconfirmationcount` -  the number of blocks to wait for confirmation before RIF notifier can read the block.
 * `--notificationmanagercontract` -  deployed contract address of Notificationmanager contract in rsk blockchain
-* `--tokennetworkregistry` -  the address of the token network registry
-* `--multichaincontract` -  the address of the token network registry where tokens can be read in rsk blockchain
+* `--tokennetworkregistry` -  the address of the token network registry where tokens can be read in rsk blockchain
+* `--multichaincontract` -  address of rns resolver that emits addrChanged and chainAddrChanged events
 * `--provideraddress` -  provider address of the provider
 * `--providerprivatekey` -  private key that corresponds to the provider address
 * `--notificationpreferences` -  notification preferences supported by the provider (API/SMS/EMAIL) (accepts multiple values)

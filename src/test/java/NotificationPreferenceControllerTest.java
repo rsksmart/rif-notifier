@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = NotificationPreferenceController.class)
 @ContextConfiguration(classes={Application.class})
+@ActiveProfiles("test")
 public class NotificationPreferenceControllerTest {
 
     @Autowired
@@ -75,7 +77,7 @@ public class NotificationPreferenceControllerTest {
         when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         //save notification
         when(notificationPreferenceManager.saveNotificationPreference(any(NotificationPreference.class))).thenReturn(pref);
@@ -110,7 +112,7 @@ public class NotificationPreferenceControllerTest {
         when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         //save notification
         when(notificationPreferenceManager.getNotificationPreference(any(Subscription.class), any(Integer.class), any(NotificationServiceType.class))).thenReturn(pref);
@@ -145,7 +147,7 @@ public class NotificationPreferenceControllerTest {
         when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref, subType);
         //save notification
@@ -180,7 +182,7 @@ public class NotificationPreferenceControllerTest {
         when(userServices.authenticate(anyString(), anyString())).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
         //when(subscribeServices.getSubscriptionByAddressAndPlan(us.getAddress(), subType)).thenReturn(subscription);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(subscription);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(subscription);
         when(validator.validateRequestJson(any(String.class))).thenReturn(pref);
         doThrow(ValidationException.class).when(validator).validateRequestNotificationPreference(pref, subType);
         //when(validator.validateRequestNotificationPreference(any(NotificationPreference.class))).thenTh
