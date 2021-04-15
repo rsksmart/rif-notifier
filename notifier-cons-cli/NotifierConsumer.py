@@ -31,7 +31,7 @@ class NotifierConsumer:
                 if response.status_code == 200:
                     print(json.dumps(response.json(), indent=4))
                 else:
-                    print("Failed to get subscriptions . ", response)
+                    print("Failed to get subscriptions . ", response.json())
             except requests.exceptions.RequestException as err:
                 print ("Error getting subscriptions. Is the server accessible?",err)
 
@@ -43,7 +43,7 @@ class NotifierConsumer:
                 if response.status_code == 200:
                     print(json.dumps(response.json(), indent=4))
                 else:
-                    print("Failed to get subscription plans. ", response)
+                    print("Failed to get subscription plans. ", response.json())
             except requests.exceptions.RequestException as err:
                 print ("Error getting subscription plans. Is the server running?",err)
 

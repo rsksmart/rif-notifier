@@ -1,10 +1,10 @@
-import argparse
 import os
 import subprocess
 import shutil
 import json
 from Config import Config
 import requests
+from os import environ
 
 
 class Notifier:
@@ -78,7 +78,7 @@ class Notifier:
         try:
             response = requests.get(self.host + "/actuator/health", verify=False)
             if response.status_code == 200:
-                print("Server is running ", response)
+                print("Server is running ", response.json())
             else:
                 print("Server health check failed. ", response.json())
         except requests.exceptions.RequestException as err:
@@ -94,7 +94,7 @@ class Notifier:
             if response.status_code == 200:
                 return response.json()
             else:
-                print("Failed to get subscription plan. ", response)
+                print("Failed to get subscription plan. ", response.json())
         except requests.exceptions.RequestException as err:
             print ("Error getting subscription plan. Is the server running?",err)
 
@@ -104,7 +104,7 @@ class Notifier:
             if response.status_code == 200:
                 return json.dumps(response.json(), indent=4)
             else:
-                print("Failed to get subscription plans. ", response)
+                print("Failed to get subscription plans. ", response.json())
         except requests.exceptions.RequestException as err:
             print ("Error getting subscription plans. Is the server running?",err)
 
@@ -185,6 +185,9 @@ class Notifier:
                 ret = os.system("docker ps -a | grep rif-notifier")
                 if ret == 0:
                     print('rif-notifier container already exists . run notifier-prov-cli dockerstart')
+                    return
+                if not "dbpassword" in os.environ:
+                    print("dbpassword environment variable must be set before running dockerbuild")
                     return
                 os.system("docker-compose up --build")
             except Exception as e:

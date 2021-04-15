@@ -7,8 +7,7 @@ class Config:
     PROPS = ["serverport", "dbhost", "dbname", "dbuser", "dbpassword", "rskendpoint", "blockconfirmationcount", "notificationmanagercontract",
              "tokennetworkregistry", "multichaincontract", "provideraddress", "providerprivatekey", "notificationpreferences", "acceptedcurrencies"]
 
-    DOCKERPROPS = ["dbpassword", "rskendpoint", "blockconfirmationcount", "notificationmanagercontract", "tokennetworkregistry",
-                   "multichaincontract", "provideraddress", "providerprivatekey", "notificationpreferences", "acceptedcurrencies"]
+    DOCKERPROPS = PROPS
 
     def __init__(self, dockerConfig=False):
         self.configJson = {}

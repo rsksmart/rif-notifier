@@ -7,7 +7,7 @@ services:
     image: mysql:8.0
     environment:
       - MYSQL_USER=notifier_user
-      - MYSQL_PASSWORD=${dbuserpassword}
+      - MYSQL_PASSWORD=${dbpassword}
       - MYSQL_DATABASE=rif_notifier
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
     ports:
@@ -15,7 +15,7 @@ services:
     networks:
       - rif-notifier-network
     healthcheck:
-      test: ["CMD", "mysqladmin" , "--user", "notifier_user", "--password=${dbuserpassword}", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin" , "--user", "notifier_user", "--password=${dbpassword}", "ping", "-h", "localhost"]
       timeout: 120s
       retries: 10
 
