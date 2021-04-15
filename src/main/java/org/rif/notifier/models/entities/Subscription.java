@@ -287,17 +287,12 @@ public class Subscription implements Serializable {
     }
 
     public String toStringInfo() {
-        StringBuilder tps = new StringBuilder("[");
-        int counter = 1;
-        for(Topic tp : topics){
-            tps.append(tp.toStringInfo());
-            if(counter < topics.size())
-                tps.append(",");
-            counter++;
+        List<Map> topicJson = new ArrayList<>(topics!=null ? topics.size() : 0);
+        if (topics !=null)  {
+            topics.forEach(tp->topicJson.add(tp.fieldMap()));
         }
-        tps.append("]");
         HashMap<String, Object> map = fieldMap();
-        map.put("topics", tps);
+        map.put("topics", topicJson);
         return JsonUtil.writeValueAsString(map) ;
     }
 }
