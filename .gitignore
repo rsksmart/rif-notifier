@@ -1,2 +1,8 @@
 .idea/
 target/
+application.pid
+notifier-cons-cli/__pycache__/
+notifier-cons-cli/notifier-cons-cli
+notifier-prov-cli/__pycache__/
+notifier-prov-cli/notifier-prov-cli
+config-docker.json
