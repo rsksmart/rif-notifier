@@ -48,7 +48,7 @@ RIF Notifier is a service that listens to events on the blockchain and notifies 
 
 -To subscribe or renew a plan use `notifier-cons-cli subscribe` or `notifier-cons-cli renew`
 
--We use mysql for DB, please put your DB settings in the config.json too
+-We use mysql for DB, setup notifier db connectivity using `notifier-prov-cli configure` for local instance, or `notifier-prov-cli dockerconfigure` for docker instance.
 
 -DB Schema and database rif_notifier will be generated if it does not exist, provided the mysql user has enough permissions.
 
@@ -75,18 +75,22 @@ sudo apt install git
 * Install git by following the steps in [prerequisites for docker installation](#prerequisites-for-docker-installation).
 
 * Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
-
-* Modify .env file to specify the ```dbuserpassword``` for mysql docker container. Set the same password to rif-notifier by running command `notifier-prov-cli dockerconfigure --dbpassword`.
-
+  
 * Install notifier provider cli by following steps in [notifier provider cli](#notifier-provider-cli)
+
+* Copy `config-docker-template.json` to `config-docker.json`
+  
+* Set the ```dbpassword``` environment variable for mysql docker container. Set the same password to rif-notifier by running command `notifier-prov-cli dockerconfigure --dbpassword`.
+
+* Run `notifier-prov-cli dockerconfigure` to configure the required properties to run RIF notifier docker instance.
 
 * Run the command ```notifier-prov-cli dockerbuild```  This command will build the mysql, and rif-notifier docker images and run it. Wait for the server to start until you see message started application in x(seconds).
 
 * Run the command ```notifier-prov-cli create subscriptionplan --docker``` to create subscription plans.
 
-* Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans. In case the response is empty, use `docker-compose restart` command to restart the container.
+* Once the containers are fully running, test it by using following command ```curl -k http://localhost:8080/getSubscriptionPlans```. And that's it, congrats! you should see a response with the json of subscription plans.
 
-* Subsequently to stop and start the docker containers use ```notifier-prov-cli stop``` and to start use ```notifier-prov-cli start```
+* Subsequently to stop and start the docker containers use ```notifier-prov-cli dockerstop``` and ```notifier-prov-cli dockerstart```
 
 
 ### Prerequisites for local installation
