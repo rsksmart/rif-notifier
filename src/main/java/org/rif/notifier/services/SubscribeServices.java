@@ -2,10 +2,7 @@ package org.rif.notifier.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.rif.notifier.managers.DbManagerFacade;
-import org.rif.notifier.models.DTO.SubscriptionBatchDTO;
-import org.rif.notifier.models.DTO.SubscriptionBatchResponse;
-import org.rif.notifier.models.DTO.SubscriptionDTO;
-import org.rif.notifier.models.DTO.SubscriptionResponse;
+import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
 import org.rif.notifier.services.blockchain.lumino.LuminoInvoice;
 import org.rif.notifier.util.Utils;
@@ -18,6 +15,7 @@ import org.web3j.abi.datatypes.Address;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.time.LocalDate.now;
 
@@ -121,6 +119,10 @@ public class SubscribeServices  {
 
     public Subscription getSubscriptionByHashAndUserAddress(String hash, String userAddress){
         return dbManagerFacade.getSubscriptionByHashAndUserAddress(hash, userAddress);
+    }
+
+    public List<Subscription> getSubscriptionByHashListAndUserAddress(List<String> hashList, String userAddress){
+        return dbManagerFacade.getSubscriptionByHashListAndUserAddress(hashList, userAddress);
     }
 
     public Subscription getActiveSubscriptionByHashAndUserAddress(String hash, String userAddress)  {
@@ -253,19 +255,50 @@ public class SubscribeServices  {
         return response;
     }
 
+    public List<TopicDTO> createTopicDTO(Subscription subscription, User user)
+    {
+        Set<Topic> topics = subscription.getTopics();
+        List<TopicDTO> topicDTOs = new ArrayList<>(topics.size());
+        topics.forEach(t->{
+            TopicDTO dto = new TopicDTO(user!=null);
+            if (subscription.getNotificationPreferences() != null) {
+                dto.setNotificationPreferences(subscription.getNotificationPreferences().stream().filter(pref -> pref.getIdTopic() == t.getId()).collect(Collectors.toList()));
+            }
+            dto.setType(t.getType());
+            dto.setTopicParams(t.getTopicParams());
+            topicDTOs.add(dto);
+        });
+        return  topicDTOs;
+    }
 
-    public SubscriptionDTO createSubscriptionDTO(SubscriptionBatchDTO subscriptionBatchDTO,
-                                                 Subscription subscription, Address providerAddress, User user)   {
+    public List<SubscriptionDTO> createSubscriptionDTOs(List<Subscription> subscriptions, Address providerAddress, User user) {
+        return subscriptions.stream().map(s->createSubscriptionDTO(s, createTopicDTO(s, user), providerAddress, user)).collect(Collectors.toList());
+    }
+
+    public SubscriptionDTO createSubscriptionDTO(Subscription subscription, List<TopicDTO> topics, Address providerAddress, User user)   {
         SubscriptionDTO subscriptionDTO = new SubscriptionDTO();
-        subscriptionDTO.setUserAddress(subscriptionBatchDTO.getUserAddress());
+        subscriptionDTO.setUserAddress(subscription.getUserAddress());
         subscriptionDTO.setProviderAddress(providerAddress);
         subscriptionDTO.setPrice(subscription.getPrice());
         subscriptionDTO.setExpirationDate(subscription.getExpirationDate());
         subscriptionDTO.setNotificationBalance(subscription.getNotificationBalance());
         subscriptionDTO.setStatus(subscription.getStatus());
         subscriptionDTO.setCurrency(subscription.getCurrency().getName());
-        subscriptionDTO.setTopics(subscriptionBatchDTO.getTopics());
-        subscriptionDTO.setApiKey(user.getPlainTextKey());
+        subscriptionDTO.setTopics(topics);
+        subscriptionDTO.setId(subscription.getId());
+        subscriptionDTO.setSubscriptionPlanId(subscription.getSubscriptionPlan().getId());
+        subscriptionDTO.setSubscriptionPayments(subscription.getSubscriptionPayments());
+        subscriptionDTO.setPaid(subscription.isPaid());
+        subscriptionDTO.setHash(subscription.getHash());
+        subscriptionDTO.setActiveSince(subscription.getActiveSince());
+        //set api key only for authenticated users
+        if (user != null) {
+            subscriptionDTO.setApiKey(user.getPlainTextKey());
+        }
+        Subscription previousSubscription = subscription.getPreviousSubscription();
+        if (previousSubscription != null) {
+            subscriptionDTO.setPreviousSubscription(createSubscriptionDTO(previousSubscription, createTopicDTO(previousSubscription, user), providerAddress, user));
+        }
         return subscriptionDTO;
     }
 

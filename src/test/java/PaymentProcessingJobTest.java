@@ -75,7 +75,7 @@ public class PaymentProcessingJobTest {
         when(dbManagerFacade.getSubscriptionByHash(anyString())).thenReturn(sub);
         rskPaymentServiceInject.processEventTasks(mockTestData.mockFutureEvent(event), 100, BigInteger.ONE);
         verify(dbManagerFacade, validHashVerification).getSubscriptionByHash(anyString());
-        if(sub != null && sub.getSubscriptionPayments() != null)
+        if(sub != null && sub.getSubscriptionPayments() != null && sub.getSubscriptionPayments().size() > 0)
             assertEquals(expected, sub.getSubscriptionPayments().size());
     }
 

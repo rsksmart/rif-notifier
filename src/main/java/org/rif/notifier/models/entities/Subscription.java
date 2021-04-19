@@ -61,14 +61,14 @@ public class Subscription implements Serializable {
 
     @OneToMany(mappedBy = "subscription")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<NotificationPreference> notificationPreferences ;
+    private List<NotificationPreference> notificationPreferences = new ArrayList<>();
 
     @Column(name = "notification_balance")
     private int notificationBalance;
 
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy="subscription", cascade = CascadeType.ALL)
-    private List<SubscriptionPayment> subscriptionPayments;
+    private List<SubscriptionPayment> subscriptionPayments = new ArrayList<>();
 
     public Subscription() {}
 

@@ -255,7 +255,9 @@ Short description: Lists all user subscriptions and details(Notification_Balance
 ```
 ###### Get Subscription info
 ```
-GET Request: http://localhost:8080/getSubscriptionInfo
+GET Request: http://localhost:8080/getSubscriptions
+ or
+GET Request: http://localhost:8080/getSubscriptions/hash1,hash2...
 Header param: 
     Header param: 
 	key: userAddress
@@ -265,7 +267,7 @@ Header param:
 	Request param:
 	name: subscriptionHash
 	value: SUBSCRIPTION_HASH
-Short description: Brings the data associated with your subscription (Notification_Balance, Topics subscribed with params, etc) for the given hash
+Short description: Gets all the subscriptions or subscriptions for provided hashes. More detailed subscription info will be returned for users with valid api key.
 ```
 Return example:
 ```json

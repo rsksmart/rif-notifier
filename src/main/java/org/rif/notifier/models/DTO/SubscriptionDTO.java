@@ -3,6 +3,7 @@ package org.rif.notifier.models.DTO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
+import org.rif.notifier.models.entities.SubscriptionPayment;
 import org.rif.notifier.models.entities.SubscriptionStatus;
 import org.rif.notifier.models.serializer.BigIntegerSerializer;
 import org.web3j.abi.datatypes.Address;
@@ -18,16 +19,26 @@ import java.util.List;
  * contract
  */
 @ApiModel(description="Json response to the subscribeToPlan operation")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubscriptionDTO {
+    private Integer id;
+    private String hash;
+    private String apiKey;
+    private Date activeSince;
+    private int notificationBalance;
+    private SubscriptionStatus status;
+    private Date expirationDate;
+    private Boolean paid;
+    private List<SubscriptionPayment> subscriptionPayments;
+    private Integer subscriptionPlanId;
     private BigInteger price;
     private String currency;
-    private int notificationBalance;
-    private Date expirationDate;
-    private SubscriptionStatus status;
     private List<TopicDTO> topics;
-    private Address providerAddress;
     private String userAddress;
-    private String apiKey;
+    private Address providerAddress;
+    private SubscriptionDTO previousSubscription;
+
+
 
     @JsonSerialize(using= BigIntegerSerializer.class)
     public BigInteger getPrice() {
@@ -102,4 +113,61 @@ public class SubscriptionDTO {
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Date getActiveSince() {
+        return activeSince;
+    }
+
+    public void setActiveSince(Date activeSince) {
+        this.activeSince = activeSince;
+    }
+
+    public Integer getSubscriptionPlanId() {
+        return subscriptionPlanId;
+    }
+
+    public void setSubscriptionPlanId(Integer subscriptionPlanId) {
+        this.subscriptionPlanId = subscriptionPlanId;
+    }
+
+    public SubscriptionDTO getPreviousSubscription() {
+        return previousSubscription;
+    }
+
+    public void setPreviousSubscription(SubscriptionDTO previousSubscription) {
+        this.previousSubscription = previousSubscription;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public List<SubscriptionPayment> getSubscriptionPayments() {
+        return subscriptionPayments;
+    }
+
+    public void setSubscriptionPayments(List<SubscriptionPayment> subscriptionPayments) {
+        this.subscriptionPayments = subscriptionPayments;
+    }
+
+    public Boolean getPaid() {
+        return paid;
+    }
+
+    public void setPaid(Boolean paid) {
+        this.paid = paid;
+    }
+
 }
