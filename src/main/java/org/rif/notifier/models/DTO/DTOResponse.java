@@ -1,7 +1,10 @@
 package org.rif.notifier.models.DTO;
 
 import org.rif.notifier.constants.ResponseConstants;
+import org.rif.notifier.util.JsonUtil;
 import org.springframework.http.HttpStatus;
+
+import java.util.HashMap;
 
 public class DTOResponse {
 
@@ -40,10 +43,10 @@ public class DTOResponse {
 
     @Override
     public String toString() {
-        return "{" +
-                "\"message\":\"" + message + "\"" +
-                ", \"content\":\"" + content+ "\"" +
-                ", \"status\":\"" + status + "\"" +
-                '}';
+        HashMap<String, Object> map = new HashMap<>(3);
+        map.put("message", message);
+        map.put("content", content);
+        map.put("status", status);
+        return JsonUtil.writeValueAsString(map);
     }
 }

@@ -29,16 +29,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.web3j.abi.datatypes.Address;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -105,7 +103,8 @@ public class SubscriptionBatchControllerTest {
         SubscriptionDTO subscriptionDTO = mockTestData.mockSubscriptionDTO();
         SubscriptionBatchResponse response = new SubscriptionBatchResponse("test", "testsignature", subscriptionDTO);
         when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(prev);
-        when(subscribeServices.createSubscriptionDTO(any(SubscriptionBatchDTO.class), any(Subscription.class), any(Address.class), any(User.class))).thenReturn(subscriptionDTO);
+        when(subscribeServices.getSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(prev);
+        when(subscribeServices.createSubscriptionDTO(any(Subscription.class), any(List.class), any(Address.class), any(User.class))).thenReturn(subscriptionDTO);
         when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
         when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(response);
         when(currencyServices.getCurrencyByName(anyString())).thenReturn(mockTestData.mockCurrency());
@@ -152,7 +151,7 @@ public class SubscriptionBatchControllerTest {
     public void errorInvalidNotificationPreference() throws Exception {
         SubscriptionBatchDTO subscriptionBatch = mockTestData.mockSubscriptionBatch();
         DTOResponse dto = new DTOResponse();
-        doThrow(ValidationException.class).when(notificationPreferenceValidator).validate(anyList());
+        doThrow(ValidationException.class).when(notificationPreferenceValidator).validate(anyList(), any(SubscriptionPlan.class));
         MvcResult result = mockMvc.perform(
                 post("/subscribeToPlan")
                         .contentType(APPLICATION_JSON_UTF8)
@@ -223,7 +222,7 @@ public class SubscriptionBatchControllerTest {
     public void errorRenewBatchHashNotFound() throws Exception {
         DTOResponse dto = new DTOResponse();
         SubscriptionBatchDTO batchDTO = prepareBatchTest();
-        when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(null);
+        when(subscribeServices.getSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(null);
         MvcResult result = mockMvc.perform(
                 post("/renewSubscription")
                         .contentType(APPLICATION_JSON_UTF8)
@@ -231,6 +230,72 @@ public class SubscriptionBatchControllerTest {
                         .content(mapper.writeValueAsString(batchDTO))
         )
                 .andExpect(status().isConflict())
+                .andReturn();
+    }
+
+    private void canGetSubscriptions(boolean auth) throws Exception {
+        Subscription sub = mockTestData.mockSubscription();
+        Subscription sub2 = mockTestData.mockSubscription();
+        sub.setNotificationPreferences(Arrays.asList(mockTestData.mockNotificationPreference(sub)));
+        sub2.setNotificationPreferences(Arrays.asList(mockTestData.mockNotificationPreference(sub)));
+        SubscriptionDTO dto = new SubscriptionDTO();
+        User user = auth? new User() : null;
+        sub.setActiveSince(null);
+        sub2.setActiveSince(null);
+        //set the status to active
+        List<Subscription> subscriptions = Arrays.asList(sub, sub2);
+        doCallRealMethod().when(subscribeServices).createSubscriptionDTOs(anyList(), any(Address.class), nullable(User.class));
+        doCallRealMethod().when(subscribeServices).createTopicDTO(any(Subscription.class), nullable(User.class));
+        doCallRealMethod().when(subscribeServices).createSubscriptionDTO(any(Subscription.class), anyList(), any(Address.class), nullable(User.class));
+        List<SubscriptionDTO> subscriptionDTOs = subscribeServices.createSubscriptionDTOs(subscriptions, new Address("0x0"), user);
+        when(subscribeServices.getSubscriptionByAddress(anyString())).thenReturn(subscriptions);
+        if (auth) {
+            when(userServices.authenticate(anyString(), nullable(String.class))).thenReturn(user);
+        }
+        MvcResult result = mockMvc.perform(
+                get("/getSubscriptions")
+                .header("userAddress", "0x0")
+                .header("apiKey", "test")
+        )
+                .andExpect(status().isOk())
+                .andReturn();
+        DTOResponse dtResponse = new ObjectMapper().readValue(
+                result.getResponse().getContentAsByteArray(),
+                DTOResponse.class);
+        ObjectMapper mapper = new ObjectMapper();
+        //ensure only active plan is returned
+        assertEquals(mapper.writeValueAsString(subscriptionDTOs), mapper.writeValueAsString(dtResponse.getContent()));
+        //verify all notification preference details returned if auth is true
+        if(auth)    {
+            assertEquals(ArrayList.class, subscriptionDTOs.get(0).getTopics().get(0).getNotificationPreferences().getClass());
+        }
+        //verify only name of the notification service is returned if no auth user
+        else    {
+            assertEquals(String.class, subscriptionDTOs.get(0).getTopics().get(0).getNotificationPreferences().getClass());
+        }
+    }
+
+    @Test
+    public void canGetSubscriptionsNoAuth() throws Exception {
+        canGetSubscriptions(false);
+    }
+    @Test
+    public void canGetSubscriptionsAuth() throws Exception {
+        canGetSubscriptions(true);
+    }
+
+    @Test
+    public void failGetSubscriptionsNoUserAddress() throws Exception {
+
+        Subscription sub = mockTestData.mockSubscription();
+        Subscription sub2 = mockTestData.mockSubscription();
+        //set the status to active
+        List<Subscription> subscriptions = Arrays.asList(sub, sub2);
+        when(subscribeServices.getSubscriptionByAddress(anyString())).thenReturn(subscriptions);
+        MvcResult result = mockMvc.perform(
+                get("/getSubscriptions")
+        )
+                .andExpect(status().is4xxClientError())
                 .andReturn();
     }
 }

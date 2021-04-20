@@ -78,6 +78,9 @@ public class SubscriptionManager {
         return subscriptionRepository.findByHashAndUserAddress(hash, userAddress);
     }
 
+    public List<Subscription> getSubscriptionByHashListAndUserAddress(List<String> hashList, String userAddress) {
+        return subscriptionRepository.findByHashInAndUserAddress(hashList, userAddress);
+    }
 
     public Subscription getSubscriptionByPreviousSubscription(Subscription prev){
         return subscriptionRepository.findByPreviousSubscription(prev);

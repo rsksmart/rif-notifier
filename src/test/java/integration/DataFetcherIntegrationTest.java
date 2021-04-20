@@ -1,5 +1,6 @@
 package integration;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.rif.notifier.Application;
@@ -23,6 +24,7 @@ public class DataFetcherIntegrationTest {
     @Autowired RskBlockchainService rskBlockchainService;
 
     @Test
+    @Ignore
     public void canGetLastConfirmedBlock()    throws Exception   {
         BigInteger lastBlock = rskBlockchainService.getLastBlock();
         BigInteger blockConfirmationCount = lastBlock.intValue() >= 20 ? BigInteger.valueOf(20) : BigInteger.ZERO;

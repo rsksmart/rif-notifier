@@ -52,8 +52,8 @@ public class LuminoSubscribeController {
             @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
         User us = userServices.authenticate(userAddress, apiKey);
-        //Check if the user did subscribe
-        if(subscribeServices.getActiveSubscriptionByHash(subscriptionHash) != null) {
+        //Check if the user did subscribe and has an active subscription and owner of the subscriptionhash
+        if(subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, userAddress) != null) {
             resp.setContent(luminoEventServices.getTokens());
         } else {
             //Return an error because the user still did not create the subscription
@@ -75,8 +75,8 @@ public class LuminoSubscribeController {
             @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
         User us = userServices.authenticate(userAddress,apiKey);
-        //Check if the user did subscribe
-        Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        //Check if the user did subscribe and has an active subscription and owner of the subscriptionhash
+        Subscription sub = subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, userAddress);
         if (sub != null) {
             token = token.toLowerCase();
             if(luminoEventServices.isToken(token)){
@@ -112,8 +112,8 @@ public class LuminoSubscribeController {
             @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
         User us = userServices.authenticate(userAddress, apiKey);
-        //Check if the user did subscribe
-        Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        //Check if the user did subscribe and has an active subscription and owner of the subscriptionhash
+        Subscription sub = subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, userAddress);
         if (sub != null) {
             token = token.toLowerCase();
             if(luminoEventServices.isToken(token)){
@@ -148,8 +148,8 @@ public class LuminoSubscribeController {
             @RequestHeader(value="apiKey") String apiKey) throws LoginException {
         DTOResponse resp = new DTOResponse();
         User us = userServices.authenticate(userAddress, apiKey);
-        //Check if the user did subscribe
-        Subscription sub = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        //Check if the user did subscribe and has an active subscription and owner of the subscriptionhash
+        Subscription sub = subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, userAddress);
         if (sub != null) {
             List<SubscriptionResponse> lstTopicId = new ArrayList<>();
             luminoEventServices.getTokens().forEach(token -> {

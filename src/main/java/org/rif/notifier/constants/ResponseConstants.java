@@ -60,6 +60,8 @@ public interface ResponseConstants {
 
     String SERVICE_NOT_ENABLED = "Notification Service is not enabled";
 
+    String SERVICE_NOT_ENABLED_PLAN = "Notification Service is not enabled for the chosen plan";
+
     String SUBSCRIPTION_PRICE_VALIDATION_FAILED = "Subscription Price structure is incorrect. Please review the json format";
 
     String SUBSCRIPTION_PLAN_ID_INVALID = "Invalid subscription plan id. Please provide a valid subscription plan id.";
@@ -69,4 +71,6 @@ public interface ResponseConstants {
     String PREVIOUS_SUBSCRIPTION_INVALID_STATE = "Renewal error. Previous Subscription is not activated yet.";
 
     String INVALID_CURRENCY = "Currency specified in the json file is not in the list of accepted currencies for the provider.";
+
+    String INVALID_DESTINATION_URL = "Invalid url found in destination field of json. Please provide a valid url.";
 }

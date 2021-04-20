@@ -28,6 +28,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
 
     Subscription findByHashAndUserAddress(String hash, String userAddress);
 
+    List<Subscription> findByHashInAndUserAddress(List<String> hashes, String userAddress);
+
     Subscription findByPreviousSubscription(Subscription sub);
 
     @Query(value = "SELECT * FROM subscription A WHERE A.status = 'ACTIVE' AND A.notification_balance > 0", nativeQuery = true)

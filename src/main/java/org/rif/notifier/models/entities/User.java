@@ -1,6 +1,10 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.rif.notifier.util.JsonUtil;
+
 import javax.persistence.*;
+import java.util.HashMap;
 
 @Entity
 @Table(name = "notif_users")
@@ -9,9 +13,11 @@ public class User {
     @Id
     private String address;
 
+    @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
     @Column(name = "api_key")
     private String apiKey;
 
+    @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
     @Transient
     private String plainTextKey;
 
@@ -48,8 +54,8 @@ public class User {
 
     @Override
     public String toString() {
-        return "{" +
-                "address=" + address +
-                '}';
+        HashMap<String, String> map = new HashMap<>(1);
+        map.put("address", address);
+        return JsonUtil.writeValueAsString(map);
     }
 }

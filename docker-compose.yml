@@ -5,18 +5,17 @@ services:
   rif-mysql:
     container_name: rif-mysql
     image: mysql:8.0
-    command: --init-file /data/application/setup.sql
-    volumes:
-      - ./bin/docker-mysql.sql:/data/application/setup.sql
     environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=rif-notifier
+      - MYSQL_USER=notifier_user
+      - MYSQL_PASSWORD=${dbpassword}
+      - MYSQL_DATABASE=rif_notifier
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
     ports:
       - 3308:3306
     networks:
       - rif-notifier-network
     healthcheck:
-      test: ["CMD", "mysqladmin" , "--user", "root", "--password=root", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin" , "--user", "notifier_user", "--password=${dbpassword}", "ping", "-h", "localhost"]
       timeout: 120s
       retries: 10
 

@@ -122,7 +122,7 @@ DROP TABLE IF EXISTS `notif_users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `notif_users` (
   `address` varchar(45) NOT NULL,
-  `api_key` varchar(45) DEFAULT NULL,
+  `api_key` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`address`),
   KEY `notif_users_idx_1` (`api_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

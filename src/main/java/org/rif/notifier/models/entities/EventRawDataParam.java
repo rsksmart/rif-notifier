@@ -1,5 +1,9 @@
 package org.rif.notifier.models.entities;
 
+import org.rif.notifier.util.JsonUtil;
+
+import java.util.HashMap;
+
 public class EventRawDataParam{
     private String value;
     private String typeAsString;
@@ -23,9 +27,9 @@ public class EventRawDataParam{
 
     @Override
     public String toString() {
-        return "{" +
-                "\"value\":\"" + value + "\"" +
-                ",\"typeAsString\":\"" + typeAsString + "\"" +
-                "}";
+        HashMap<String, Object> map = new HashMap<>(2);
+        map.put("value", value);
+        map.put("typeAsString", typeAsString);
+        return JsonUtil.writeValueAsString(map);
     }
 }

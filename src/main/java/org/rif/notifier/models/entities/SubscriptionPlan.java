@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.rif.notifier.util.JsonUtil;
 
 import javax.persistence.*;
 import java.util.*;
@@ -160,12 +161,12 @@ public class SubscriptionPlan {
 
     @Override
     public String toString() {
-        return "{" +
-                "\"id\":" + id+
-                ",\"name\":" + "\""+name+"\""+
-                ",\"validity\":" + validity+
-                ",\"notificationQuantity\":\"" + notificationQuantity + "\"" +
-                ",\"status\":\"" + status+ "\"" +
-                '}';
+        HashMap<String, Object> map = new HashMap<>(3);
+        map.put("id", id);
+        map.put("name", name);
+        map.put("validity", validity);
+        map.put("notificationQuantity", notificationQuantity);
+        map.put("status", status);
+        return JsonUtil.writeValueAsString(map);
     }
 }

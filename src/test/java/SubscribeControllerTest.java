@@ -100,7 +100,7 @@ public class SubscribeControllerTest {
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(sub);
         //Need to mock with any, cause it was always returning false, maybe cause the Topic that we bring in here was not the same as in the controller
         when(subscribeServices.validateTopic(any(Topic.class))).thenReturn(true);
         when(subscribeValidator.validateTopic(any(Topic.class))).thenReturn(true);
@@ -131,7 +131,7 @@ public class SubscribeControllerTest {
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(sub);
         when(subscribeServices.getTopicById(idTopic)).thenReturn(tp);
         when(subscribeServices.unsubscribeFromTopic(sub, tp)).thenReturn(true);
 
@@ -158,7 +158,7 @@ public class SubscribeControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         when(subscribeServices.getSubscriptionPlanById(anyInt())).thenReturn(subType);
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(sub);
         when(subscribeServices.getSubscriptionByAddress(us.getAddress())).thenReturn(Stream.of(sub).collect(Collectors.toList()));
         when(subscribeServices.getTopicById(idTopic)).thenReturn(null);
 
@@ -186,7 +186,7 @@ public class SubscribeControllerTest {
         String apiKey = Utils.generateNewToken();
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(null);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(null);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(null);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
@@ -212,7 +212,7 @@ public class SubscribeControllerTest {
         SubscriptionPlan subType = mockTestData.mockSubscriptionPlan();
         Topic tp = mockTestData.mockTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(null);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(null);
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")
                         .contentType(APPLICATION_JSON_UTF8)
@@ -240,7 +240,7 @@ public class SubscribeControllerTest {
         Topic tp = mockTestData.mockInvalidTopic();
         when(userServices.getUserByApiKey(apiKey)).thenReturn(us);
         when(subscribeServices.getSubscriptionPlanById(subType.getId())).thenReturn(subType);
-        when(subscribeServices.getActiveSubscriptionByHash(anyString())).thenReturn(sub);
+        when(subscribeServices.getActiveSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(sub);
 
         MvcResult result = mockMvc.perform(
                 post("/subscribeToTopic")

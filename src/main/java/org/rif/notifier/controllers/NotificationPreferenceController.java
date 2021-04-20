@@ -18,6 +18,7 @@ import org.rif.notifier.validation.NotificationPreferenceValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Api(tags = {"Notification Preference Resource"})
 @RestController
-
+@ConditionalOnProperty(value = "notifier.endpoints.notificationPreferenceController",havingValue = "true")
 public class NotificationPreferenceController {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationPreferenceController.class);
@@ -99,9 +100,10 @@ public class NotificationPreferenceController {
         User apiUser = userServices.authenticate(userAddress, apiKey);
         //validate request json
         requestedPreference = validator.validateRequestJson(notificationPreference);
+        //Check if the user is owner of the subscription hash and the subscription is active
+        Subscription subscription = subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, userAddress);
         //validate containing data
-        validator.validateRequestNotificationPreference(requestedPreference);
-        Subscription subscription = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        validator.validateRequestNotificationPreference(requestedPreference, subscription.getSubscriptionPlan());
         Optional.ofNullable(subscription).orElseThrow(()->new SubscriptionException(ResponseConstants.SUBSCRIPTION_NOT_FOUND));
         //allow user to register same preference and destination under different topics
         //overwrite existing preference if one found, or create new
@@ -147,8 +149,8 @@ public class NotificationPreferenceController {
         User apiUser = userServices.authenticate(userAddress, apiKey);
         //validate request json
         requestedPreference = validator.validateRequestJson(notificationPreference);
-
-        Subscription subscription = subscribeServices.getActiveSubscriptionByHash(subscriptionHash);
+        //Check if the user is owner of the subscription hash and the subscription is active
+        Subscription subscription = subscribeServices.getActiveSubscriptionByHashAndUserAddress(subscriptionHash, userAddress);
         //check if notification preference already associated with topic and subscription for given type
         NotificationPreference preference = Optional.ofNullable(notificationPreferenceManager.getNotificationPreference(
                         subscription, requestedPreference.getIdTopic(), requestedPreference.getNotificationService()))

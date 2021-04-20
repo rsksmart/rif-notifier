@@ -10,12 +10,15 @@ import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
 import org.rif.notifier.models.entities.NotificationPreference;
 import org.rif.notifier.models.entities.NotificationServiceType;
 import org.rif.notifier.models.entities.Subscription;
+import org.rif.notifier.models.entities.SubscriptionPlan;
 import org.rif.notifier.services.SubscribeServices;
 import org.rif.notifier.services.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -41,19 +44,22 @@ public class NotificationPreferenceValidator extends BaseValidator  {
         this.subscribeServices = subscribeServices;
     }
 
-    public void validate(List<NotificationPreference> preferences)  {
+    public void validate(List<NotificationPreference> preferences, SubscriptionPlan subscriptionPlan)  {
         //validate each notification preference for the topic
         if(preferences.size() > preferences.stream().distinct().count())    {
             throw new ValidationException("Duplicate notification preferences found, please correct your json.");
         }
         preferences.forEach(preference-> {
-            validateRequestNotificationPreference(preference);
+            validateRequestNotificationPreference(preference, subscriptionPlan);
         });
     }
 
-    public void validateRequestNotificationPreference(NotificationPreference preference)   throws ValidationException {
+    public void validateRequestNotificationPreference(NotificationPreference preference, SubscriptionPlan subscriptionPlan)   throws ValidationException {
         boolean enabled = notifierConfig.getEnabledServices().stream().anyMatch(p->preference.getNotificationService() == p);
         if (!enabled)   throw new ValidationException(ResponseConstants.SERVICE_NOT_ENABLED);
+        if (subscriptionPlan.getNotificationPreferences().stream().noneMatch(p->p.equals(preference.getNotificationService().name())))    {
+            throw new ValidationException(ResponseConstants.SERVICE_NOT_ENABLED_PLAN);
+        }
         if (preference.getNotificationService() == NotificationServiceType.EMAIL) {
             validateEmail(preference);
         }
@@ -83,7 +89,12 @@ public class NotificationPreferenceValidator extends BaseValidator  {
     }
 
     private void validateAPI(NotificationPreference preference) {
-        //validate that api has destination params
+        //validate api destination url
+        try {
+            URL url = new URL(preference.getDestination());
+        } catch(MalformedURLException e)    {
+            throw new ValidationException(ResponseConstants.INVALID_DESTINATION_URL);
+        }        //validate that api has destination params
         Optional.ofNullable(preference.getDestinationParams())
                 .orElseThrow(()->new ValidationException(ResponseConstants.DESTINATION_PARAMS_REQUIRED));
     }

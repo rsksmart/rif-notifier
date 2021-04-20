@@ -143,6 +143,10 @@ public class DbManagerFacade {
         return subscriptionManager.getSubscriptionByHashAndUserAddress(hash, userAddress);
     }
 
+    public List<Subscription> getSubscriptionByHashListAndUserAddress(List<String> hashList, String userAddress){
+        return subscriptionManager.getSubscriptionByHashListAndUserAddress(hashList, userAddress);
+    }
+
     public Subscription getSubscriptionByPreviousSubscription(Subscription prev){
         return subscriptionManager.getSubscriptionByPreviousSubscription(prev);
     }
