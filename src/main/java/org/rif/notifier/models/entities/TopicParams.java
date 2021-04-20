@@ -1,5 +1,8 @@
 package org.rif.notifier.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -12,11 +15,13 @@ import java.util.HashMap;
 @Entity
 @Table(name = "topic_params")
 @ApiModel(description="Defines topic parameters for a topic. This is only required for CONTRACT_EVENT")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TopicParams {
     @Id
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
     private int id;
 
+    @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
     @ManyToOne(optional = false, fetch=FetchType.EAGER)
     @JoinColumn(name="id_topic")
     private Topic topic;
@@ -57,14 +62,6 @@ public class TopicParams {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public Topic getIdTopic() {
-        return topic;
-    }
-
-    public void setIdTopic(Topic topic) {
-        this.topic = topic;
     }
 
     public TopicParamTypes getType() {
