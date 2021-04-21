@@ -38,7 +38,7 @@ RIF Notifier is a service that listens to events on the blockchain and notifies 
 
 (This steps you can follow if you're already familiar with the notifier, otherwise jump to the [Installation](#installation-guide) guide first)
 
--Configure Notifier Provider CLI, if not already configured, by following the steps in https://github.com/rsksmart/rif-notifier/notifier-prov-cli
+-Configure Notifier Provider CLI, if not already configured, by following the steps in https://github.com/rsksmart/rif-notifier/tree/master/notifier-prov-cli
 
 -Run the command `notifier-prov-cli start` to start the rif-notifier local instance or `notifier-prov-cli dockerstart` if you are running rif-notifier as docker container.
 
@@ -188,13 +188,13 @@ curl -X POST http://localhost:4444 -H 'Content-Type: application/json' -d '{"jso
 
 Notifier Provider CLI is a command line tool to configure and run the rif-notifier. 
 
-To install and use notifier provider cli see https://github.com/rsksmart/rif-notifier/notifier-prov-cli
+To install and use notifier provider cli see https://github.com/rsksmart/rif-notifier/tree/master/notifier-prov-cli
 
 ## Notifier Consumer CLI
 
 Notifier Consumer CLI is a command line tool for RIF-Notifier consumers to perform operations like subscribe to a plan, renew a subscription, and list user subscriptions.
 
-To install and use notifier consumer cli see https://github.com/rsksmart/rif-notifier/notifier-cons-cli 
+To install and use notifier consumer cli see https://github.com/rsksmart/rif-notifier/tree/master/notifier-cons-cli 
 
 ### Start the application
 
