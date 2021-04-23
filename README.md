@@ -24,7 +24,7 @@ RIF Notifier is a service that listens to events on the blockchain and notifies 
     10. [Subscription and Renewal Response](#subscription-and-renewal-response)
 6. [Other available endpoints](#other-available-endpoints)   
 	1. [Retrieve notifications](#getting-notifications)
-	2. [Get subscription info](#get-subscription-info)
+	2. [Get subscriptions](#get-subscriptions)
 	3. [Get Lumino tokens](#get-lumino-tokens)
 	4. [Subscribe to specific open channel](#subscribe-to-specific-open-channel)
 	5. [Subscribe to close channel](#subscribe-to-close-channel)
@@ -70,19 +70,21 @@ sudo apt install git
 
 ### Docker Installation Steps
 
+* Ensure the [prerequisites for docker installation](#prerequisites-for-docker-installation) are met.
+  
 * Open a terminal.
 
-* Install git by following the steps in [prerequisites for docker installation](#prerequisites-for-docker-installation).
-
-* Clone this repo using ```git clone https://github.com/rsksmart/rif-notifier rif-notifier``` and switch to the rif-notifier directory by using command ```cd rif-notifier```
+* Clone this repo using `git clone https://github.com/rsksmart/rif-notifier rif-notifier` and switch to the rif-notifier directory by using command ```cd rif-notifier```
   
 * Install notifier provider cli by following steps in [notifier provider cli](#notifier-provider-cli)
 
 * Copy `config-docker-template.json` to `config-docker.json`
   
-* Set the ```dbpassword``` environment variable for mysql docker container. Set the same password to rif-notifier by running command `notifier-prov-cli dockerconfigure --dbpassword`.
-
-* Run `notifier-prov-cli dockerconfigure` to configure the required properties to run RIF notifier docker instance.
+* Set the `dbpassword` environment variable in your machine. This password is used by `notifier_user` user in mysql docker container when it is created. 
+  
+* Set the same database password to rif-notifier docker configuration by running command `notifier-prov-cli dockerconfigure --dbpassword`.
+  
+* Run the command `notifier-prov-cli dockerconfigure` to configure other required properties to run RIF notifier docker instance.
 
 * Run the command ```notifier-prov-cli dockerbuild```  This command will build the mysql, and rif-notifier docker images and run it. Wait for the server to start until you see message started application in x(seconds).
 
@@ -246,16 +248,6 @@ Query params:
 ###### Get Subscriptions
 ```
 GET Request: http://localhost:8080/getSubscriptions
-Header param: 
-	key: userAddress
-	value: USER_ADDRESS
-	key: apiKey
-	value: API_KEY 
-Short description: Lists all user subscriptions and details(Notification_Balance, Topics subscribed with params, etc)
-```
-###### Get Subscription info
-```
-GET Request: http://localhost:8080/getSubscriptions
  or
 GET Request: http://localhost:8080/getSubscriptions/hash1,hash2...
 Header param: 
@@ -264,10 +256,9 @@ Header param:
 	value: USER_ADDRESS
 	key: apiKey
 	value: API_KEY 
-	Request param:
-	name: subscriptionHash
-	value: SUBSCRIPTION_HASH
-Short description: Gets all the subscriptions or subscriptions for provided hashes. More detailed subscription info will be returned for users with valid api key.
+	Path param:
+	value: SUBSCRIPTION_HASH(s) separated by comma
+Short description: Gets all the subscriptions or subscriptions for provided hashes. In case the `apikey` header parameter is not provided, public data will be returned. More detailed subscription info will be returned for users with valid api key. 
 ```
 Return example:
 ```json
