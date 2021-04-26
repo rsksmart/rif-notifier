@@ -5,10 +5,11 @@ from pathlib import Path
 
 class SubscriptionPlan:
 
-    def __init__(self):
+    def __init__(self, delete=True):
         self.subscriptionPlans = []
         self.subscriptionPlan = {}
         self.planLocation = str(Path.home()) + "/" + self.planFile()
+        self.delete = delete
         #self.planRead()
 
     def addPrice(self, price, currency, address):
@@ -59,5 +60,6 @@ class SubscriptionPlan:
                 print(str(e1))
 
     def remove(self):
-        os.remove(self.planLocation)
+        if self.delete:
+            os.remove(self.planLocation)
 

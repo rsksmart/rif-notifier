@@ -495,7 +495,7 @@ public class MockTestData {
     public SubscriptionDTO mockSubscriptionDTO()    throws IOException {
        SubscriptionDTO subscriptionDTO = new SubscriptionDTO();
        subscriptionDTO.setPrice(BigInteger.TEN);
-       subscriptionDTO.setCurrency("RIF");
+       subscriptionDTO.setCurrency(new Currency("RIF", new Address("0x0")));
        subscriptionDTO.setUserAddress("0x0");
        subscriptionDTO.setProviderAddress(new Address("0x0"));
        subscriptionDTO.setNotificationBalance(10000);

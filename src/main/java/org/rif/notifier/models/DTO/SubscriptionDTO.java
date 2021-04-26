@@ -3,6 +3,7 @@ package org.rif.notifier.models.DTO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
+import org.rif.notifier.models.entities.Currency;
 import org.rif.notifier.models.entities.SubscriptionPayment;
 import org.rif.notifier.models.entities.SubscriptionStatus;
 import org.rif.notifier.models.serializer.BigIntegerSerializer;
@@ -32,7 +33,7 @@ public class SubscriptionDTO {
     private List<SubscriptionPayment> subscriptionPayments;
     private Integer subscriptionPlanId;
     private BigInteger price;
-    private String currency;
+    private Currency currency;
     private List<TopicDTO> topics;
     private String userAddress;
     private Address providerAddress;
@@ -49,11 +50,11 @@ public class SubscriptionDTO {
         this.price = price;
     }
 
-    public String getCurrency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(Currency currency) {
         this.currency = currency;
     }
 
