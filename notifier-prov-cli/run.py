@@ -2,6 +2,8 @@ from Notifier import Notifier
 from Config import Config
 from SubscriptionPlan import SubscriptionPlan
 import click
+import os
+from shutil import copyfile
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -142,7 +144,7 @@ def subscriptionplan(id, **kwargs):
         x = "notificationQuantity" if x == "notificationquantity" else x
         if x == 'docker':
             docker = y
-        else :
+        elif not x == 'jsonfile' :
             plan.set(x,y)
     while True:
         price = click.prompt("Enter subscription price")
@@ -155,10 +157,31 @@ def subscriptionplan(id, **kwargs):
     plan.planWrite()
     Notifier().create(plan) if not docker else Notifier(True).createDocker(plan)
 
+def sp_json(ctx, param, jsonfile):
+    docker = ctx.params.get('docker')
+    if jsonfile and not os.path.isfile(jsonfile):
+        print('Please specifiy a valid subscription plan json file location')
+        ctx.exit()
+    elif jsonfile:
+        if os.path.basename(jsonfile) != 'subscription-plan.json':
+            print('file name must be subscription-plan.json')
+            ctx.exit()
+        sp = SubscriptionPlan(delete=False)
+        if docker:
+            sp.planLocation = jsonfile
+            Notifier(True).createDocker(sp)
+        else:
+            os.makedirs(os.path.dirname(sp.planLocation), exist_ok=True)
+            copyfile(jsonfile, sp.planLocation)
+            sp.planLocation = jsonfile
+            Notifier().create(sp)
+        ctx.exit()
 
 
+#creates subscription plan using interactive prompt, or the specfied json file
 @create.command('subscriptionplan', context_settings=CONTEXT_SETTINGS, help="sp - create subscription plan")
-@click.option("--docker/--local", '-d/-l', is_flag=True, help="Specifies whether the plan should be created in a docker container or in the local machine", default=False, show_default=True)
+@click.option("--docker/--local", '-d/-l', is_flag=True, help="Specifies whether the plan should be created in a docker container or in the local machine", default=False, show_default=True, is_eager=True)
+@click.option("--jsonfile", '-j', required=False, help="Full path to subscription-plan.json file to use to create subscriptions. use this along with --docker or --local option.", callback=sp_json)
 @click.option("--name", prompt="Enter subscription plan name", help="name of subscription plan")
 @click.option("--notificationQuantity", type=int, prompt="Enter notification quantity", help="Total quantity of notifications offered")
 @click.option("--validity", type=int, prompt="Enter validity (days)", help="plan validity in days")

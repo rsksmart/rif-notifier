@@ -54,6 +54,8 @@ Configure the RIF notifier local instance. Available options are
 * `notifier-prov-cli create subscriptionplan`(aliased as sp)  - This command is used to create a new subscription plan. The interactive prompts will guide you through creating a new subscription plan. Command options are:
   
   `--local` or `--docker` - specifes whether the subscription plan should be created in the local machine or docker container.
+  
+  `--jsonfile` - full path to subscription-plan.json file to use to create subscription plans, use this along with --docker or --local option. When this method is used, interactive prompt for subscription plan details will not be available.
 
 
 ### `notifier-prov-cli disable`

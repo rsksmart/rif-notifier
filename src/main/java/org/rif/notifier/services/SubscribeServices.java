@@ -283,7 +283,7 @@ public class SubscribeServices  {
         subscriptionDTO.setExpirationDate(subscription.getExpirationDate());
         subscriptionDTO.setNotificationBalance(subscription.getNotificationBalance());
         subscriptionDTO.setStatus(subscription.getStatus());
-        subscriptionDTO.setCurrency(subscription.getCurrency().getName());
+        subscriptionDTO.setCurrency(subscription.getCurrency());
         subscriptionDTO.setTopics(topics);
         subscriptionDTO.setId(subscription.getId());
         subscriptionDTO.setSubscriptionPlanId(subscription.getSubscriptionPlan().getId());
