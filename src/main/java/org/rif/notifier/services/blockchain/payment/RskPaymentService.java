@@ -86,7 +86,8 @@ public class RskPaymentService {
         TypeReference provider = RSKTypeReference.createWithIndexed(Address.class, false);
         TypeReference amount = RSKTypeReference.createWithIndexed(Uint256.class, false);
         TypeReference currency = RSKTypeReference.createWithIndexed(Address.class, false);
-        EthereumBasedListenable subscriptionCreated = getContractListenable(EVENT_SUBSCRIPTION_CREATED, hash, provider, currency, amount);
+        TypeReference consumer = RSKTypeReference.createWithIndexed(Address.class, false);
+        EthereumBasedListenable subscriptionCreated = getContractListenable(EVENT_SUBSCRIPTION_CREATED, hash, provider, currency, amount, consumer);
         EthereumBasedListenable refund = getContractListenable(EVENT_REFUND, provider, hash, amount, currency);
         EthereumBasedListenable withdrawal = getContractListenable(EVENT_WITHDRAWAL, provider, hash, amount, currency);
         return Arrays.asList(subscriptionCreated, refund, withdrawal);
