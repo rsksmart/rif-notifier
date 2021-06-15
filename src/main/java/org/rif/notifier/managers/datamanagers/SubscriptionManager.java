@@ -102,7 +102,8 @@ public class SubscriptionManager {
         Subscription sub = new Subscription(activeUntil, userAddress, subscriptionPlan, status);
         sub.setCurrency(subscriptionPrice.getCurrency());
         sub.setPrice(subscriptionPrice.getPrice());
-        sub.setHash(String.valueOf(sub.hashCode()));
+        //initially during first insert we do not have the hash. it's calculated based on persisted entity
+        sub.setHash("");
         sub.setExpirationDate(java.sql.Date.valueOf(now().plusDays(sub.getSubscriptionPlan().getValidity())));
         Subscription result = subscriptionRepository.save(sub);
         return result;
