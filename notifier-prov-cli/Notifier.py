@@ -14,6 +14,8 @@ class Notifier:
         self.mvn = "mvn"
         if self.config.hasProperty("serverport"):
             self.host = "http://127.0.0.1:" + str(self.config.get("serverport"))
+        else:
+            self.host = "http://127.0.0.1:8080"
 
     def check(self):
         if not shutil.which("java"):
