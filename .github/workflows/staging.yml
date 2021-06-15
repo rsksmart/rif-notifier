@@ -1,0 +1,39 @@
+---
+name: Marketplace NOTIFIER STAGING deploy
+
+on:
+  push:
+
+    branches:
+      - staging
+
+jobs:
+  deploy-staging:
+    name: RIF Marketplace NOTIFIER - Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.STAGING_AWS_REGION }}
+
+      - name: Deploy rif-marketplace-notifier staging
+        run: |
+          aws ssm send-command \
+              --document-name "AWS-RunRemoteScript" \
+              --instance-ids "${{ secrets.STAGING_EC2_ID }}" \
+              --region=${{ secrets.STAGING_AWS_REGION }} \
+              --comment "github interaction-rif-marketplace-notifier" \
+              --parameters '{"sourceType":["GitHub"],"sourceInfo":["{\"owner\":\"rootstock\", \"repository\":\"ask-devops\", \"path\": \"rif-marketplace/\",\"tokenInfo\":\"{{ssm-secure:github-token}}\"}"],"commandLine":["deploy-marketplace-notifier-staging.sh"]}'
+
