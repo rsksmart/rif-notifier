@@ -22,7 +22,6 @@ import java.util.List;
 @ApiModel(description = "Information required to create the subscription, topics, and corresponding notification preferences.")
 public class SubscriptionBatchDTO {
     @ApiModelProperty(notes="List of topics and their preferences", required=true)
-    @NotEmpty @Valid
     private List<TopicDTO> topics;
     @ApiModelProperty(notes="User wallet address.", required = true)
     @NotBlank

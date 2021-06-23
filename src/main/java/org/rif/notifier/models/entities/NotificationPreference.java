@@ -64,6 +64,11 @@ public class NotificationPreference {
         this.idTopic = idTopic;
     }
 
+    public NotificationPreference(NotificationPreference preference)    {
+        this(preference.getSubscription(), preference.getIdTopic(),
+                preference.getNotificationService(), preference.getDestination(), preference.getDestinationParams());
+    }
+
     public int getId() {
         return id;
     }
