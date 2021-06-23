@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.rif.notifier.Application;
 import org.rif.notifier.boot.configuration.NotifierConfig;
+import org.rif.notifier.constants.TopicTypes;
 import org.rif.notifier.controllers.SubscriptionBatchController;
 import org.rif.notifier.exception.ValidationException;
 import org.rif.notifier.managers.datamanagers.NotificationPreferenceManager;
@@ -31,8 +32,7 @@ import org.web3j.abi.datatypes.Address;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
@@ -105,6 +105,7 @@ public class SubscriptionBatchControllerTest {
         when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(prev);
         when(subscribeServices.getSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(prev);
         when(subscribeServices.createSubscriptionDTO(any(Subscription.class), any(List.class), any(User.class))).thenReturn(subscriptionDTO);
+        when(subscribeServices.createSubscriptionDTOs(anyList(), any(User.class))).thenReturn(Arrays.asList(subscriptionDTO));
         when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
         when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString())).thenReturn(response);
         when(currencyServices.getCurrencyByName(anyString())).thenReturn(mockTestData.mockCurrency());
@@ -227,6 +228,58 @@ public class SubscriptionBatchControllerTest {
                 post("/renewSubscription")
                         .contentType(APPLICATION_JSON_UTF8)
                         .param("previousSubscriptionHash", "invalidhash")
+                        .content(mapper.writeValueAsString(batchDTO))
+        )
+                .andExpect(status().isConflict())
+                .andReturn();
+    }
+
+    @Test
+    public void canRenewWithSameTopics() throws Exception {
+        DTOResponse dto = new DTOResponse();
+        Subscription prev = mockTestData.mockSubscription();
+        SubscriptionBatchDTO batchDTO = prepareBatchTest(prev);
+        //when the topics are null, the renewal should reuse the same topics and preferences as previous subscription
+        batchDTO.setTopics(null);
+        Subscription newSubscription = mockTestData.mockSubscription();
+        assertNotEquals(prev, newSubscription.getPreviousSubscription());
+        when(subscribeServices.createPendingSubscription(any(User.class), any(SubscriptionPlan.class), any(SubscriptionPrice.class))).thenReturn(newSubscription);
+        MvcResult result = mockMvc.perform(
+                post("/renewSubscription")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("previousSubscriptionHash", "test")
+                        .content(mapper.writeValueAsString(batchDTO))
+        )
+                .andExpect(status().isOk())
+                .andReturn();
+        DTOResponse dtResponse = new ObjectMapper().readValue(
+                result.getResponse().getContentAsByteArray(),
+                DTOResponse.class);
+        Map content = (Map)dtResponse.getContent();
+        assertEquals("test", content.get("hash"));
+        List topics = (List)((Map)content.get("subscription")).get("topics");
+        assertTrue(topics.size() > 0);
+        assertEquals(TopicTypes.NEW_BLOCK.toString(), ((Map)topics.get(0)).get("type"));
+        assertEquals(prev, newSubscription.getPreviousSubscription());
+    }
+
+    @Test
+    public void failRenewWhenPreviousSubscriptionPlanInvalid() throws Exception {
+        DTOResponse dto = new DTOResponse();
+        Subscription prev = mockTestData.mockSubscription();
+        prev.setNotificationPreferences(Arrays.asList(mockTestData.mockNotificationPreference(prev)));
+        SubscriptionBatchDTO batchDTO = prepareBatchTest(prev);
+        //when the topics are null, the renewal should reuse the same topics and preferences as previous subscription
+        batchDTO.setTopics(null);
+        Subscription newSubscription = mockTestData.mockSubscription();
+        assertNotEquals(prev, newSubscription.getPreviousSubscription());
+        doCallRealMethod().when(notificationPreferenceValidator).validate(anyList(), any(SubscriptionPlan.class));
+        doCallRealMethod().when(notificationPreferenceValidator).validateRequestNotificationPreference(any(NotificationPreference.class), any(SubscriptionPlan.class));
+        when(subscribeServices.createPendingSubscription(any(User.class), any(SubscriptionPlan.class), any(SubscriptionPrice.class))).thenReturn(newSubscription);
+        MvcResult result = mockMvc.perform(
+                post("/renewSubscription")
+                        .contentType(APPLICATION_JSON_UTF8)
+                        .param("previousSubscriptionHash", "test")
                         .content(mapper.writeValueAsString(batchDTO))
         )
                 .andExpect(status().isConflict())

@@ -56,6 +56,11 @@ public class TopicParams {
         this.filter = filter;
     }
 
+    public TopicParams(TopicParams params)  {
+       this(params.getTopic(), params.getType(), params.getValue(), params.getOrder(),
+               params.getValueType(), params.getIndexed(), params.getFilter());
+    }
+
     public int getId() {
         return id;
     }

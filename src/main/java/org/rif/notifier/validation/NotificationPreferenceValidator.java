@@ -55,7 +55,8 @@ public class NotificationPreferenceValidator extends BaseValidator  {
     }
 
     public void validateRequestNotificationPreference(NotificationPreference preference, SubscriptionPlan subscriptionPlan)   throws ValidationException {
-        boolean enabled = notifierConfig.getEnabledServices().stream().anyMatch(p->preference.getNotificationService() == p);
+        boolean enabled = notifierConfig != null && notifierConfig.getEnabledServices() != null &&
+                notifierConfig.getEnabledServices().stream().anyMatch(p->preference.getNotificationService() == p);
         if (!enabled)   throw new ValidationException(ResponseConstants.SERVICE_NOT_ENABLED);
         if (subscriptionPlan.getNotificationPreferences().stream().noneMatch(p->p.equals(preference.getNotificationService().name())))    {
             throw new ValidationException(ResponseConstants.SERVICE_NOT_ENABLED_PLAN);
