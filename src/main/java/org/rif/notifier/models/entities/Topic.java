@@ -2,6 +2,7 @@ package org.rif.notifier.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hibernate.annotations.LazyCollection;
@@ -41,7 +42,7 @@ public class Topic {
 
     public Topic(TopicTypes type, List<TopicParams> topicParams) {
         this.type = type;
-        this.topicParams = topicParams;
+        this.topicParams = topicParams == null ? new ArrayList<>() : topicParams;
     }
 
     public Topic(TopicTypes type, String hash, Subscription sub){
@@ -99,13 +100,20 @@ public class Topic {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Topic topic = (Topic) o;
+        return type == topic.type && Objects.equals(topicParams, topic.topicParams);
+    }
+
+    @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(type.toString())
-                .append(topicParams)
+                .append(topicParams != null ? topicParams.stream().collect(Collectors.toList()) : null)
                 .toHashCode();
     }
-
 
     @Override
     public String toString() {

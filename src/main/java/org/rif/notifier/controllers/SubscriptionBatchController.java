@@ -16,11 +16,9 @@ import org.rif.notifier.validation.NotificationPreferenceValidator;
 import org.rif.notifier.validation.SubscribeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.web3j.abi.datatypes.Address;
 
 import javax.security.auth.login.CredentialException;
 import javax.security.auth.login.LoginException;
@@ -29,6 +27,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Api(tags = {"Batch Onboarding Resource"})
 @Validated
@@ -124,11 +123,48 @@ public class SubscriptionBatchController {
             @NotBlank @RequestParam String previousSubscriptionHash,
             @ApiParam(required=true, name="Subscription details required to create the subscription. See SubscriptionBatchDTO")
             @Valid @RequestBody SubscriptionBatchDTO subscriptionBatchDTO) {
+        //Use same topics and preferences as previous subscription when no topics are set for renewal
+        if (subscriptionBatchDTO.getTopics() == null) {
+            return renewSubscriptionWithSameTopics(previousSubscriptionHash, subscriptionBatchDTO);
+        }
         return subscribeBatch(subscriptionBatchDTO, previousSubscriptionHash);
     }
 
-    protected ResponseEntity<DTOResponse> subscribeBatch(SubscriptionBatchDTO subscriptionBatchDTO, String previousSubscriptionHash)  {
+    @ApiOperation(value = "Gets all the subscriptions for the user or gets subscriptions for the given list of subscription hashes",
+            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
+    @RequestMapping(value = {"/getSubscriptions", "/getSubscriptions/{subscriptionHashArray}"}, method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
+    @ResponseBody
+    public ResponseEntity<DTOResponse> getSubscriptions(
+            @RequestHeader(name = "userAddress") String userAddress,
+            @RequestHeader(value="apiKey", required=false) String apiKey,
+            @PathVariable(required=false) String[] subscriptionHashArray
+    )   throws LoginException  {
         DTOResponse resp = new DTOResponse();
+        List<Subscription> subscriptions = null;
+        //get allthe subscriptions when no subscription hashes provided, or only get subscriptions corresponding to given hashes
+        if (subscriptionHashArray == null || subscriptionHashArray.length == 0) {
+            subscriptions = subscribeServices.getSubscriptionByAddress(userAddress);
+        }
+        else {
+            subscriptions = subscribeServices.getSubscriptionByHashListAndUserAddress(Arrays.asList(subscriptionHashArray), userAddress);
+        }
+        User user = null;
+        //if api key is provided, get the authenticated user
+        if (apiKey != null) {
+            try {
+                user = userServices.authenticate(userAddress, apiKey);
+            }catch(CredentialException e)   {
+                logger.debug(e.getMessage(), e);
+            }
+        }
+        //when no api key provided provide only public info
+        List<SubscriptionDTO> dtos = subscribeServices.createSubscriptionDTOs(subscriptions, user);
+        resp.setContent(dtos);
+        return new ResponseEntity<>(resp, resp.getStatus());
+    }
+
+
+    protected ResponseEntity<DTOResponse> subscribeBatch(SubscriptionBatchDTO subscriptionBatchDTO, String previousSubscriptionHash)  {
         User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
         //validate if this subscription plan actually exists in the database
         SubscriptionPlan subscriptionPlan = subscriptionPlanServices.getActiveSubscriptionPlan(subscriptionBatchDTO.getSubscriptionPlanId())
@@ -142,6 +178,47 @@ public class SubscriptionBatchController {
         previousSubscription.ifPresent(subscription::setPreviousSubscription);
         subscribeToTopic(subscription, subscriptionBatchDTO.getTopics());
         SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscription, subscriptionBatchDTO.getTopics(), user);
+        return buildSubscibeBatchResponse(subscriptionDTO, subscription);
+    }
+
+    /*
+     * Renews a subscription using the same topics and preferences as the previous subscription.
+     */
+    private ResponseEntity<DTOResponse> renewSubscriptionWithSameTopics(
+            String previousSubscriptionHash, SubscriptionBatchDTO subscriptionBatchDTO) {
+        User user = getNewOrExistingUser(subscriptionBatchDTO.getUserAddress());
+        //validate if this subscription plan actually exists in the database
+        SubscriptionPlan subscriptionPlan = subscriptionPlanServices.getActiveSubscriptionPlan(subscriptionBatchDTO.getSubscriptionPlanId())
+                .orElseThrow(() -> new ValidationException(ResponseConstants.SUBSCRIPTION_INCORRECT_TYPE));
+        Subscription previousSubscription = validateAndGetPreviousSubscription(previousSubscriptionHash, subscriptionBatchDTO.getUserAddress()).get();
+        //validate to make sure that all the notification preferences set by previous subscription is still supported by the provider and subscription plan.
+        notificationPreferenceValidator.validate((List<NotificationPreference>)previousSubscription.getNotificationPreferences(), subscriptionPlan);
+        //proceed to create subscription
+        SubscriptionPrice subscriptionPrice = new SubscriptionPrice(subscriptionBatchDTO.getPrice(), currencyValidator.validate(subscriptionBatchDTO.getCurrency()));
+        Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionPlan, previousSubscription != null);
+        subscription.setPreviousSubscription(previousSubscription);
+        subscribeUsingPreviousTopics(subscription, previousSubscription);
+        SubscriptionDTO subscriptionDTO = subscribeServices
+                .createSubscriptionDTOs(Arrays.asList(subscription), user).stream().findFirst().get();
+        return buildSubscibeBatchResponse(subscriptionDTO, subscription);
+    }
+
+
+    private void subscribeUsingPreviousTopics(Subscription subscription, Subscription previousSubscription)  {
+        List<Topic> topics = previousSubscription.getTopics().stream().map(previousTopic-> {
+            List<NotificationPreference> notificationPreferences =
+                    previousSubscription.getNotificationPreferences().stream()
+                            .filter(pref->pref.getIdTopic() == previousTopic.getId()).map(NotificationPreference::new)
+                            .collect(Collectors.toList());
+            List<TopicParams> topicParams = previousTopic.getTopicParams().stream().map(TopicParams::new).collect(Collectors.toList());
+            Topic newTopic = new Topic(previousTopic.getType(), topicParams);
+            subscribeToTopic(subscription, newTopic, notificationPreferences);
+            return newTopic;
+        }).collect(Collectors.toList());
+    }
+
+    private ResponseEntity<DTOResponse> buildSubscibeBatchResponse(SubscriptionDTO subscriptionDTO, Subscription subscription) {
+        DTOResponse resp = new DTOResponse();
         String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
         subscription.setHash(hash);
         subscriptionDTO.setHash(hash);
@@ -193,6 +270,11 @@ public class SubscriptionBatchController {
         });
     }
 
+    private Topic subscribeToTopic(Subscription subscription, Topic topic, List<NotificationPreference> notificationPreferences) {
+        Topic newTopic = subscribeServices.subscribeAndGetTopic(topic, subscription);
+        saveNotificationPreferences(subscription, newTopic, notificationPreferences);
+        return newTopic;
+    }
 
     private void subscribeToTopic(Subscription subscription, List<TopicDTO> topicDTOs) {
         topicDTOs.forEach(topicDTO-> {
@@ -202,8 +284,7 @@ public class SubscriptionBatchController {
                 throw new SubscriptionException(ResponseConstants.AlREADY_SUBSCRIBED_TO_TOPIC,
                         new SubscriptionResponse(topic.getId()), null);
             }
-            topic = subscribeServices.subscribeAndGetTopic(topic, subscription);
-            saveNotificationPreferences(subscription, topic, topicDTO.getNotificationPreferencesList());
+            subscribeToTopic(subscription, topic, topicDTO.getNotificationPreferencesList());
         });
     }
 
@@ -237,36 +318,4 @@ public class SubscriptionBatchController {
         return user.orElseGet(() -> userServices.saveUser(address));
     }
 
-    @ApiOperation(value = "Gets all the subscriptions for the user or gets subscriptions for the given list of subscription hashes",
-            response = DTOResponse.class, responseContainer = ControllerConstants.LIST_RESPONSE_CONTAINER)
-    @RequestMapping(value = {"/getSubscriptions", "/getSubscriptions/{subscriptionHashArray}"}, method = RequestMethod.GET, produces = {ControllerConstants.CONTENT_TYPE_APPLICATION_JSON})
-    @ResponseBody
-    public ResponseEntity<DTOResponse> getSubscriptions(
-            @RequestHeader(name = "userAddress") String userAddress,
-            @RequestHeader(value="apiKey", required=false) String apiKey,
-            @PathVariable(required=false) String[] subscriptionHashArray
-    )   throws LoginException  {
-        DTOResponse resp = new DTOResponse();
-        List<Subscription> subscriptions = null;
-        //get allthe subscriptions when no subscription hashes provided, or only get subscriptions corresponding to given hashes
-        if (subscriptionHashArray == null || subscriptionHashArray.length == 0) {
-            subscriptions = subscribeServices.getSubscriptionByAddress(userAddress);
-        }
-        else {
-            subscriptions = subscribeServices.getSubscriptionByHashListAndUserAddress(Arrays.asList(subscriptionHashArray), userAddress);
-        }
-        User user = null;
-        //if api key is provided, get the authenticated user
-        if (apiKey != null) {
-            try {
-                user = userServices.authenticate(userAddress, apiKey);
-            }catch(CredentialException e)   {
-                logger.debug(e.getMessage(), e);
-            }
-        }
-        //when no api key provided provide only public info
-        List<SubscriptionDTO> dtos = subscribeServices.createSubscriptionDTOs(subscriptions, user);
-        resp.setContent(dtos);
-        return new ResponseEntity<>(resp, resp.getStatus());
-    }
 }
