@@ -1,6 +1,7 @@
 package org.rif.notifier.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.rif.notifier.managers.DbManagerFacade;
 import org.rif.notifier.models.DTO.*;
 import org.rif.notifier.models.entities.*;
@@ -9,6 +10,7 @@ import org.rif.notifier.util.Utils;
 import org.rif.notifier.validation.SubscribeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.datatypes.Address;
@@ -26,12 +28,16 @@ public class SubscribeServices  {
     private LuminoInvoice luminoInvoice;
     @Value("${notificationservice.maxretries}")
     private int maxRetries;
+    final private Address providerAddress;
+    final private String providerPrivateKey;
 
 
-    public SubscribeServices(DbManagerFacade dbManagerFacade, SubscribeValidator subscribeValidator, LuminoInvoice luminoInvoice)    {
+    public SubscribeServices(DbManagerFacade dbManagerFacade, SubscribeValidator subscribeValidator, LuminoInvoice luminoInvoice,  @Qualifier("providerPrivateKey") String providerPrivateKey, @Qualifier("providerAddress") Address providerAddress)    {
         this.dbManagerFacade = dbManagerFacade;
         this.subscribeValidator = subscribeValidator;
         this.luminoInvoice = luminoInvoice;
+        this.providerPrivateKey = providerPrivateKey;
+        this.providerAddress = providerAddress;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(SubscribeServices.class);
@@ -249,8 +255,8 @@ public class SubscribeServices  {
         return dbManagerFacade.updateExpiredSubscriptions();
     }
 
-    public SubscriptionBatchResponse createSubscriptionBatchResponse(SubscriptionDTO subscriptionDTO, String hash, String privateKey)   {
-        String signature = signHash(hash, privateKey);
+    public SubscriptionBatchResponse createSubscriptionBatchResponse(SubscriptionDTO subscriptionDTO, String hash)   {
+        String signature = signHash(hash, providerPrivateKey);
         SubscriptionBatchResponse response = new SubscriptionBatchResponse(hash, signature, subscriptionDTO);
         return response;
     }
@@ -271,11 +277,11 @@ public class SubscribeServices  {
         return  topicDTOs;
     }
 
-    public List<SubscriptionDTO> createSubscriptionDTOs(List<Subscription> subscriptions, Address providerAddress, User user) {
-        return subscriptions.stream().map(s->createSubscriptionDTO(s, createTopicDTO(s, user), providerAddress, user)).collect(Collectors.toList());
+    public List<SubscriptionDTO> createSubscriptionDTOs(List<Subscription> subscriptions, User user) {
+        return subscriptions.stream().map(s->createSubscriptionDTO(s, createTopicDTO(s, user), user)).collect(Collectors.toList());
     }
 
-    public SubscriptionDTO createSubscriptionDTO(Subscription subscription, List<TopicDTO> topics, Address providerAddress, User user)   {
+    public SubscriptionDTO createSubscriptionDTO(Subscription subscription, List<TopicDTO> topics, User user)   {
         SubscriptionDTO subscriptionDTO = new SubscriptionDTO();
         subscriptionDTO.setUserAddress(subscription.getUserAddress());
         subscriptionDTO.setProviderAddress(providerAddress);
@@ -291,13 +297,15 @@ public class SubscribeServices  {
         subscriptionDTO.setPaid(subscription.isPaid());
         subscriptionDTO.setHash(subscription.getHash());
         subscriptionDTO.setActiveSince(subscription.getActiveSince());
+        //only set signature for saved subscription.
+        subscriptionDTO.setSignature(StringUtils.isNotBlank(subscription.getHash()) ? signHash(subscription.getHash(), providerPrivateKey) : null);
         //set api key only for authenticated users
         if (user != null) {
             subscriptionDTO.setApiKey(user.getPlainTextKey());
         }
         Subscription previousSubscription = subscription.getPreviousSubscription();
         if (previousSubscription != null) {
-            subscriptionDTO.setPreviousSubscription(createSubscriptionDTO(previousSubscription, createTopicDTO(previousSubscription, user), providerAddress, user));
+            subscriptionDTO.setPreviousSubscription(createSubscriptionDTO(previousSubscription, createTopicDTO(previousSubscription, user), user));
         }
         return subscriptionDTO;
     }

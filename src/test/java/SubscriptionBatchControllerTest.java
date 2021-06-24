@@ -104,9 +104,9 @@ public class SubscriptionBatchControllerTest {
         SubscriptionBatchResponse response = new SubscriptionBatchResponse("test", "testsignature", subscriptionDTO);
         when(subscribeServices.getSubscriptionByHash(anyString())).thenReturn(prev);
         when(subscribeServices.getSubscriptionByHashAndUserAddress(anyString(),anyString())).thenReturn(prev);
-        when(subscribeServices.createSubscriptionDTO(any(Subscription.class), any(List.class), any(Address.class), any(User.class))).thenReturn(subscriptionDTO);
+        when(subscribeServices.createSubscriptionDTO(any(Subscription.class), any(List.class), any(User.class))).thenReturn(subscriptionDTO);
         when(subscribeServices.getSubscriptionHash(any(SubscriptionDTO.class))).thenReturn("testhash");
-        when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString(), anyString())).thenReturn(response);
+        when(subscribeServices.createSubscriptionBatchResponse(any(SubscriptionDTO.class), anyString())).thenReturn(response);
         when(currencyServices.getCurrencyByName(anyString())).thenReturn(mockTestData.mockCurrency());
         return subscriptionBatch;
     }
@@ -244,10 +244,10 @@ public class SubscriptionBatchControllerTest {
         sub2.setActiveSince(null);
         //set the status to active
         List<Subscription> subscriptions = Arrays.asList(sub, sub2);
-        doCallRealMethod().when(subscribeServices).createSubscriptionDTOs(anyList(), any(Address.class), nullable(User.class));
+        doCallRealMethod().when(subscribeServices).createSubscriptionDTOs(anyList(), nullable(User.class));
         doCallRealMethod().when(subscribeServices).createTopicDTO(any(Subscription.class), nullable(User.class));
-        doCallRealMethod().when(subscribeServices).createSubscriptionDTO(any(Subscription.class), anyList(), any(Address.class), nullable(User.class));
-        List<SubscriptionDTO> subscriptionDTOs = subscribeServices.createSubscriptionDTOs(subscriptions, new Address("0x0"), user);
+        doCallRealMethod().when(subscribeServices).createSubscriptionDTO(any(Subscription.class), anyList(), nullable(User.class));
+        List<SubscriptionDTO> subscriptionDTOs = subscribeServices.createSubscriptionDTOs(subscriptions, user);
         when(subscribeServices.getSubscriptionByAddress(anyString())).thenReturn(subscriptions);
         if (auth) {
             when(userServices.authenticate(anyString(), nullable(String.class))).thenReturn(user);

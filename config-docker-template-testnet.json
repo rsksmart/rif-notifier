@@ -6,7 +6,7 @@
 	"dbuser":"notifier_user",
 	"dbpassword":"",
 
-	"rskendpoint":"http://regtest:4444",
+	"rskendpoint":"http://mkt-cache-01.aws-us-west-2.testnet.marketplace.rifcomputing.net:4444",
 	"blockconfirmationcount":"2",
 	"notificationmanagercontract":"",
 	"tokennetworkregistry":"",

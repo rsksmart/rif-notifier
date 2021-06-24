@@ -38,6 +38,7 @@ public class SubscriptionDTO {
     private String userAddress;
     private Address providerAddress;
     private SubscriptionDTO previousSubscription;
+    private String signature;
 
 
 
@@ -171,4 +172,11 @@ public class SubscriptionDTO {
         this.paid = paid;
     }
 
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
 }

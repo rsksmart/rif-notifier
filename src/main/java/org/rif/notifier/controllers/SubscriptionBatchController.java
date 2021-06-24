@@ -43,23 +43,17 @@ public class SubscriptionBatchController {
     final private NotificationPreferenceManager notificationPreferenceManager;
     final private NotificationPreferenceValidator notificationPreferenceValidator;
     final private SubscribeValidator subscribeValidator;
-    final private Address providerAddress;
-    final private String providerPrivateKey;
 
     public SubscriptionBatchController(SubscribeServices subscribeServices, UserServices userServices,
                                        NotificationPreferenceManager notificationPreferenceManager,
                                        NotificationPreferenceValidator notificationPreferenceValidator,
                                        SubscribeValidator subscribeValidator, CurrencyValidator currencyValidator,
-                                       SubscriptionPlanServices subscriptionPlanServices,
-                                       @Qualifier("providerAddress") Address providerAddress,
-                                       @Qualifier("providerPrivateKey") String providerPrivateKey) {
+                                       SubscriptionPlanServices subscriptionPlanServices) {
         this.subscribeServices = subscribeServices;
         this.userServices = userServices;
         this.notificationPreferenceManager = notificationPreferenceManager;
         this.notificationPreferenceValidator = notificationPreferenceValidator;
         this.subscribeValidator = subscribeValidator;
-        this.providerAddress = providerAddress;
-        this.providerPrivateKey = providerPrivateKey;
         this.currencyValidator = currencyValidator;
         this.subscriptionPlanServices = subscriptionPlanServices;
     }
@@ -147,14 +141,14 @@ public class SubscriptionBatchController {
         Subscription subscription = createSubscription(user, subscriptionPrice, subscriptionPlan, previousSubscription.isPresent());
         previousSubscription.ifPresent(subscription::setPreviousSubscription);
         subscribeToTopic(subscription, subscriptionBatchDTO.getTopics());
-        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscription, subscriptionBatchDTO.getTopics(), providerAddress, user);
+        SubscriptionDTO subscriptionDTO = subscribeServices.createSubscriptionDTO(subscription, subscriptionBatchDTO.getTopics(), user);
         String hash = subscribeServices.getSubscriptionHash(subscriptionDTO);
         subscription.setHash(hash);
         subscriptionDTO.setHash(hash);
         //update the database with the generated hash
         subscribeServices.updateSubscription(subscription);
         //generate the subscription contract son
-        resp.setContent(subscribeServices.createSubscriptionBatchResponse(subscriptionDTO, hash, providerPrivateKey));
+        resp.setContent(subscribeServices.createSubscriptionBatchResponse(subscriptionDTO, hash));
         return new ResponseEntity<>(resp, resp.getStatus());
     }
 
@@ -271,7 +265,7 @@ public class SubscriptionBatchController {
             }
         }
         //when no api key provided provide only public info
-        List<SubscriptionDTO> dtos = subscribeServices.createSubscriptionDTOs(subscriptions, providerAddress, user);
+        List<SubscriptionDTO> dtos = subscribeServices.createSubscriptionDTOs(subscriptions, user);
         resp.setContent(dtos);
         return new ResponseEntity<>(resp, resp.getStatus());
     }
