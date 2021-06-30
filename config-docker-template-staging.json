@@ -15,7 +15,12 @@
 	"provideraddress":"",
 	"providerprivatekey":"",
 
-	"notificationpreferences":"API",
+	"notificationpreferences":"API,EMAIL",
 
-	"acceptedcurrencies":"rif,rbtc"
+	"acceptedcurrencies":"rif,rbtc",
+
+	"smtphost": "",
+	"smtpport": "",
+	"smtpuser": "",
+	"smtppassword": ""
 }

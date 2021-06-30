@@ -43,6 +43,10 @@ Configure the RIF notifier local instance. Available options are
 * `--providerprivatekey` -  private key that corresponds to the provider address
 * `--notificationpreferences` -  notification preferences supported by the provider (API/SMS/EMAIL) (accepts multiple values)
 * `--acceptedcurrencies` -  currencies accepted by the provider (accepts multiple values)
+* `--smtphost` -  smtp server for email notification preference, default is smtp.gmail.com
+* `--smtpport` -  smtp port of the smtp server, default is 587
+* `--smtpuser` -  smtp username of the smtp server
+* `--smtppassword` -  smtp password of the smtp server
 
    To set multiple values for same option (for ex. notificationpreferences) use
 
@@ -80,6 +84,10 @@ This command is used to configure RIF notifier docker instance. Available option
 * `--providerprivatekey` -  private key that corresponds to the provider address
 * `--notificationpreferences` -  notification preferences supported by the provider (API/SMS/EMAIL) (accepts multiple values)
 * `--acceptedcurrencies` -  currencies accepted by the provider (accepts multiple values)
+* `--smtphost` -  smtp server for email notification preference, default is smtp.gmail.com
+* `--smtpport` -  smtp port of the smtp server, default is 587
+* `--smtpuser` -  smtp username of the smtp server
+* `--smtppassword` -  smtp password of the smtp server
 
 
 ### `notifier-prov-cli dockerstart`
