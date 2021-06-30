@@ -77,9 +77,9 @@ spring:
           maxlifetime: 1800000
           maximumPoolSize: 10
     mail:
-        host: smtp.gmail.com
-        password:
-        port: 587
+        host: ${smtphost:smtp.gmail.com}
+        password: ${smtppassword:}
+        port: ${smtpport:587}
         properties:
             mail:
                 smtp:
@@ -89,7 +89,7 @@ spring:
                         enable: true
                     timeout: 5000
                     writetimeout: 5000
-        username:
+        username: ${smtpuser:}
     task:
         scheduling:
             pool:
