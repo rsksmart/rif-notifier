@@ -17,5 +17,10 @@
 
 	"notificationpreferences":"API",
 
-	"acceptedcurrencies":"rif,rbtc"
+	"acceptedcurrencies":"rif,rbtc",
+
+	"smtphost": "",
+	"smtpport": "",
+	"smtpuser": "",
+	"smtppassword": ""
 }

@@ -38,6 +38,10 @@ def main():
 @click.option("--providerprivatekey", required=False, help="Provider private key")
 @click.option("--notificationpreferences", type=click.Choice(['API', 'SMS', 'EMAIL']), required=False, multiple=True, help="Notification Preferences")
 @click.option("--acceptedcurrencies", required=False, multiple=True, help="Accepted Currency Names")
+@click.option("--smtphost", required=False, help="Smtp host for EMAIL Notification Preference (default smtp.gmail.com)")
+@click.option("--smtpport", required=False, help="Smtp port of smtp server (default 587)")
+@click.option("--smtpuser", required=False, help="Smtp username of smtp server")
+@click.option("--smtppassword", required=False, help="Smtp password of smtp server")
 def configure(**kwargs):
     """Configure RIF-Notifier"""
     setConfig(**kwargs)
@@ -53,6 +57,10 @@ def configure(**kwargs):
 @click.option("--providerprivatekey", required=False, help="Provider private key")
 @click.option("--notificationpreferences", type=click.Choice(['API', 'SMS', 'EMAIL']), required=False, multiple=True, help="Notification Preferences")
 @click.option("--acceptedcurrencies", required=False, multiple=True, help="Accepted Currency Names")
+@click.option("--smtphost", required=False, help="Smtp host for EMAIL Notification Preference (default smtp.gmail.com)")
+@click.option("--smtpport", required=False, help="Smtp port of smtp server (default 587)")
+@click.option("--smtpuser", required=False, help="Smtp username of smtp server")
+@click.option("--smtppassword", required=False, help="Smtp password of smtp server")
 def dockerconfigure(**kwargs):
     """Configure RIF-Notifier Docker instance"""
     setConfig(True, **kwargs)
