@@ -10,8 +10,9 @@ RIF Notifier is a service that listens to events on the blockchain and notifies 
 3. [Local Installation](#installation-guide)
    1. [Prerequisites for local installation](#prerequisites-for-local-installation)
    2. [Local Installation](#local-installation-steps)
-4. [Update](#update)
-5. [Usage Guide](#usage-guide)   
+5. [Notification Preference Configuration](#notification-preference-configuration)
+6. [Update](#update)
+7. [Usage Guide](#usage-guide)   
     1. [Preconditions](#preconditions)
     2. [Notifier Provider CLI](#notifier-provider-cli)
     3. [Notifier Consumer CLI](#notifier-consumer-cli)
@@ -22,7 +23,7 @@ RIF Notifier is a service that listens to events on the blockchain and notifies 
     8. [Subscribe to Plan](#subscribe-to-plan)
     9. [Renew Subscription](#renew-subscription)
     10. [Subscription and Renewal Response](#subscription-and-renewal-response)
-6. [Other available endpoints](#other-available-endpoints)   
+8. [Other available endpoints](#other-available-endpoints)   
 	1. [Retrieve notifications](#getting-notifications)
 	2. [Get subscriptions](#get-subscriptions)
 	3. [Get Lumino tokens](#get-lumino-tokens)
@@ -30,8 +31,8 @@ RIF Notifier is a service that listens to events on the blockchain and notifies 
 	5. [Subscribe to close channel](#subscribe-to-close-channel)
 	6. [Subscribe to all open channels](#subscribe-to-all-lumino-open-channels)
 	7. [Get chain addresses events](#get-rns-events)
-7. [Health Check](#health-check)
-8. [Advanced Usage Guide](#advanced-usage-guide)
+9. [Health Check](#health-check)
+10. [Advanced Usage Guide](#advanced-usage-guide)
 
 
 ## Quick Start
@@ -48,7 +49,7 @@ RIF Notifier is a service that listens to events on the blockchain and notifies 
 
 -To subscribe or renew a plan use `notifier-cons-cli subscribe` or `notifier-cons-cli renew`
 
--We use mysql for DB, setup notifier db connectivity using `notifier-prov-cli configure` for local instance, or `notifier-prov-cli dockerconfigure` for docker instance.
+-We use mysql for DB, setup notifier db connectivity using `notifier-prov-cli configure` for local instance, or `notifier-prov-cli dockerconfigure` for docker instance. Configure notification preference using [notification preference configuration](#notification-preference-configuration)
 
 -DB Schema and database rif_notifier will be generated if it does not exist, provided the mysql user has enough permissions.
 
@@ -78,13 +79,13 @@ sudo apt install git
   
 * Install notifier provider cli by following steps in [notifier provider cli](#notifier-provider-cli)
 
-* Copy `config-docker-template.json` to `config-docker.json`
+* Copy `config-docker-template.json` to `config-docker.json` (for specific environment, use the corresponding environment template config-docker-<environment>-template.json' to copy)
   
 * Set the `dbpassword` environment variable in your machine. This password is used by `notifier_user` user in mysql docker container when it is created. 
   
 * Set the same database password to rif-notifier docker configuration by running command `notifier-prov-cli dockerconfigure --dbpassword`.
   
-* Run the command `notifier-prov-cli dockerconfigure` to configure other required properties to run RIF notifier docker instance.
+* Run the command `notifier-prov-cli dockerconfigure` to configure other required properties to run RIF notifier docker instance. Configure notification preference using [notification preference configuration](#notification-preference-configuration)
 
 * Run the command ```notifier-prov-cli dockerbuild```  This command will build the mysql, and rif-notifier docker images and run it. Wait for the server to start until you see message started application in x(seconds).
 
@@ -161,9 +162,22 @@ bin/install.sh <database root user> <database root password> <notifier_user pass
 ```
 The third parameter is the password for user ```notifier_user``` which will be created by this script
 
+3. Configure notification preference using [notification preference configuration](#notification-preference-configuration)
+
 
 
 ---
+## Notification Preference Configuration
+Currently only EMAIL notification preference can be configured. In order to configure the email notification preference to use your smtp host parameters
+
+### EMAIL Preference Configuration:
+run the command below with your own smtphost, smtpport, smtpuser, and smtppassword:
+
+`notifier-prov-cli dockerconfigure --smtphost <smtphost> --smtpport <smtpport> --smtpuser <smtpuser> --smtppassword <smtppassword>` to configure in docker instance
+
+`notifier-prov-cli configure --smtphost <smtphost> --smtpport <smtpport> --smtpuser <smtpuser> --smtppassword <smtppassword>` to configure in local instance
+
+
 
 ## Update
 To update an already installed RIF Notifier follow these steps:
