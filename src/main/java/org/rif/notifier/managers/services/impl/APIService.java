@@ -1,7 +1,5 @@
 package org.rif.notifier.managers.services.impl;
 
-import com.sun.jndi.toolkit.url.Uri;
-import org.hibernate.validator.internal.constraintvalidators.hv.URLValidator;
 import org.rif.notifier.exception.NotificationException;
 import org.rif.notifier.helpers.EncryptHelper;
 import org.rif.notifier.managers.services.NotificationService;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Optional;
 

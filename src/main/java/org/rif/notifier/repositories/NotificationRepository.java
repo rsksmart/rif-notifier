@@ -23,7 +23,14 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     List<Notification> findAllBySentFalseAndNotificationLogs_RetryCountLessThan(int count);
 
-    @Query(value="SELECT * FROM notification n LEFT JOIN notification_log nl ON nl.notification_id=n.id JOIN subscription s ON s.user_address = n.to_address AND s.status='ACTIVE' WHERE n.sent=FALSE AND (nl.retry_count IS NULL OR nl.retry_count < ?1) AND (nl.sent IS NULL OR nl.sent=FALSE)", nativeQuery = true)
+    /**
+     * This method pulls unsent notifications 'ACTIVE' and 'COMPLETED' subscriptions. Since the status turns to 'COMPLETED' as soon as the
+     * notification balance is zero, we also fetch unsent notifications for 'COMPLETED' subscriptions due to the fact the notifier
+     * can retry failed notifications as many times as the maxretries specified in configuration
+     * @param retryCount
+     * @return
+     */
+    @Query(value="SELECT * FROM notification n LEFT JOIN notification_log nl ON nl.notification_id=n.id JOIN subscription s ON s.id = n.subscription_id AND s.status not in ('PENDING', 'EXPIRED') WHERE n.sent=FALSE AND (nl.retry_count IS NULL OR nl.retry_count < ?1) AND (nl.sent IS NULL OR nl.sent=FALSE)", nativeQuery = true)
     Set<Notification> findUnsentNotifications(int retryCount);
 
     /**
@@ -33,7 +40,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
      * @param retryCount
      * @return
      */
-    @Query(value="SELECT COUNT(1) FROM notification n LEFT JOIN notification_log nl ON nl.notification_id=n.id JOIN subscription s ON s.user_address = n.to_address AND s.status='ACTIVE' AND s.id=?1 WHERE n.sent=FALSE AND (nl.retry_count IS NULL OR nl.retry_count < ?2) AND (nl.sent IS NULL OR nl.sent=FALSE)", nativeQuery = true)
+    @Query(value="SELECT COUNT(1) FROM notification n LEFT JOIN notification_log nl ON nl.notification_id=n.id JOIN subscription s ON s.id = n.subscription_id AND s.status='ACTIVE' AND s.id=?1 WHERE n.sent=FALSE AND (nl.retry_count IS NULL OR nl.retry_count < ?2) AND (nl.sent IS NULL OR nl.sent=FALSE)", nativeQuery = true)
     int countUnsentNotifications(int subscriptionId, int retryCount);
 
 

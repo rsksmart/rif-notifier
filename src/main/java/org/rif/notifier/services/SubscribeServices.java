@@ -327,18 +327,21 @@ public class SubscribeServices  {
         return Utils.signAsString(hash, privateKey);
     }
 
-    /*
-    * Find a renewal candidate if the notification balance is zero and if exists a renewal subscription linked to the
-    * given subscription. This method ensures that there are no unsent notifications in the previous subscription before
-    * providing a renewal subscription.
+    /**
+     * Sets the subscription status to COMPLETED if the active subscription's notification balance is zero.
+     * This method ensures that there are no unsent notifications in the previous subscription
+     * before setting the subscription status to COMPLETED.
+     * @param prev the subscription to be updated to COMPLETED status when it has zero balance.
+     * @return true if the subscription status is set to COMPLETED
      */
-    private Optional<Subscription> getRenewalSubscription(Subscription prev)  {
-        boolean renewalCandidate = prev.getNotificationBalance() <= 0;
-        if(renewalCandidate)    {
-            // If there are any unsent notifications in the previous subscription, then skip processing renewal
-            renewalCandidate = dbManagerFacade.getUnsentNotificationsCount(prev.getId(), maxRetries) == 0;
+    public boolean completeWhenZeroBalance(Subscription prev)  {
+        if (prev.getNotificationBalance() <= 0 && prev.getStatus() == SubscriptionStatus.ACTIVE)    {
+            //change status of subscription from active to complete as there is no remaining balance in subscription
+            prev.setStatus(SubscriptionStatus.COMPLETED);
+            dbManagerFacade.updateSubscription(prev);
+            return true;
         }
-        return Optional.ofNullable(renewalCandidate ? dbManagerFacade.getSubscriptionByPreviousSubscription(prev) : null);
+        return false;
     }
 
     /**
@@ -348,17 +351,12 @@ public class SubscribeServices  {
      * @param prev the subscription for which a renewal has to be attempted
      * @return true if the subscription has renewal and successfully renewed.
      */
-    public boolean renewWhenZeroBalance(Subscription prev)    {
-        Optional<Subscription> renewalSubscription = getRenewalSubscription(prev);
-        //if the renewal subscription linked to prev subscription exists, then process renewal, and also
-        Optional<Boolean> renewed = renewalSubscription.map(renewal-> {
-           //change status of previous subscription from active to complete as there is no remaining balance in subscription
-           if (prev.getStatus() == SubscriptionStatus.ACTIVE) {
-               prev.setStatus(SubscriptionStatus.COMPLETED);
-               dbManagerFacade.updateSubscription(prev);
-           }
-           return activateSubscription(renewal);
-        });
-        return renewed.isPresent() && renewed.get();
+    public boolean renewCompletedSubscription(Subscription prev)    {
+        Subscription renewalSubscription = dbManagerFacade.getSubscriptionByPreviousSubscription(prev);
+        //if the renewal subscription linked to prev subscription exists, then process renewal
+        if (renewalSubscription != null)    {
+           return activateSubscription(renewalSubscription);
+        }
+        return false;
     }
 }
