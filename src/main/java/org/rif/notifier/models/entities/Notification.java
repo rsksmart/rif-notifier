@@ -16,7 +16,7 @@ public class Notification implements Serializable  {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name="to_address", referencedColumnName = "user_address")
+    @JoinColumn(name="subscription_id")
     private Subscription subscription;
 
     private String timestamp;

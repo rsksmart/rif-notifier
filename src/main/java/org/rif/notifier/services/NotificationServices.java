@@ -64,10 +64,11 @@ public class NotificationServices {
                 logger.warn("Error sending notification for " + log.getNotificationPreference().getNotificationService() + " " + notification.getId(), e);
             }
         });
-        //renew the subscription if there is no remaining notification balance and all retries are exhausted or all notifications are sent
+        //set subscription status to COMPLETED, if there is no remaining notification balance and all retries are exhausted or
+        // when all notifications are sent. Renew the subscription in case there exists a renewal for a completed subscription
         logs = notification.getNotificationLogs().stream().filter(log->!log.isSent() && log.getRetryCount()<maxRetries).collect(Collectors.toList());
-        if(logs.isEmpty()) {
-            subscribeServices.renewWhenZeroBalance(notification.getSubscription());
+        if(logs.isEmpty() && subscribeServices.completeWhenZeroBalance(notification.getSubscription())) {
+            subscribeServices.renewCompletedSubscription(notification.getSubscription());
         }
         return notification;
     }
